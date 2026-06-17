@@ -52,8 +52,8 @@ iframe{width:100%;height:300px;border:0;border-radius:10px;border:1px solid #ccc
 </header>
 <div class="bar">
   <button class="tool" id="btnRefresh" onclick="load()">↻ Refresh from sheet</button>
-  <button class="tool on" id="btnPending" onclick="setMode('pending')">Pending only</button>
-  <button class="tool" id="btnAll" onclick="setMode('all')">Show active too</button>
+  <button class="tool on" id="btnPending" onclick="setMode('pending')">Needs review</button>
+  <button class="tool" id="btnAll" onclick="setMode('all')">Show all</button>
   <span id="status">Loading…</span>
 </div>
 <div class="legend">Left panel = the <b>submitted address</b> (the Jobber side). Right panel = the exact <b>column-U pin</b> the crew is sent to. If both show the <b>same house</b>, it's good. The <b>Open Google Map</b> button is the real clickable column-U link — no formula-bar copying. The <b>⚠ review</b> badge flags rows whose pin address text didn't obviously match — eyeball those first.</div>
@@ -64,7 +64,7 @@ iframe{width:100%;height:300px;border:0;border-radius:10px;border:1px solid #ccc
 <script>
 const SHEET_ID='1VLwiva5-3ZHEGjLe_coKDKy5cgRAgGHzDHOz4wOsQPA';
 const GID='948557486';
-let MODE='pending';
+let MODE=(location.hash && /#row\d+/.test(location.hash)) ? 'all' : 'pending';
 let LAST=[];
 
 function emb(q,z){return 'https://maps.google.com/maps?q='+encodeURIComponent(q)+'&t=k&z='+z+'&hl=en&output=embed';}
@@ -106,9 +106,9 @@ function renderCards(){
   const pendCount=LAST.filter(isNonActive).length;
   const flagged=list.filter(r=>isNonActive(r)&&hint(r)[0]==='warn').length;
   const flagTxt=flagged?(' · <b style="color:#d32f2f">⚠ '+flagged+' need review</b>'):' · <span style="color:#1f7a1f">all clear</span>';
-  document.getElementById('status').innerHTML=pendCount+' pending'+flagTxt+' · '+LAST.length+' total with URLs · updated '+new Date().toLocaleTimeString();
+  document.getElementById('status').innerHTML=pendCount+' to review'+flagTxt+' · '+LAST.length+' total with URLs · updated '+new Date().toLocaleTimeString();
   const wrap=document.getElementById('cards');const empty=document.getElementById('empty');
-  if(!list.length){wrap.innerHTML='';empty.style.display='block';empty.textContent=showActive?'No rows with URLs yet.':'🎉 No pending rows — everything with URLs is already activated.';return;}
+  if(!list.length){wrap.innerHTML='';empty.style.display='block';empty.textContent=showActive?'No rows with URLs yet.':'🎉 Nothing to review — everything with URLs is activated.';return;}
   empty.style.display='none';
   wrap.innerHTML=list.map(p=>{
     const addr=(p.street+', '+p.city+', UT '+p.zip).replace(/, ,/g,',').trim().replace(/,+$/,'');
@@ -136,7 +136,7 @@ function load(){
   s.onerror=function(){document.getElementById('status').textContent='Could not reach the sheet (check the sheet is shared “anyone with link → viewer”).';};
   document.body.appendChild(s);
 }
-load();
+setMode(MODE); load();
 </script>
 </body>
 </html>
