@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chip Drop — Live Visual QA</title>
+<style>
+:root{--green:#2a3a25;--orange:#C9601A;--cream:#f9f6f2;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef0ec;color:#1f2a1b;padding:18px;}
+header{background:var(--green);color:var(--cream);padding:16px 20px;border-radius:12px;margin-bottom:14px;}
+header h1{font-size:20px;margin-bottom:4px}
+header p{font-size:13px;opacity:.9}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+button.tool{font-size:13px;font-weight:600;border:1px solid #cfd4cc;background:#fff;color:var(--green);padding:8px 14px;border-radius:8px;cursor:pointer}
+button.tool:hover{background:#f3f5f1}
+button.tool.on{background:var(--green);color:#fff;border-color:var(--green)}
+#status{font-size:12px;color:#555}
+.legend{font-size:12px;background:#fff;border:1px solid #dde;border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.6}
+.legend b{color:var(--orange)}
+.card{background:#fff;border:1px solid #dde0da;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card.warn{border:2px solid #d32f2f;border-left:10px solid #d32f2f;background:#fff7f6}
+.card.match{border-left:10px solid #1f7a1f}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.rownum{background:var(--green);color:#fff;font-size:12px;padding:2px 8px;border-radius:6px;font-weight:600}
+.cname{font-size:17px;font-weight:700;margin-left:6px}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.badge.match{background:#e3f3e3;color:#1f7a1f}
+.badge.warn{background:#d32f2f;color:#fff;font-size:14px;padding:5px 16px;box-shadow:0 0 0 3px rgba(211,47,47,.18)}
+.badge.active{background:#e0ecff;color:#2b5cad}
+.sub{font-size:13px;color:#333;margin-bottom:6px}
+.muted{color:#888}
+.hint{font-size:12px;padding:4px 10px;border-radius:6px;margin-bottom:10px;display:inline-block}
+.hint.match{background:#eef8ee;color:#1f7a1f}
+.hint.warn{background:#fff4e4;color:#b35a00}
+.maps{display:flex;gap:12px;flex-wrap:wrap}
+figure{flex:1;min-width:280px}
+figcaption{font-size:12px;font-weight:600;color:var(--green);margin-bottom:4px}
+iframe{width:100%;height:300px;border:0;border-radius:10px;border:1px solid #ccc;background:#dde}
+.btns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn{text-decoration:none;font-size:13px;font-weight:600;padding:8px 14px;border-radius:8px;color:#fff}
+.btn.jobber{background:#5b2d8e}
+.btn.maps2{background:var(--orange)}
+#empty{padding:30px;text-align:center;color:#666;font-size:14px;background:#fff;border-radius:12px}
+.tip{font-size:12px;color:#555;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Chip Drop — Live Visual QA</h1>
+  <p>Pulls the current sheet every time you open or refresh. Compare the two satellite views per row: same rooftop = good → activate; different = inactivate / fix.</p>
+</header>
+<div class="bar">
+  <button class="tool" id="btnRefresh" onclick="load()">↻ Refresh from sheet</button>
+  <button class="tool on" id="btnPending" onclick="setMode('pending')">Pending only</button>
+  <button class="tool" id="btnAll" onclick="setMode('all')">Show active too</button>
+  <span id="status">Loading…</span>
+</div>
+<div class="legend">Left panel = the <b>submitted address</b> (the Jobber side). Right panel = the exact <b>column-U pin</b> the crew is sent to. If both show the <b>same house</b>, it's good. The <b>Open Google Map</b> button is the real clickable column-U link — no formula-bar copying. The <b>⚠ review</b> badge flags rows whose pin address text didn't obviously match — eyeball those first.</div>
+<div id="cards"></div>
+<div id="empty" style="display:none"></div>
+<div class="tip">Satellite tiles load as you scroll. If a panel is blank, click <b>Open Google Map</b> for the full map. Data: TTC Chip Drops — Live (v2).</div>
+
+<script>
+const SHEET_ID='1VLwiva5-3ZHEGjLe_coKDKy5cgRAgGHzDHOz4wOsQPA';
+const GID='948557486';
+let MODE='pending';
+let LAST=[];
+
+function emb(q,z){return 'https://maps.google.com/maps?q='+encodeURIComponent(q)+'&t=k&z='+z+'&hl=en&output=embed';}
+function cell(r,i){const c=r.c&&r.c[i];return (c&&c.v!=null)?(''+c.v).trim():'';}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function parseU(u){
+  let place='';let m=u.match(/\/maps\/place\/([^/]+)\//);if(m){try{place=decodeURIComponent(m[1].replace(/\+/g,' '));}catch(e){place=m[1].replace(/\+/g,' ');}}
+  let lat=null,lng=null;m=u.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if(m){lat=m[1];lng=m[2];}else{m=u.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);if(m){lat=m[1];lng=m[2];}}
+  return {place,lat,lng};
+}
+function hint(p){
+  const num=(p.street.match(/^\s*(\d+)/)||[])[1]||'';
+  const pl=(p.place||'').toLowerCase();
+  const okNum=num&&pl.indexOf(num)>=0;
+  const okCity=p.city?pl.indexOf(p.city.toLowerCase())>=0:true;
+  if(okNum&&okCity)return['match','Pin address matches the submitted address'];
+  if(okNum&&!okCity)return['warn','House number matches but CITY differs — check the town'];
+  return['warn','Pin address text differs from submitted — eyeball carefully'];
+}
+function gvizCb(resp){
+  try{
+    const rows=(resp&&resp.table&&resp.table.rows)||[];
+    const recs=[];
+    rows.forEach((r,i)=>{
+      const name=(cell(r,1)+' '+cell(r,2)).trim();
+      const T=cell(r,19),U=cell(r,20),Q=cell(r,16);
+      if(!name||!T||!U)return;
+      const pu=parseU(U);
+      recs.push({sheetRow:i+2,name,street:cell(r,4),city:cell(r,5),zip:cell(r,6),T,U,Q,place:pu.place,lat:pu.lat,lng:pu.lng});
+    });
+    LAST=recs; renderCards();
+  }catch(e){document.getElementById('status').textContent='Parse error: '+e.message;}
+}
+function renderCards(){
+  const showActive=(MODE==='all');
+  const isNonActive=r=>(r.Q||'').trim().toLowerCase()!=='active';
+  const list=LAST.filter(r=>showActive?true:isNonActive(r));
+  const pendCount=LAST.filter(isNonActive).length;
+  const flagged=list.filter(r=>isNonActive(r)&&hint(r)[0]==='warn').length;
+  const flagTxt=flagged?(' · <b style="color:#d32f2f">⚠ '+flagged+' need review</b>'):' · <span style="color:#1f7a1f">all clear</span>';
+  document.getElementById('status').innerHTML=pendCount+' pending'+flagTxt+' · '+LAST.length+' total with URLs · updated '+new Date().toLocaleTimeString();
+  const wrap=document.getElementById('cards');const empty=document.getElementById('empty');
+  if(!list.length){wrap.innerHTML='';empty.style.display='block';empty.textContent=showActive?'No rows with URLs yet.':'🎉 No pending rows — everything with URLs is already activated.';return;}
+  empty.style.display='none';
+  wrap.innerHTML=list.map(p=>{
+    const addr=(p.street+', '+p.city+', UT '+p.zip).replace(/, ,/g,',').trim().replace(/,+$/,'');
+    const left=emb(addr,18);
+    const right=p.lat?emb(p.lat+','+p.lng,19):emb(addr,18);
+    const [cls,msg]=hint(p);
+    const badge=p.Q?('<div class="badge active">'+esc(p.Q)+'</div>'):('<div class="badge '+cls+'">'+(cls==='match'?'✓ likely match':'⚠ NEEDS REVIEW')+'</div>');
+    const coords=p.lat?(p.lat+', '+p.lng):'—';
+    return '<div class="card '+cls+'" id="row'+p.sheetRow+'"><div class="chead"><div><span class="rownum">Row '+p.sheetRow+'</span> <span class="cname">'+esc(p.name)+'</span></div>'+badge+'</div>'+
+      '<div class="sub">Submitted: <b>'+esc(addr)+'</b> &nbsp;·&nbsp; Pin reads: <b>'+esc(p.place||'—')+'</b> &nbsp;·&nbsp; <span class="muted">'+esc(coords)+'</span></div>'+
+      '<div class="hint '+cls+'">'+esc(msg)+'</div>'+
+      '<div class="maps"><figure><figcaption>📍 Submitted address (Jobber side)</figcaption><iframe loading="lazy" src="'+left+'"></iframe></figure>'+
+      '<figure><figcaption>🗺️ Column U pin — where chips go</figcaption><iframe loading="lazy" src="'+right+'"></iframe></figure></div>'+
+      '<div class="btns"><a class="btn jobber" href="'+esc(p.T)+'" target="_blank" rel="noopener">Open Jobber profile ↗</a>'+
+      '<a class="btn maps2" href="'+esc(p.U)+'" target="_blank" rel="noopener">Open Google Map (col U) ↗</a></div></div>';
+  }).join('');
+  if(location.hash){setTimeout(function(){var el=document.querySelector(location.hash);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='3px solid #C9601A';}},350);}
+}
+function setMode(m){MODE=m;document.getElementById('btnPending').classList.toggle('on',m==='pending');document.getElementById('btnAll').classList.toggle('on',m==='all');renderCards();}
+function load(){
+  document.getElementById('status').textContent='Loading…';
+  const old=document.getElementById('gvizScript');if(old)old.remove();
+  const s=document.createElement('script');s.id='gvizScript';
+  s.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?gid='+GID+'&tqx=reqId:'+Date.now()+';responseHandler:gvizCb';
+  s.onerror=function(){document.getElementById('status').textContent='Could not reach the sheet (check the sheet is shared “anyone with link → viewer”).';};
+  document.body.appendChild(s);
+}
+load();
+</script>
+</body>
+</html>
