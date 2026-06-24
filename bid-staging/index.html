@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TTC Bid Staging Board</title>
-<link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/maps/maps.css">
-<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/maps/maps-web.min.js"></script>
-<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/services/services-web.min.js"></script>
+<link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css">
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/services/services-web.min.js"></script>
 <style>
   :root{color-scheme:light}
   *{box-sizing:border-box}
@@ -164,7 +164,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
   MAP=tt.map({key:TOMTOM_KEY,container:"map",center:[DATA.home.lng,DATA.home.lat],zoom:10});
   MAP.addControl(new tt.NavigationControl());
   MAP.on("load",()=>renderDay(CUR));
-}).catch(e=>{document.getElementById("stops").innerHTML="Could not load data.json — the page must be served over http (GitHub Pages or a local server), not opened from disk.";});
+}).catch(e=>{document.getElementById("stops").innerHTML="Load error: "+e.message+" — check the TomTom key/whitelist, or that data.json is present.";});
 </script>
 </body>
 </html>
