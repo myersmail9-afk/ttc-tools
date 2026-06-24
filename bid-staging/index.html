@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TTC Bid Staging Board</title>
+<link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/maps/maps.css">
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/maps/maps-web.min.js"></script>
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.25.0/services/services-web.min.js"></script>
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#1c2024;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 18px 40px}
+  .hd{display:flex;align-items:center;gap:10px}
+  .logo{width:30px;height:30px;border-radius:8px;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  h1{font-size:20px;margin:0;font-weight:750}
+  .sub{color:#8a9099;font-size:12.5px;margin:2px 0 12px 40px}
+  .horizon{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#f3f8f4;border:1px solid #cfe9d8;border-radius:11px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#2f6b48}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .tab{cursor:pointer;border:1px solid #e3e6ea;background:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:650;color:#3a4047}
+  .tab .v{display:block;font-size:11px;color:#9aa0a6;font-weight:500}
+  .tab.on{background:#eef4ff;border-color:#bcd4ff;color:#1d4ed8}
+  .tab.on .v{color:#5b87d6}
+  .layout{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
+  #map{flex:1 1 460px;min-width:320px;height:560px;border-radius:14px;border:1px solid #e6e8eb;overflow:hidden}
+  .panel{flex:1 1 320px;min-width:300px}
+  .daymeta{font-size:12px;color:#8a9099;margin:0 2px 8px}
+  .stop{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-top:1px solid #f0f2f4}
+  .pin{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:#f97316;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .stop .nm a{color:#1d4ed8;text-decoration:none;font-weight:650}
+  .stop .nm a:hover{text-decoration:underline}
+  .stop .mt{color:#8a9099;font-size:12px}
+  .time{flex:0 0 auto;font-weight:800;color:#15803d;font-variant-numeric:tabular-nums;font-size:12.5px;margin-top:3px;width:42px}
+  .tag{font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:5px}
+  .export{margin-top:14px;width:100%;background:#2563eb;color:#fff;border:0;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer}
+  .note{font-size:11px;color:#aab0b6;margin-top:5px;text-align:center}
+  .small{margin-top:18px;background:#fff;border:1px solid #e6e8eb;border-radius:12px;padding:12px 14px;font-size:12.5px}
+  .lbl{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .flag{background:#fff5f5;border:1px solid #fbd5d5;border-radius:10px;padding:11px 14px;font-size:12px;color:#b42318;margin-top:12px;line-height:1.55}
+  a.req{color:#1d4ed8;text-decoration:none}
+  #keywarn{display:none;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:11px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5}
+  .mk{width:26px;height:26px;border-radius:50%;color:#fff;font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><div class="logo">TTC</div><h1>Bid Staging Board</h1></div>
+  <div class="sub">Pre-export QA workspace &middot; live TomTom routes &middot; names link to their Jobber request</div>
+
+  <div id="keywarn">⚠ <b>Set your TomTom key.</b> Open <code>index.html</code> and replace <code>PASTE_YOUR_TOMTOM_KEY_HERE</code> with a free key from developer.tomtom.com (see <code>README.md</code>). The map stays blank until then.</div>
+
+  <div class="horizon" id="horizon"></div>
+  <div class="tabs" id="tabs"></div>
+
+  <div class="layout">
+    <div id="map"></div>
+    <div class="panel">
+      <div class="daymeta" id="daymeta"></div>
+      <div id="stops"></div>
+      <button class="export" id="exportBtn"></button>
+      <div class="note">Schedules the day's assessments in Jobber + assigns Joseph (purple). Nothing sent.</div>
+    </div>
+  </div>
+
+  <div class="small">
+    <div class="lbl">Far / hold — verify before scheduling</div>
+    <div id="farhold"></div>
+  </div>
+  <div class="flag" id="flags"></div>
+</div>
+
+<script>
+// ============================================================================
+//  SET THIS: a free TomTom Maps API key from https://developer.tomtom.com
+//  (Free tier; restrict it to your GitHub Pages domain in the TomTom dashboard.)
+// ============================================================================
+const TOMTOM_KEY = "oX0dtDSFVM1NSfXQVWAGvuFKWDNeqDzD";
+
+const DAYCOLORS = {mon:"#f97316", wed:"#2563eb", thu:"#7c3aed"};
+const TAGSTYLE = {PhC:["#f3e8ff","#7c3aed"],recovery:["#ffedd5","#c2410c"],assess:["#e0edff","#1d4ed8"],
+  BlueStakes:["#fef9c3","#a16207"],aged:["#fee2e2","#b91c1c"],address:["#e2e8f0","#475569"]};
+
+let MAP, DATA, MARKERS = [], CUR = "mon";
+
+function tag(t){const c=TAGSTYLE[t]||["#eee","#555"];return `<span class="tag" style="background:${c[0]};color:${c[1]}">${t}</span>`;}
+
+function clearMap(){
+  MARKERS.forEach(m=>m.remove()); MARKERS=[];
+  if(MAP.getLayer("route")) MAP.removeLayer("route");
+  if(MAP.getSource("route")) MAP.removeSource("route");
+}
+
+function numberMarker(num,color){
+  const el=document.createElement("div"); el.className="mk"; el.style.background=color; el.textContent=num; return el;
+}
+function squareMarker(label){
+  const el=document.createElement("div"); el.className="mk"; el.style.background="#16a34a"; el.style.borderRadius="5px"; el.textContent=label; return el;
+}
+
+function renderDay(id){
+  CUR=id;
+  const day=DATA.days.find(d=>d.id===id);
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.id===id));
+  // panel
+  document.getElementById("daymeta").textContent =
+    `${day.valley} · ${day.stops.length} stops · ${day.miles} mi · ${day.drive} drive · home ${day.homeETA}`;
+  document.getElementById("stops").innerHTML = day.stops.map(s=>`
+    <div class="stop">
+      <div class="time">${s.time}</div>
+      <div class="pin" style="background:${DAYCOLORS[id]}">${s.n}</div>
+      <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>${(s.tags||[]).map(tag).join("")}
+        <div class="mt">${s.town} &middot; ${s.service}</div></div>
+    </div>`).join("");
+  const btn=document.getElementById("exportBtn");
+  btn.textContent = `Export ${day.label} to Jobber →`;
+  btn.onclick = ()=>alert(`This hosted board is read-only. To export, run in Claude:\n\n"Export the ${day.label} bid day to Jobber"`);
+
+  if(!MAP || !MAP.loaded()){ return; }
+  clearMap();
+  const color=DAYCOLORS[id];
+  const bounds=new tt.LngLatBounds();
+  // lot + home
+  [["L",DATA.lot],["H",DATA.home]].forEach(([lab,p])=>{
+    const m=new tt.Marker({element:squareMarker(lab),anchor:"center"}).setLngLat([p.lng,p.lat])
+      .setPopup(new tt.Popup({offset:18}).setHTML(`<b>${p.name}</b><br>${p.addr}`)).addTo(MAP);
+    MARKERS.push(m); bounds.extend([p.lng,p.lat]);
+  });
+  // stops
+  day.stops.forEach(s=>{
+    const m=new tt.Marker({element:numberMarker(s.n,color),anchor:"center"}).setLngLat([s.lng,s.lat])
+      .setPopup(new tt.Popup({offset:18}).setHTML(
+        `<b>${s.n}. <a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></b><br>${s.time} &middot; ${s.town}<br>${s.service}`)).addTo(MAP);
+    MARKERS.push(m); bounds.extend([s.lng,s.lat]);
+  });
+  MAP.fitBounds(bounds,{padding:60,maxZoom:13});
+  // real road route (lot -> stops -> home)
+  const locs=[DATA.lot,...day.stops,DATA.home].map(p=>`${p.lng},${p.lat}`).join(":");
+  tt.services.calculateRoute({key:TOMTOM_KEY,locations:locs}).then(res=>{
+    const gj=res.toGeoJson();
+    if(MAP.getLayer("route")) MAP.removeLayer("route");
+    if(MAP.getSource("route")) MAP.removeSource("route");
+    MAP.addSource("route",{type:"geojson",data:gj});
+    MAP.addLayer({id:"route",type:"line",source:"route",
+      paint:{"line-color":color,"line-width":4,"line-opacity":0.55}},
+      MAP.getStyle().layers[MAP.getStyle().layers.length-1].id);
+  }).catch(e=>console.warn("route error",e));
+}
+
+function buildChrome(){
+  document.getElementById("horizon").innerHTML =
+    `<b style="color:#15803d">${DATA.horizon.split("·")[0]}</b><span>${DATA.horizon.split("·").slice(1).join(" · ")}</span>`;
+  document.getElementById("tabs").innerHTML = DATA.days.map(d=>
+    `<div class="tab" data-id="${d.id}"><b>${d.label}</b><span class="v">${d.valley} · ${d.stops.length} stops</span></div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>renderDay(t.dataset.id));
+  document.getElementById("farhold").innerHTML = DATA.farHold.map(f=>
+    `<a class="req" href="${f.url}" target="_blank" rel="noopener">${f.name}</a> <span style="color:#aab0b6">&middot; ${f.town}</span>`).join(" &nbsp;&nbsp; ");
+  document.getElementById("flags").innerHTML = "<b>Verify in Jobber before export:</b> " + DATA.flags.join(" &middot; ");
+}
+
+fetch("data.json").then(r=>r.json()).then(d=>{
+  DATA=d; buildChrome();
+  if(TOMTOM_KEY==="PASTE_YOUR_TOMTOM_KEY_HERE"){ document.getElementById("keywarn").style.display="block"; renderDay(CUR); return; }
+  MAP=tt.map({key:TOMTOM_KEY,container:"map",center:[DATA.home.lng,DATA.home.lat],zoom:10});
+  MAP.addControl(new tt.NavigationControl());
+  MAP.on("load",()=>renderDay(CUR));
+}).catch(e=>{document.getElementById("stops").innerHTML="Could not load data.json — the page must be served over http (GitHub Pages or a local server), not opened from disk.";});
+</script>
+</body>
+</html>
