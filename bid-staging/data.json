@@ -1,58 +1,524 @@
 {
   "generatedAt": "2026-06-24",
-  "horizon": "Built out Mon Jun 29 → Thu Jul 2 · 3 bid days · 21 of 25 requests staged · capacity ~2–3 weeks",
-  "lot":  {"name": "TTC Lot", "addr": "3853 N 200 W, Hyde Park", "lat": 41.80301, "lng": -111.83719},
-  "home": {"name": "David's home", "addr": "529 E 400 S, River Heights", "lat": 41.72358, "lng": -111.82166},
+  "horizon": "21 of 28 unscheduled requests staged \u00b7 4 bid days used (Wed Jun 24 \u2192 Wed Jul 1) \u00b7 8 frozen confirmed bids honored (Roger Cook Mon + 7 on Thu) \u00b7 7 held \u00b7 3-week horizon",
+  "lot": {
+    "name": "TTC Lot",
+    "addr": "3853 N 200 W, Hyde Park",
+    "lat": 41.80301,
+    "lng": -111.83719
+  },
+  "home": {
+    "name": "David's home",
+    "addr": "529 E 400 S, River Heights",
+    "lat": 41.72358,
+    "lng": -111.82166
+  },
   "days": [
     {
-      "id": "mon", "label": "Mon Jun 29", "date": "2026-06-29", "valley": "South Valley",
-      "miles": 30.0, "drive": "1h 12m", "homeETA": "~1:20",
+      "id": "wed",
+      "label": "Wed Jun 24",
+      "date": "2026-06-24",
+      "valley": "South Valley",
+      "miles": 32.0,
+      "drive": "1h 09m",
+      "homeETA": "~1:57",
       "stops": [
-        {"n": 1, "name": "Garry & Sue Fredrickson", "town": "Hyrum", "time": "8:00", "service": "Pruning — evergreen over shed", "url": "https://secure.getjobber.com/work_requests/30992224", "lat": 41.63831, "lng": -111.85901, "tags": []},
-        {"n": 2, "name": "Jackie Foster", "town": "Hyrum", "time": "8:45", "service": "PhC — declining pine", "url": "https://secure.getjobber.com/work_requests/30986061", "lat": 41.64149, "lng": -111.87928, "tags": ["PhC"]},
-        {"n": 3, "name": "Nick Salerno", "town": "Millville", "time": "9:30", "service": "Pruning — apple", "url": "https://secure.getjobber.com/work_requests/31012090", "lat": 41.68654, "lng": -111.82636, "tags": []},
-        {"n": 4, "name": "Mike & Jenneice Beckstrand", "town": "Providence", "time": "10:15", "service": "PhC — mildew follow-up", "url": "https://secure.getjobber.com/work_requests/31057566", "lat": 41.69928, "lng": -111.80533, "tags": ["recovery"]},
-        {"n": 5, "name": "Linda / Wally Smith", "town": "Providence", "time": "11:00", "service": "Consultation + pruning", "url": "https://secure.getjobber.com/work_requests/31032682", "lat": 41.70529, "lng": -111.80435, "tags": []},
-        {"n": 6, "name": "Bill Chandler", "town": "Providence", "time": "11:45", "service": "Risk assessment — 2 honey locusts", "url": "https://secure.getjobber.com/work_requests/31037527", "lat": 41.71624, "lng": -111.81762, "tags": ["assess"]},
-        {"n": 7, "name": "William Wellbaum", "town": "Logan", "time": "12:30", "service": "Pruning + PhC — 4 trees", "url": "https://secure.getjobber.com/work_requests/30984165", "lat": 41.73622, "lng": -111.79964, "tags": []}
+        {
+          "name": "Jackie Foster",
+          "town": "Hyrum",
+          "time": "8:00",
+          "service": "PhC \u2014 declining pine",
+          "url": "https://secure.getjobber.com/work_requests/30986061",
+          "lat": 41.64149,
+          "lng": -111.87928,
+          "tags": [
+            "PhC"
+          ],
+          "n": 1
+        },
+        {
+          "name": "Garry & Sue Fredrickson",
+          "town": "Hyrum",
+          "time": "8:45",
+          "service": "Pruning \u2014 evergreen over shed",
+          "url": "https://secure.getjobber.com/work_requests/30992224",
+          "lat": 41.63831,
+          "lng": -111.85901,
+          "tags": [],
+          "n": 2
+        },
+        {
+          "name": "Nick Salerno",
+          "town": "Millville",
+          "time": "9:30",
+          "service": "Pruning \u2014 apple",
+          "url": "https://secure.getjobber.com/work_requests/31012090",
+          "lat": 41.68654,
+          "lng": -111.82636,
+          "tags": [],
+          "n": 3
+        },
+        {
+          "name": "William Wellbaum",
+          "town": "Logan",
+          "time": "10:15",
+          "service": "Pruning + PhC \u2014 4 trees",
+          "url": "https://secure.getjobber.com/work_requests/30984165",
+          "lat": 41.73622,
+          "lng": -111.79964,
+          "tags": [],
+          "n": 4
+        },
+        {
+          "name": "Kelly Phigpen",
+          "town": "Logan",
+          "time": "11:00",
+          "service": "PhC \u2014 aphids on 3 ash",
+          "url": "https://secure.getjobber.com/work_requests/30902367",
+          "lat": 41.728041,
+          "lng": -111.845083,
+          "tags": [
+            "PhC"
+          ],
+          "n": 5
+        },
+        {
+          "name": "Gene Pintor",
+          "town": "Logan",
+          "time": "11:45",
+          "service": "Assessment",
+          "url": "https://secure.getjobber.com/work_requests/30910078",
+          "lat": 41.733438,
+          "lng": -111.809686,
+          "tags": [],
+          "n": 6
+        },
+        {
+          "name": "Lyle Shakespear",
+          "town": "Logan",
+          "time": "12:30",
+          "service": "Assessment",
+          "url": "https://secure.getjobber.com/work_requests/30938570",
+          "lat": 41.733372,
+          "lng": -111.82427,
+          "tags": [],
+          "n": 7
+        },
+        {
+          "name": "Carol Peterson",
+          "town": "Logan",
+          "time": "1:15",
+          "service": "Removal + grind \u2014 2 big trees",
+          "url": "https://secure.getjobber.com/work_requests/30902570",
+          "lat": 41.7310266,
+          "lng": -111.8224787,
+          "tags": [
+            "BlueStakes"
+          ],
+          "n": 8
+        }
       ]
     },
     {
-      "id": "wed", "label": "Wed Jul 1", "date": "2026-07-01", "valley": "North Valley",
-      "miles": 31.9, "drive": "1h 05m", "homeETA": "~1:30",
+      "id": "thu",
+      "label": "Thu Jun 25",
+      "date": "2026-06-25",
+      "valley": "North Valley",
+      "miles": 40.3,
+      "drive": "1h 26m",
+      "homeETA": "~1:57",
       "stops": [
-        {"n": 1, "name": "Terri Jensen", "town": "Richmond", "time": "8:00", "service": "PhC — bug/disease spray", "url": "https://secure.getjobber.com/work_requests/31036500", "lat": 41.934709, "lng": -111.800829, "tags": ["PhC"]},
-        {"n": 2, "name": "Morty Jenkins", "town": "Richmond", "time": "8:45", "service": "Stump grinding — 4 stumps", "url": "https://secure.getjobber.com/work_requests/30840380", "lat": 41.925896, "lng": -111.807493, "tags": ["BlueStakes"]},
-        {"n": 3, "name": "Cordell Johnson", "town": "Richmond", "time": "9:30", "service": "Reduce height — 1 pear", "url": "https://secure.getjobber.com/work_requests/22204954", "lat": 41.926471, "lng": -111.808156, "tags": ["aged"]},
-        {"n": 4, "name": "Shayla Snarr", "town": "Richmond", "time": "10:15", "service": "PhC — property-wide decline", "url": "https://secure.getjobber.com/work_requests/31053659", "lat": 41.910216, "lng": -111.828998, "tags": ["PhC"]},
-        {"n": 5, "name": "Bonnie McMullin", "town": "Hyde Park", "time": "11:00", "service": "Pruning — limbs on house", "url": "https://secure.getjobber.com/work_requests/31078374", "lat": 41.804238, "lng": -111.809956, "tags": []},
-        {"n": 6, "name": "Dianna Harth", "town": "Hyde Park", "time": "11:45", "service": "Pruning + risk assessment", "url": "https://secure.getjobber.com/work_requests/30983113", "lat": 41.8010605, "lng": -111.8217742, "tags": ["address"]},
-        {"n": 7, "name": "Todd Horman", "town": "North Logan", "time": "12:30", "service": "PhC + pruning — ~10 trees", "url": "https://secure.getjobber.com/work_requests/31031848", "lat": 41.7740894, "lng": -111.8034916, "tags": ["PhC"]}
+        {
+          "name": "Michael Anderson",
+          "town": "Lewiston",
+          "time": "8:00",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30924279",
+          "lat": 41.946842,
+          "lng": -111.899003,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 1
+        },
+        {
+          "name": "Morty Jenkins",
+          "town": "Richmond",
+          "time": "8:45",
+          "service": "Stump grinding \u2014 4 stumps",
+          "url": "https://secure.getjobber.com/work_requests/30840380",
+          "lat": 41.925896,
+          "lng": -111.807493,
+          "tags": [
+            "BlueStakes"
+          ],
+          "n": 2
+        },
+        {
+          "name": "Kathy McConkie",
+          "town": "Smithfield",
+          "time": "9:30",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30763855",
+          "lat": 41.8361372,
+          "lng": -111.8249208,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 3
+        },
+        {
+          "name": "Katie Brinck",
+          "town": "Hyde Park",
+          "time": "10:15",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30777768",
+          "lat": 41.807501,
+          "lng": -111.825176,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 4
+        },
+        {
+          "name": "John Lesher",
+          "town": "Hyde Park",
+          "time": "11:00",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30903414",
+          "lat": 41.802375,
+          "lng": -111.808781,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 5
+        },
+        {
+          "name": "Anna Trappett",
+          "town": "North Logan",
+          "time": "11:45",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30686276",
+          "lat": 41.7814154,
+          "lng": -111.7831852,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 6
+        },
+        {
+          "name": "Brianna Isaacson",
+          "town": "North Logan",
+          "time": "12:30",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30892179",
+          "lat": 41.780466,
+          "lng": -111.807593,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 7
+        },
+        {
+          "name": "Liz Allred",
+          "town": "North Logan",
+          "time": "1:15",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30764083",
+          "lat": 41.77567,
+          "lng": -111.824239,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 8
+        }
       ]
     },
     {
-      "id": "thu", "label": "Thu Jul 2", "date": "2026-07-02", "valley": "Logan / central",
-      "miles": 14.0, "drive": "49m", "homeETA": "~1:20",
+      "id": "mon",
+      "label": "Mon Jun 29",
+      "date": "2026-06-29",
+      "valley": "South Valley",
+      "miles": 27.1,
+      "drive": "58m",
+      "homeETA": "~11:42",
       "stops": [
-        {"n": 1, "name": "Carol Riding", "town": "Logan", "time": "8:00", "service": "Assessment", "url": "https://secure.getjobber.com/work_requests/29949815", "lat": 41.749233, "lng": -111.827846, "tags": ["aged"]},
-        {"n": 2, "name": "Melanie Kvarfordt", "town": "Logan", "time": "8:45", "service": "Removal + grind (rental)", "url": "https://secure.getjobber.com/work_requests/31075568", "lat": 41.741151, "lng": -111.829116, "tags": ["BlueStakes"]},
-        {"n": 3, "name": "Penny Malouf", "town": "Logan", "time": "9:30", "service": "Assessment", "url": "https://secure.getjobber.com/work_requests/30266338", "lat": 41.7389215, "lng": -111.79742, "tags": ["aged"]},
-        {"n": 4, "name": "Lyle Shakespear", "town": "Logan", "time": "10:15", "service": "Assessment", "url": "https://secure.getjobber.com/work_requests/30938570", "lat": 41.733372, "lng": -111.82427, "tags": []},
-        {"n": 5, "name": "Gene Pintor", "town": "Logan", "time": "11:00", "service": "Assessment", "url": "https://secure.getjobber.com/work_requests/30910078", "lat": 41.733438, "lng": -111.809686, "tags": []},
-        {"n": 6, "name": "Carol Peterson", "town": "Logan", "time": "11:45", "service": "Removal + grind — 2 big trees", "url": "https://secure.getjobber.com/work_requests/30902570", "lat": 41.7310266, "lng": -111.8224787, "tags": ["BlueStakes"]},
-        {"n": 7, "name": "Kelly Phigpen", "town": "Logan", "time": "12:30", "service": "PhC — aphids on 3 ash", "url": "https://secure.getjobber.com/work_requests/30902367", "lat": 41.728041, "lng": -111.845083, "tags": ["PhC"]}
+        {
+          "name": "Roger Cook",
+          "town": "Wellsville",
+          "time": "8:00",
+          "service": "Assessment (confirmed)",
+          "url": "https://secure.getjobber.com/work_requests/30748452",
+          "lat": 41.6409681,
+          "lng": -111.926882,
+          "tags": [
+            "confirmed",
+            "LOCKED"
+          ],
+          "n": 1
+        },
+        {
+          "name": "Nancy Watts",
+          "town": "Nibley",
+          "time": "8:45",
+          "service": "Removal \u2014 front yard willow-type tree",
+          "url": "https://secure.getjobber.com/work_requests/31092291",
+          "lat": 41.689771,
+          "lng": -111.849359,
+          "tags": [],
+          "n": 2
+        },
+        {
+          "name": "Mike & Jenneice Beckstrand",
+          "town": "Providence",
+          "time": "9:30",
+          "service": "PhC \u2014 mildew follow-up",
+          "url": "https://secure.getjobber.com/work_requests/31057566",
+          "lat": 41.69928,
+          "lng": -111.80533,
+          "tags": [
+            "recovery"
+          ],
+          "n": 3
+        },
+        {
+          "name": "Linda / Wally Smith",
+          "town": "Providence",
+          "time": "10:15",
+          "service": "Consultation + pruning",
+          "url": "https://secure.getjobber.com/work_requests/31032682",
+          "lat": 41.70529,
+          "lng": -111.80435,
+          "tags": [],
+          "n": 4
+        },
+        {
+          "name": "Bill Chandler",
+          "town": "Providence",
+          "time": "11:00",
+          "service": "Risk assessment \u2014 2 honey locusts",
+          "url": "https://secure.getjobber.com/work_requests/31037527",
+          "lat": 41.71624,
+          "lng": -111.81762,
+          "tags": [
+            "assess"
+          ],
+          "n": 5
+        }
       ]
+    },
+    {
+      "id": "wed",
+      "label": "Wed Jul 1",
+      "date": "2026-07-01",
+      "valley": "North Valley",
+      "miles": 34.6,
+      "drive": "1h 14m",
+      "homeETA": "~1:57",
+      "stops": [
+        {
+          "name": "Terri Jensen",
+          "town": "Richmond",
+          "time": "8:00",
+          "service": "PhC \u2014 bug/disease spray",
+          "url": "https://secure.getjobber.com/work_requests/31036500",
+          "lat": 41.934709,
+          "lng": -111.800829,
+          "tags": [
+            "PhC"
+          ],
+          "n": 1
+        },
+        {
+          "name": "Shayla Snarr",
+          "town": "Richmond",
+          "time": "8:45",
+          "service": "PhC \u2014 property-wide decline",
+          "url": "https://secure.getjobber.com/work_requests/31053659",
+          "lat": 41.910216,
+          "lng": -111.828998,
+          "tags": [
+            "PhC"
+          ],
+          "n": 2
+        },
+        {
+          "name": "Bonnie McMullin",
+          "town": "Hyde Park",
+          "time": "9:30",
+          "service": "Pruning \u2014 limbs on house",
+          "url": "https://secure.getjobber.com/work_requests/31078374",
+          "lat": 41.804238,
+          "lng": -111.809956,
+          "tags": [],
+          "n": 3
+        },
+        {
+          "name": "Dianna Harth",
+          "town": "Hyde Park",
+          "time": "10:15",
+          "service": "Pruning + risk assessment",
+          "url": "https://secure.getjobber.com/work_requests/30983113",
+          "lat": 41.8010605,
+          "lng": -111.8217742,
+          "tags": [
+            "address"
+          ],
+          "n": 4
+        },
+        {
+          "name": "Todd Horman",
+          "town": "North Logan",
+          "time": "11:00",
+          "service": "PhC + pruning \u2014 ~10 trees",
+          "url": "https://secure.getjobber.com/work_requests/31031848",
+          "lat": 41.7740894,
+          "lng": -111.8034916,
+          "tags": [
+            "PhC"
+          ],
+          "n": 5
+        },
+        {
+          "name": "Merrill Haderlie",
+          "town": "Logan",
+          "time": "11:45",
+          "service": "Tree/shrub pruning \u2014 side-yard ash",
+          "url": "https://secure.getjobber.com/work_requests/31081714",
+          "lat": 41.752409,
+          "lng": -111.821582,
+          "tags": [],
+          "n": 6
+        },
+        {
+          "name": "Carolyn St-Onge",
+          "town": "Logan",
+          "time": "12:30",
+          "service": "Removal + pruning + PhC \u2014 dead aspen, 2 maples, 3 aspens",
+          "url": "https://secure.getjobber.com/work_requests/31087406",
+          "lat": 41.745439,
+          "lng": -111.79759,
+          "tags": [],
+          "n": 7
+        },
+        {
+          "name": "Melanie Kvarfordt",
+          "town": "Logan",
+          "time": "1:15",
+          "service": "Removal + grind (rental)",
+          "url": "https://secure.getjobber.com/work_requests/31075568",
+          "lat": 41.741151,
+          "lng": -111.829116,
+          "tags": [
+            "BlueStakes"
+          ],
+          "n": 8
+        }
+      ]
+    },
+    {
+      "id": "thu",
+      "label": "Thu Jul 2",
+      "date": "2026-07-02",
+      "valley": "South Valley",
+      "miles": 0.0,
+      "drive": "\u2014",
+      "homeETA": "\u2014",
+      "stops": []
+    },
+    {
+      "id": "mon",
+      "label": "Mon Jul 6",
+      "date": "2026-07-06",
+      "valley": "North Valley",
+      "miles": 0.0,
+      "drive": "\u2014",
+      "homeETA": "\u2014",
+      "stops": []
+    },
+    {
+      "id": "wed",
+      "label": "Wed Jul 8",
+      "date": "2026-07-08",
+      "valley": "South Valley",
+      "miles": 0.0,
+      "drive": "\u2014",
+      "homeETA": "\u2014",
+      "stops": []
+    },
+    {
+      "id": "thu",
+      "label": "Thu Jul 9",
+      "date": "2026-07-09",
+      "valley": "North Valley",
+      "miles": 0.0,
+      "drive": "\u2014",
+      "homeETA": "\u2014",
+      "stops": []
+    },
+    {
+      "id": "mon",
+      "label": "Mon Jul 13",
+      "date": "2026-07-13",
+      "valley": "South Valley",
+      "miles": 0.0,
+      "drive": "\u2014",
+      "homeETA": "\u2014",
+      "stops": []
     }
   ],
   "farHold": [
-    {"name": "Lee Kraus", "town": "Brigham City", "url": "https://secure.getjobber.com/work_requests/30103090"},
-    {"name": "Tanner Hugo", "town": "Preston ID", "url": "https://secure.getjobber.com/work_requests/29245702"},
-    {"name": "Kevin Beck", "town": "Franklin ID", "url": "https://secure.getjobber.com/work_requests/25986536"},
-    {"name": "Carol Peterson (932 Canyon Rd)", "town": "verify — up Blacksmith Fork Canyon", "url": "https://secure.getjobber.com/work_requests/30902643"}
+    {
+      "name": "Cordell Johnson",
+      "town": "Richmond",
+      "url": "https://secure.getjobber.com/work_requests/22204954",
+      "note": "aged \u2014 verify still live before scheduling"
+    },
+    {
+      "name": "Carol Riding",
+      "town": "Logan",
+      "url": "https://secure.getjobber.com/work_requests/29949815",
+      "note": "aged \u2014 verify still live before scheduling"
+    },
+    {
+      "name": "Penny Malouf",
+      "town": "Logan",
+      "url": "https://secure.getjobber.com/work_requests/30266338",
+      "note": "aged \u2014 verify still live before scheduling"
+    },
+    {
+      "name": "Lee Kraus",
+      "town": "Brigham City",
+      "url": "https://secure.getjobber.com/work_requests/30103090"
+    },
+    {
+      "name": "Tanner Hugo",
+      "town": "Preston ID",
+      "url": "https://secure.getjobber.com/work_requests/29245702"
+    },
+    {
+      "name": "Kevin Beck",
+      "town": "Franklin ID",
+      "url": "https://secure.getjobber.com/work_requests/25986536"
+    },
+    {
+      "name": "Carol Peterson (932 Canyon Rd)",
+      "town": "verify \u2014 up Blacksmith Fork Canyon",
+      "url": "https://secure.getjobber.com/work_requests/30902643",
+      "note": "aged \u2014 verify still live before scheduling"
+    }
   ],
   "flags": [
-    "“142 Silverfox” → Silver Fox Circle (0.98 match) — tighten in Jobber",
-    "“932 Canyon Rd” geocoded up Blacksmith Fork Canyon — confirm before routing",
-    "Dianna Harth has no house number on file"
+    "QA geocode: Anna Trappett (2031 E 2750 N, North Logan) \u2014 TomTom could not pin the house number (Street match, conf 0.92); used the highest-scoring 2750 North candidate (41.7814, -111.7832). Frozen Thu 6/25 bid, already locked in Jobber \u2014 verify pin before driving. Affects Thu metrics only.",
+    "QA address-drift (Jobber vs board pin): Melanie Kvarfordt now lists 615 Le Ruisseau Dr (was 'RENTAL 215 E 500 N'); William Wellbaum now 269 Quail Way; Bonnie McMullin now 273 N 400 E; Todd Horman 2357 N 1250 E; Gene Pintor 995 Thrushwood Dr; Penny Malouf 1585 Sumac Dr; Carol Riding 260 E 970 N. Board reused prior pins per the sweep rule \u2014 re-geocode these next full sweep to confirm the pin still matches.",
+    "3 NEW requests geocoded clean (TomTom conf 1, all Cache Valley): Nancy Watts 2366 Clear Creek Rd Nibley (41.6898,-111.8494); Carolyn St-Onge 1481 Maple Dr Logan (41.7454,-111.7976); Merrill Haderlie 1163 N 500 E Logan (41.7524,-111.8216). None >75 m off.",
+    "'Dianna Harth' has an address issue (missing house number or ambiguous) \u2014 verify the pin before driving."
   ]
 }
