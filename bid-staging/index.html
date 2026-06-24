@@ -114,9 +114,9 @@ function renderDay(id){
     </div>`).join("");
   const btn=document.getElementById("exportBtn");
   btn.textContent = `Export ${day.label} to Jobber →`;
-  btn.onclick = ()=>alert(`This hosted board is read-only. To export, run in Claude:\n\n"Export the ${day.label} bid day to Jobber"`);
+  btn.onclick = ()=>{const c=`Export the ${day.label} bid day to Jobber`;if(navigator.clipboard){navigator.clipboard.writeText(c).catch(function(){});}alert(`Command copied to clipboard:\n\n  "${c}"\n\nNow open Claude (Cowork) and paste it. Claude runs the bid-route-place skill \u2014 it schedules this day\u2019s assessments in Jobber and assigns Joseph (purple = needs confirm). Nothing is sent to clients.`);};
 
-  if(!MAP || !MAP.loaded()){ return; }
+  if(!MAP || !window._MR){ return; }
   clearMap();
   const color=DAYCOLORS[id];
   const bounds=new tt.LngLatBounds();
@@ -163,7 +163,7 @@ fetch("data.json").then(r=>r.json()).then(d=>{
   if(TOMTOM_KEY==="PASTE_YOUR_TOMTOM_KEY_HERE"){ document.getElementById("keywarn").style.display="block"; renderDay(CUR); return; }
   MAP=tt.map({key:TOMTOM_KEY,container:"map",center:[DATA.home.lng,DATA.home.lat],zoom:10});
   MAP.addControl(new tt.NavigationControl());
-  MAP.on("load",()=>renderDay(CUR));
+  MAP.on("load",()=>{window._MR=true;renderDay(CUR);});
 }).catch(e=>{document.getElementById("stops").innerHTML="Load error: "+e.message+" — check the TomTom key/whitelist, or that data.json is present.";});
 </script>
 </body>
