@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-25T15:50:04",
-  "horizon": "18 of 28 staged \u00b7 4 bid days \u00b7 10 held \u00b7 matches Jobber Unscheduled (28)",
+  "generatedAt": "2026-06-25T16:14:50",
+  "horizon": "19 of 28 staged \u00b7 5 bid days \u00b7 9 held \u00b7 matches Jobber Unscheduled (28)",
   "lot": {
     "name": "TTC Lot",
     "addr": "3853 N 200 W, Hyde Park",
@@ -134,8 +134,8 @@
       "label": "Wed Jul 1",
       "date": "2026-07-01",
       "valley": "North Valley",
-      "miles": 33.1,
-      "drive": "1h 11m est",
+      "miles": 31.5,
+      "drive": "1h 08m est",
       "homeETA": "~1:35",
       "stops": [
         {
@@ -233,9 +233,9 @@
       "label": "Thu Jul 2",
       "date": "2026-07-02",
       "valley": "South Valley",
-      "miles": 31.2,
-      "drive": "1h 08m",
-      "homeETA": "~2:08",
+      "miles": 32.8,
+      "drive": "1h 10m est",
+      "homeETA": "~2:02",
       "stops": [
         {
           "name": "Alycia Hendrickson",
@@ -284,20 +284,9 @@
           "n": 4
         },
         {
-          "name": "Liz Hunsaker",
-          "town": "Providence",
-          "time": "11:00",
-          "service": "Pruning \u2014 SW-corner trees",
-          "url": "https://secure.getjobber.com/work_requests/31123443",
-          "lat": 41.703274,
-          "lng": -111.8152453,
-          "tags": [],
-          "n": 5
-        },
-        {
           "name": "William Wellbaum",
           "town": "Logan",
-          "time": "11:45",
+          "time": "11:00",
           "service": "Pruning + PhC \u2014 4 trees",
           "url": "https://secure.getjobber.com/work_requests/30984165",
           "lat": 41.7363,
@@ -305,12 +294,12 @@
           "tags": [
             "PhC"
           ],
-          "n": 6
+          "n": 5
         },
         {
           "name": "Melanie Kvarfordt",
           "town": "Logan",
-          "time": "12:30",
+          "time": "11:45",
           "service": "Removal + pruning + grind \u2014 RENTAL 215 E 500 N",
           "url": "https://secure.getjobber.com/work_requests/31075568",
           "lat": 41.7411445,
@@ -318,6 +307,17 @@
           "tags": [
             "BlueStakes"
           ],
+          "n": 6
+        },
+        {
+          "name": "Carol Peterson (932 Canyon)",
+          "town": "Logan",
+          "time": "12:30",
+          "service": "Pruning \u2014 clearance of neighbor's overhanging trees",
+          "url": "https://secure.getjobber.com/work_requests/30902643",
+          "lat": 41.7380447,
+          "lng": -111.8121766,
+          "tags": [],
           "n": 7
         },
         {
@@ -340,7 +340,7 @@
       "label": "Mon Jul 6",
       "date": "2026-07-06",
       "valley": "North Valley",
-      "miles": 8.7,
+      "miles": 8.8,
       "drive": "19m est",
       "homeETA": "~10:35",
       "stops": [
@@ -381,6 +381,28 @@
             "60min"
           ],
           "n": 3
+        }
+      ]
+    },
+    {
+      "id": "wed",
+      "label": "Wed Jul 8",
+      "date": "2026-07-08",
+      "valley": "South Valley",
+      "miles": 10.5,
+      "drive": "23m est",
+      "homeETA": "~8:49",
+      "stops": [
+        {
+          "name": "Liz Hunsaker",
+          "town": "Providence",
+          "time": "8:00",
+          "service": "Pruning \u2014 SW-corner trees",
+          "url": "https://secure.getjobber.com/work_requests/31123443",
+          "lat": 41.703274,
+          "lng": -111.8152453,
+          "tags": [],
+          "n": 1
         }
       ]
     }
@@ -430,12 +452,6 @@
       "url": "https://secure.getjobber.com/work_requests/31126137"
     },
     {
-      "name": "Carol Peterson (932 Canyon Rd)",
-      "town": "Logan \u2014 verify pin",
-      "note": "HOLD per Joseph \u2014 confirm Canyon Rd pin",
-      "url": "https://secure.getjobber.com/work_requests/30902643"
-    },
-    {
       "name": "Dianna Harth",
       "town": "Hyde Park \u2014 no house #",
       "note": "HOLD per Joseph \u2014 no house number",
@@ -443,11 +459,12 @@
     }
   ],
   "flags": [
-    "Reconciles to Jobber: 28 unscheduled = 18 staged + 10 held (Monday's 7 moved to scheduled).",
+    "Reconciles to Jobber: 28 unscheduled = 19 staged + 9 held.",
+    "Carol Peterson (932 Canyon Rd) UN-HELD \u2014 pin confirmed correct in Jobber by Joseph; now routed onto a South day.",
     "Mon 6/29 is EXPORTED/FROZEN (8 assessments incl Roger) \u2014 shown LOCKED; the staged pool re-optimized around it.",
     "Todd Horman & Carolyn St-Onge \u2014 60-min slots; days kept <=2 PM by spillover.",
-    "Wed 7/1 drive time is an ESTIMATE (TomTom dropped this session); Mon/Thu/7-8 are real TomTom times.",
-    "HELD per Joseph: Carol Peterson 932 Canyon Rd + Dianna Harth. Far: Lee Kraus, Tanner Hugo, Kevin Beck, Craig Floyd, Kathy Johnson (Laketown). Aged: Penny Malouf, Carol Riding, Cordell Johnson."
+    "Drive times are great-circle ESTIMATES (TomTom reconnected but auth failing); Mon 6/29 is a real TomTom time.",
+    "HELD: Dianna Harth (no house number). Far: Lee Kraus, Tanner Hugo, Kevin Beck, Craig Floyd, Kathy Johnson (Laketown). Aged (verify still live): Penny Malouf, Carol Riding, Cordell Johnson."
   ],
   "jobberUnscheduled": 28
 }
