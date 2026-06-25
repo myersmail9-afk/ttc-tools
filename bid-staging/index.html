@@ -22,6 +22,8 @@
   .tab .v{display:block;font-size:11px;color:#9aa0a6;font-weight:500}
   .tab.on{background:#eef4ff;border-color:#bcd4ff;color:#1d4ed8}
   .tab.on .v{color:#5b87d6}
+  .tab.past{opacity:.55}
+  .tab.past.on{opacity:1}
   .layout{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
   #map{flex:1 1 460px;min-width:320px;height:560px;border-radius:14px;border:1px solid #e6e8eb;overflow:hidden}
   .panel{flex:1 1 320px;min-width:300px}
@@ -79,15 +81,22 @@
 //  SET THIS: a free TomTom Maps API key from https://developer.tomtom.com
 //  (Free tier; restrict it to your GitHub Pages domain in the TomTom dashboard.)
 // ============================================================================
-const TOMTOM_KEY = "oX0dtDSFVM1NSfXQVWAGvuFKWDNeqDzD";
+const TOMTOM_KEY = "PASTE_YOUR_TOMTOM_KEY_HERE";
 
 const DAYCOLORS = {mon:"#f97316", wed:"#2563eb", thu:"#7c3aed"};
 const TAGSTYLE = {PhC:["#f3e8ff","#7c3aed"],recovery:["#ffedd5","#c2410c"],assess:["#e0edff","#1d4ed8"],
   BlueStakes:["#fef9c3","#a16207"],aged:["#fee2e2","#b91c1c"],address:["#e2e8f0","#475569"]};
 
 let MAP, DATA, MARKERS = [], CUR = "all";
+// Local YYYY-MM-DD for "is this day today or past" — a day locks once its date arrives.
+function localToday(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 
 function tag(t){const c=TAGSTYLE[t]||["#eee","#555"];return `<span class="tag" style="background:${c[0]};color:${c[1]}">${t}</span>`;}
+function isConf(s){return (s.tags||[]).includes("confirmed");}
+function confBadge(s){return isConf(s)
+  ? `<span class="tag" style="background:#dcfce7;color:#15803d">✓ confirmed</span>`
+  : `<span class="tag" style="background:#ffedd5;color:#c2410c">☎ needs call</span>`;}
+function otherTags(s){return (s.tags||[]).filter(t=>t!=="confirmed"&&t!=="LOCKED").map(tag).join("");}
 
 function clearMap(){
   MARKERS.forEach(m=>m.remove()); MARKERS=[];
@@ -102,12 +111,13 @@ function squareMarker(label){
   const el=document.createElement("div"); el.className="mk"; el.style.background="#16a34a"; el.style.borderRadius="5px"; el.textContent=label; return el;
 }
 
-function renderDay(id){
-  CUR=id;
+function renderDay(date){
+  CUR=date;
   document.getElementById("exportBtn").style.display="";
   document.getElementById("expnote").style.display="";
-  const day=DATA.days.find(d=>d.id===id);
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.id===id));
+  const day=DATA.days.find(d=>d.date===date);
+  const id=day.id;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.date===date));
   // panel
   document.getElementById("daymeta").textContent =
     `${day.valley} · ${day.stops.length} stops · ${day.miles} mi · ${day.drive} drive · home ${day.homeETA}`;
@@ -115,13 +125,20 @@ function renderDay(id){
     <div class="stop">
       <div class="time">${s.time}</div>
       <div class="pin" style="background:${DAYCOLORS[id]}">${s.n}</div>
-      <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>${(s.tags||[]).map(tag).join("")}
+      <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a> ${confBadge(s)}${otherTags(s)}
         <div class="mt">${s.town} &middot; ${s.service}</div></div>
     </div>`).join("");
   const btn=document.getElementById("exportBtn");
-  btn.textContent = `Export ${day.label} to Jobber →`;
+  const expnote=document.getElementById("expnote");
+  const locked = day.date <= localToday();
+  btn.style.background = locked ? "#e5e7eb" : "#2563eb";
+  btn.style.color = locked ? "#6b7280" : "#fff";
+  btn.style.cursor = locked ? "default" : "pointer";
+  btn.textContent = locked ? "🔒 Locked — bids already happened & confirmed" : `Export ${day.label} to Jobber →`;
+  expnote.textContent = locked ? "This day is today or in the past — already scheduled in Jobber. Export disabled." : "Schedules the day's assessments in Jobber + assigns Joseph (purple). Nothing sent.";
   btn.onclick = ()=>{const c=`Export the ${day.label} bid day to Jobber`;if(navigator.clipboard){navigator.clipboard.writeText(c).catch(function(){});}alert(`Command copied to clipboard:\n\n  "${c}"\n\nNow open Claude (Cowork) and paste it. Claude runs the bid-route-place skill \u2014 it schedules this day\u2019s assessments in Jobber and assigns Joseph (purple = needs confirm). Nothing is sent to clients.`);};
 
+  if(locked) btn.onclick = null;
   if(!MAP || !window._MR){ return; }
   clearMap();
   const color=DAYCOLORS[id];
@@ -158,7 +175,7 @@ function dotMarker(color){
 }
 function renderAll(){
   CUR="all";
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.id==="all"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.date==="all"));
   const pool=[];
   DATA.days.forEach(d=>d.stops.forEach(s=>pool.push(Object.assign({},s,{dayId:d.id,dayLabel:d.label,valley:d.valley}))));
   document.getElementById("daymeta").innerHTML =
@@ -169,7 +186,7 @@ function renderAll(){
     + d.stops.map(s=>`
       <div class="stop">
         <div class="pin" style="background:${DAYCOLORS[d.id]};width:12px;height:12px;margin-top:6px"></div>
-        <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>${(s.tags||[]).map(tag).join("")}
+        <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a> ${confBadge(s)}${otherTags(s)}
           <div class="mt">${s.town} &middot; ${s.service}</div></div>
       </div>`).join("")).join("");
   document.getElementById("exportBtn").style.display="none";
@@ -189,14 +206,48 @@ function renderAll(){
   });
   MAP.fitBounds(bounds,{padding:60,maxZoom:12});
 }
+function renderCalls(){
+  CUR="calls";
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.date==="calls"));
+  const today=localToday();
+  const upcoming=DATA.days.filter(d=>d.date>today && d.stops.length);
+  const need=upcoming.reduce((a,d)=>a+d.stops.filter(s=>!isConf(s)).length,0);
+  document.getElementById("daymeta").innerHTML =
+    `<b>Upcoming bids (not yet happened)</b> &middot; <span style="color:#c2410c">${need} still need a confirm call</span> &middot; <span style="color:#8a9099">snapshot — live state via /bid-confirm-check</span>`;
+  document.getElementById("stops").innerHTML = upcoming.length ? upcoming.map(d=>
+    `<div class="lbl" style="margin-top:12px;color:${DAYCOLORS[d.id]}">${d.label} &middot; ${d.valley}</div>`
+    + d.stops.map(s=>`
+      <div class="stop">
+        <div class="time">${s.time}</div>
+        <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a> ${confBadge(s)}${otherTags(s)}
+          <div class="mt">${s.town} &middot; ${s.service}</div></div>
+      </div>`).join("")).join("") : `<div class="mt" style="padding:10px 2px">No upcoming bid days with stops yet.</div>`;
+  document.getElementById("exportBtn").style.display="none";
+  document.getElementById("expnote").style.display="none";
+  if(!MAP || !window._MR){ return; }
+  clearMap();
+  const bounds=new tt.LngLatBounds();
+  [["L",DATA.lot],["H",DATA.home]].forEach(([lab,p])=>{
+    const m=new tt.Marker({element:squareMarker(lab),anchor:"center"}).setLngLat([p.lng,p.lat]).addTo(MAP);
+    MARKERS.push(m); bounds.extend([p.lng,p.lat]);
+  });
+  upcoming.forEach(d=>d.stops.forEach(s=>{
+    const m=new tt.Marker({element:dotMarker(isConf(s)?"#16a34a":"#f97316"),anchor:"center"}).setLngLat([s.lng,s.lat])
+      .setPopup(new tt.Popup({offset:14}).setHTML(`<b><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></b><br>${s.time} &middot; ${s.town}<br>${isConf(s)?"✓ confirmed":"☎ needs call"}`)).addTo(MAP);
+    MARKERS.push(m); bounds.extend([s.lng,s.lat]);
+  }));
+  if(MARKERS.length>2) MAP.fitBounds(bounds,{padding:60,maxZoom:12});
+}
 function buildChrome(){
   document.getElementById("horizon").innerHTML =
     `<b style="color:#15803d">${DATA.horizon.split("·")[0]}</b><span>${DATA.horizon.split("·").slice(1).join(" · ")}</span>`;
   const poolN = DATA.days.reduce((a,d)=>a+d.stops.length,0);
-  const allTab = `<div class="tab" data-id="all"><b>All Unscheduled</b><span class="v">${poolN} in the 3-wk pool</span></div>`;
-  document.getElementById("tabs").innerHTML = allTab + DATA.days.map(d=>
-    `<div class="tab" data-id="${d.id}"><b>${d.label}</b><span class="v">${d.valley} · ${d.stops.length} stops</span></div>`).join("");
-  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=> t.dataset.id==="all" ? renderAll() : renderDay(t.dataset.id));
+  const allTab = `<div class="tab" data-date="all"><b>All Unscheduled</b><span class="v">${poolN} in the 3-wk pool</span></div>`;
+  const callsTab = `<div class="tab" data-date="calls"><b>📞 Confirm Calls</b><span class="v">upcoming · who to call</span></div>`;
+  const todayStr = localToday();
+  document.getElementById("tabs").innerHTML = allTab + callsTab + DATA.days.map(d=>
+    `<div class="tab${d.date<=todayStr?' past':''}" data-date="${d.date}"><b>${d.label}</b><span class="v">${d.valley} · ${d.stops.length} stops${d.date<=todayStr?' · 🔒':''}</span></div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=> t.dataset.date==="all" ? renderAll() : t.dataset.date==="calls" ? renderCalls() : renderDay(t.dataset.date));
   document.getElementById("farhold").innerHTML = DATA.farHold.map(f=>
     `<a class="req" href="${f.url}" target="_blank" rel="noopener">${f.name}</a> <span style="color:#aab0b6">&middot; ${f.town}</span>`).join(" &nbsp;&nbsp; ");
   document.getElementById("flags").innerHTML = "<b>Verify in Jobber before export:</b> " + DATA.flags.join(" &middot; ");
