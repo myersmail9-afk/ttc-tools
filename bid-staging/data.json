@@ -19,9 +19,9 @@
       "label": "Mon Jun 29",
       "date": "2026-06-29",
       "valley": "South Valley",
-      "miles": 32.1,
-      "drive": "1h 09m",
-      "homeETA": "~1:57",
+      "miles": 31.8,
+      "drive": "1h 08m",
+      "homeETA": "~2:04",
       "stops": [
         {
           "name": "Roger Cook",
@@ -126,9 +126,9 @@
       "label": "Wed Jul 1",
       "date": "2026-07-01",
       "valley": "South Valley",
-      "miles": 20.9,
-      "drive": "45m",
-      "homeETA": "~12:27",
+      "miles": 24.1,
+      "drive": "1h 07m",
+      "homeETA": "~12:34",
       "stops": [
         {
           "name": "Nancy Watts",
@@ -211,9 +211,9 @@
       "label": "Thu Jul 2",
       "date": "2026-07-02",
       "valley": "North Valley",
-      "miles": 32.6,
-      "drive": "1h 10m",
-      "homeETA": "~1:57",
+      "miles": 33.1,
+      "drive": "1h 07m",
+      "homeETA": "~1:53",
       "stops": [
         {
           "name": "Terri Jensen",
@@ -355,10 +355,11 @@
     }
   ],
   "flags": [
-    "FIXED in Jobber: '142 Silverfox' \u2192 '142 Silver Fox Circle', Providence (pin preserved, 41.7053,-111.8040).",
-    "FIXED in Jobber: Melanie Kvarfordt request repointed to the RENTAL '215 E 500 N, Logan' (new property, pin 41.7411,-111.8291); her home 615 Le Ruisseau is preserved.",
-    "Todd Horman & Carolyn St-Onge set to 60-min bid slots (large jobs) \u2014 Thu 7/2 still wraps by 1:45 PM.",
-    "HELD per Joseph (listed, not scheduled): Carol Peterson 932 Canyon Rd (confirm pin) and Dianna Harth (no house number).",
-    "TomTom connector still down \u2014 pins are Jobber's (Smith & the rental freshly geocoded by Jobber); miles/drive are great-circle ESTIMATES until TomTom is reconnected."
+    "Pin-parity QA (TomTom vs Jobber) \u2014 all 20 staged stops match within ~30 m; no bad pins this run.",
+    "FIXED + TomTom-verified: '142 Silverfox' \u2192 '142 Silver Fox Circle', Providence (41.7053,-111.8041).",
+    "FIXED + TomTom-verified: Melanie Kvarfordt repointed to RENTAL '215 E 500 N, Logan' (41.7411,-111.8291); home 615 Le Ruisseau preserved.",
+    "Todd Horman & Carolyn St-Onge \u2014 60-min bid slots; Thu 7/2 wraps by 1:45 PM.",
+    "HELD per Joseph (listed, not scheduled): Carol Peterson 932 Canyon Rd (confirm pin) + Dianna Harth (no house number).",
+    "Drive-times are real TomTom road routes (lot\u2192stops\u2192home); Wed re-rated 24.1 mi / 1h07m (was ~21 mi / 45m est)."
   ]
 }
