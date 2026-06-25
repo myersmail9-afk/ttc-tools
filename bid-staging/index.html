@@ -200,7 +200,7 @@ function renderAll(){
   const pool=[];
   DATA.days.forEach(d=>d.stops.forEach(s=>pool.push(Object.assign({},s,{dayId:d.id,dayLabel:d.label,valley:d.valley}))));
   document.getElementById("daymeta").innerHTML =
-    `<b>${pool.length} unscheduled requests</b> across the valley &middot; ${DATA.days.length} bid days built &middot; <span style="color:#b91c1c">nothing on the Jobber schedule yet</span>`
+    `<b>${pool.length} stops staged</b> across the valley &middot; ${DATA.days.length} bid days &middot; <span style="color:#b91c1c">nothing on the Jobber schedule yet</span>`
     + `<div class="leg">`+DATA.days.map(d=>`<span><i style="background:${DAYCOLORS[d.id]}"></i>${d.valley} (${d.stops.length})</span>`).join("")+`</div>`;
   document.getElementById("stops").innerHTML = DATA.days.map(d=>
     `<div class="lbl" style="margin-top:12px;color:${DAYCOLORS[d.id]}">${d.valley} &mdash; ${d.stops.length}</div>`
@@ -259,6 +259,33 @@ function renderCalls(){
   }));
   if(MARKERS.length>2) MAP.fitBounds(bounds,{padding:60,maxZoom:12});
 }
+function holdReason(f){
+  const n=(f.note||"").toLowerCase(), t=(f.town||"").toLowerCase();
+  if(n.includes("aged")) return ["aged","#fee2e2","#b91c1c"];
+  if(n.includes("hold")) return ["hold","#ede9fe","#6d28d9"];
+  if(n.includes("spillover")) return ["spillover","#fde68a","#92400e"];
+  if(/brigham|preston|franklin|laketown|bear lake/.test(t)) return ["far","#e2e8f0","#475569"];
+  return ["hold","#e2e8f0","#475569"];
+}
+function buildSync(){
+  const el=document.getElementById("syncbar"); if(!el) return;
+  const staged=DATA.days.reduce((a,d)=>a+d.stops.filter(s=>!(s.tags||[]).includes("LOCKED")).length,0);
+  const held=(DATA.farHold||[]).length, total=staged+held, jobber=DATA.jobberUnscheduled;
+  let html;
+  if(jobber==null){ el.className="syncbar ok"; html=`<span>${staged} staged &middot; ${held} held</span>`; }
+  else if(total===jobber){ el.className="syncbar ok";
+    html=`<span>✓ In sync with Jobber — ${jobber} unscheduled = ${staged} staged + ${held} held</span>`; }
+  else { el.className="syncbar bad";
+    html=`<span>⚠ OUT OF SYNC — board ${total} (${staged} staged + ${held} held) vs Jobber ${jobber}. Re-run the morning sweep (/bid-sweep).</span>`; }
+  const g=DATA.generatedAt||"", gd=g.slice(0,10);
+  if(gd){
+    const days=Math.round((new Date(localToday())-new Date(gd))/86400000);
+    let when=gd; try{ if(g.length>10) when=new Date(g).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }catch(e){}
+    html += days<=0 ? `<span class="fresh">&middot; updated ${when} (today)</span>`
+                    : `<span class="stale">&middot; ${days} day${days>1?"s":""} old — re-run the sweep</span>`;
+  }
+  el.innerHTML=html;
+}
 function buildChrome(){
   document.getElementById("horizon").innerHTML =
     `<b style="color:#15803d">${DATA.horizon.split("·")[0]}</b><span>${DATA.horizon.split("·").slice(1).join(" · ")}</span>`;
@@ -269,13 +296,19 @@ function buildChrome(){
   document.getElementById("tabs").innerHTML = allTab + callsTab + DATA.days.map(d=>
     `<div class="tab${d.date<=todayStr?' past':''}" data-date="${d.date}"><b>${d.label}</b><span class="v">${d.valley} · ${d.stops.length} stops${d.date<=todayStr?' · 🔒':''}</span></div>`).join("");
   document.querySelectorAll(".tab").forEach(t=>t.onclick=()=> t.dataset.date==="all" ? renderAll() : t.dataset.date==="calls" ? renderCalls() : renderDay(t.dataset.date));
-  document.getElementById("farhold").innerHTML = DATA.farHold.map(f=>
-    `<a class="req" href="${f.url}" target="_blank" rel="noopener">${f.name}</a> <span style="color:#aab0b6">&middot; ${f.town}</span>`).join(" &nbsp;&nbsp; ");
-  document.getElementById("flags").innerHTML = "<b>Verify in Jobber before export:</b> " + DATA.flags.join(" &middot; ");
+  document.getElementById("farhold").innerHTML = DATA.farHold.map(f=>{
+    const r=holdReason(f);
+    return `<div class="heldrow"><span class="rchip" style="background:${r[1]};color:${r[2]}">${r[0]}</span>`
+      +`<span class="who"><a href="${f.url}" target="_blank" rel="noopener">${f.name}</a>`
+      +`<span class="why"> &middot; ${f.town}${f.note?" — "+f.note.replace(/^\s*(aged|HOLD per Joseph)\s*[—-]?\s*/i,""):""}</span></span></div>`;
+  }).join("");
+  document.getElementById("flags").innerHTML =
+    `<div class="lbl">QA notes — verify before export</div><ul>`
+    + DATA.flags.map(f=>`<li>${f}</li>`).join("") + `</ul>`;
 }
 
 fetch("data.json").then(r=>r.json()).then(d=>{
-  DATA=d; buildChrome();
+  DATA=d; buildChrome(); buildSync();
   if(TOMTOM_KEY==="PASTE_YOUR_TOMTOM_KEY_HERE"){ document.getElementById("keywarn").style.display="block"; renderAll(); return; }
   MAP=tt.map({key:TOMTOM_KEY,container:"map",center:[DATA.home.lng,DATA.home.lat],zoom:10});
   MAP.addControl(new tt.NavigationControl());
