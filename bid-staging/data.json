@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-06-26T14:35:56-06:00",
-  "horizon": "Built Mon Jun 29 → Wed Jul 8 · 5 bid days with stops · 20 of 28 staged · 8 held · reconciles to Jobber (28) ✓ · LIVE TomTom routes",
+  "horizon": "Built Mon Jun 29 → Wed Jul 8 · 5 bid days with stops · 19 of 27 staged · 8 held · reconciles to Jobber (28) ✓ · LIVE TomTom routes",
   "lot": {
     "name": "TTC Lot",
     "addr": "3853 N 200 W, Hyde Park",
@@ -118,13 +118,13 @@
           "name": "Bill Chandler",
           "town": "Providence",
           "time": "2:00",
-          "service": "Tree Risk Assessment — two storm-damaged honey locusts (near-home end-of-day add)",
+          "service": "Tree Risk Assessment — two storm-damaged honey locusts · EXPORTED ✓ (Mon 6/29 2:00, Joseph/purple, not yet confirmed)",
           "url": "https://secure.getjobber.com/work_requests/31037527",
           "lat": 41.7160509,
           "lng": -111.8174487,
           "tags": [
             "assess",
-            "ADDED"
+            "LOCKED"
           ],
           "n": 8
         }
@@ -497,16 +497,16 @@
     }
   ],
   "flags": [
-    "IN SYNC ✓ — 28 unscheduled = 20 staged + 8 held (held now includes Nancy Watts, deferred off Mon 6/29 per Joseph). Pull COMPLETE — 28 of 28 (count-assert PASS).",
-    "MANUAL EDIT (Joseph, 2026-06-26): dropped the Nancy Watts 8:45 backfill (→ held) and added BILL CHANDLER (Providence, ~0.5 mi from David's River Heights home) as Mon 6/29's LAST stop at 2:00 — the requested near-home end-of-day visit. Moved off Thu 7/2 (now 6 stops). The freed 8:45 slot is left OPEN. Mon ends ~2:50 = one visit past the usual 2 PM cap (per Joseph's request). To make it real, EXPORT Mon 6/29 to Jobber.",
+    "IN SYNC ✓ — 27 unscheduled = 19 staged + 8 held. Bill Chandler EXPORTED to Mon 6/29 (no longer unscheduled). Nancy Watts held.",
+    "MANUAL EDIT (Joseph, 2026-06-26): dropped the Nancy Watts 8:45 backfill (→ held) and added BILL CHANDLER (Providence, ~0.5 mi from David's River Heights home) as Mon 6/29's LAST stop at 2:00 — the requested near-home end-of-day visit. Moved off Thu 7/2 (now 6 stops). The freed 8:45 slot is left OPEN. Mon ends ~2:50 = one visit past the usual 2 PM cap (per Joseph's request). To make it real, EXPORT Mon 6/29 to Jobber.  →  EXPORTED ✓ 2026-06-26: Bill's assessment scheduled Mon 6/29 2:00 PM, assigned Joseph (purple); the other 7 were already scheduled (skipped, idempotent). Roger + Gary confirmations untouched.",
     "FIXED the false OUT-OF-SYNC: a David-owned request (excluded from routing) was neither staged nor held, so the board's staged+held read 25 vs Jobber 26. The engine now puts David-owned in the Held list (reason: 'David schedules his own contact'), so staged+held == jobberUnscheduled again.",
     "2 NEW requests since the 1:18 PM sweep: Marcy Bentz (8765 Bridger Blvd, Paradise — South) → opens Wed 7/8; Suzanne Janecke (1782 E 1730 N, North Logan — removal, North) → Mon 7/6. Net unscheduled 26 → 28.",
-    "Mon 6/29 — 7 scheduled assessments FROZEN (Roger Cook 8:00 + Gary Fredrickson 9:30 both CONFIRMED ✓; Nick/Kelly/Gene/Lyle/Carol not yet confirmed) + the manually-ADDED Bill Chandler 2:00 (Providence, near home). The freed 8:45 slot is OPEN (Nancy removed per Joseph).",
+    "Mon 6/29 — 8 scheduled assessments: the 7 frozen (Roger 8:00 ✓ + Gary 9:30 ✓ confirmed; Nick/Kelly/Gene/Lyle/Carol not yet confirmed) + Bill Chandler 2:00 (just exported, Joseph/purple). 8:45 slot OPEN (Nancy removed).",
     "⚠ Wed 7/1 carries BOTH large/complex bids — Todd Horman (~10 trees) and Carolyn St-Onge (removal + 2 maples + 3 aspens) — on a FULL 8-stop day. Two 60–90 min bids will likely push past the 2 PM cap; widen both or move one to a North day with room (Mon 7/6 has 4 stops).",
     "Per-day miles/drive/homeETA are LIVE TomTom routes (lot → stops → home, historical traffic): Mon 6/29 38.5 mi/1h20m · Wed 7/1 34.4 mi/1h08m · Thu 7/2 40.4 mi/1h22m · Mon 7/6 25.7 mi/54m · Wed 7/8 28.2 mi/55m. Last appointment ≤ 1:15 every day (ends ≤ 2 PM). ⚠ Mon 6/29 & Thu 7/2 are now ESTIMATES after the manual edit — re-run the sweep for exact TomTom.",
     "Pin QA (map-parity) CLEAN — 0 divergence >75 m across all routable stops (max ~42 m). All geoStatus=FOUND. Cache now 39 entries (the 2 new addresses added).",
     "Two far-future placeholder assessments (Todd Braeger 2027-04-12 & 2028-04-10, North Logan) sit in `upcoming` — outside the 3-week horizon; excluded from routing."
   ],
-  "jobberUnscheduled": 28,
-  "reconciliation": "OK — 20 staged + 8 held == 28 jobberUnscheduled"
+  "jobberUnscheduled": 27,
+  "reconciliation": "OK — 19 staged + 8 held == 27 jobberUnscheduled (Bill Chandler exported off the staged pool)"
 }
