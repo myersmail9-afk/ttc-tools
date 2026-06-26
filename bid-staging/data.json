@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-26T13:18:40-06:00",
-  "horizon": "Built Mon Jun 29 → Mon Jul 6 · 4 bid days with stops · 19 of 26 staged (incl. 1 auto-backfill into Mon 6/29's freed 8:45) · 6 held · 1 David-owned excluded · reconciles to Jobber (26) ✓ · great-circle estimates (TomTom reconnected — real routes next sweep)",
+  "generatedAt": "2026-06-26T14:35:56-06:00",
+  "horizon": "Built Mon Jun 29 → Wed Jul 8 · 5 bid days with stops · 21 of 28 staged (incl. 1 auto-backfill into Mon 6/29's freed 8:45) · 7 held · reconciles to Jobber (28) ✓ · LIVE TomTom routes",
   "lot": {
     "name": "TTC Lot",
     "addr": "3853 N 200 W, Hyde Park",
@@ -19,9 +19,9 @@
       "label": "Mon Jun 29",
       "date": "2026-06-29",
       "valley": "South Valley",
-      "miles": 38.7,
-      "drive": "1h 23m",
-      "homeETA": "~1:57",
+      "miles": 38.5,
+      "drive": "1h 20m",
+      "homeETA": "~1:49",
       "stops": [
         {
           "name": "Roger Cook",
@@ -136,9 +136,9 @@
       "label": "Wed Jul 1",
       "date": "2026-07-01",
       "valley": "North Valley",
-      "miles": 33.8,
-      "drive": "1h 12m",
-      "homeETA": "~1:57",
+      "miles": 34.4,
+      "drive": "1h 08m",
+      "homeETA": "~1:51",
       "stops": [
         {
           "name": "Terri Jensen",
@@ -249,9 +249,9 @@
       "label": "Thu Jul 2",
       "date": "2026-07-02",
       "valley": "South Valley",
-      "miles": 31.4,
-      "drive": "1h 07m",
-      "homeETA": "~1:12",
+      "miles": 40.4,
+      "drive": "1h 22m",
+      "homeETA": "~1:02",
       "stops": [
         {
           "name": "Alycia Hendrickson",
@@ -343,9 +343,9 @@
       "label": "Mon Jul 6",
       "date": "2026-07-06",
       "valley": "North Valley",
-      "miles": 26.8,
-      "drive": "57m",
-      "homeETA": "~10:12",
+      "miles": 25.7,
+      "drive": "54m",
+      "homeETA": "~11:00",
       "stops": [
         {
           "name": "Mike Hall",
@@ -383,6 +383,17 @@
             "assess"
           ],
           "n": 3
+        },
+        {
+          "name": "Suzanne Janecke",
+          "town": "North Logan",
+          "time": "10:15",
+          "service": "Removal — fire-blight shade tree (salvage TBD)",
+          "url": "https://secure.getjobber.com/work_requests/31164017",
+          "lat": 41.7623855,
+          "lng": -111.7900697,
+          "tags": [],
+          "n": 4
         }
       ]
     },
@@ -391,10 +402,22 @@
       "label": "Wed Jul 8",
       "date": "2026-07-08",
       "valley": "South Valley",
-      "miles": 0.0,
-      "drive": "—",
-      "homeETA": "—",
-      "stops": []
+      "miles": 28.2,
+      "drive": "55m",
+      "homeETA": "~8:52",
+      "stops": [
+        {
+          "name": "Marcy Bentz",
+          "town": "Paradise",
+          "time": "8:00",
+          "service": "Tree/shrub pruning — thin big pine by porch",
+          "url": "https://secure.getjobber.com/work_requests/31165542",
+          "lat": 41.5736213,
+          "lng": -111.8337694,
+          "tags": [],
+          "n": 1
+        }
+      ]
     },
     {
       "id": "thu",
@@ -457,6 +480,12 @@
       "note": "aged (created Jun 2025, ~1 yr old) — verify still live before scheduling"
     },
     {
+      "name": "Penny & Chris Malouf",
+      "town": "Logan",
+      "url": "https://secure.getjobber.com/work_requests/30266338",
+      "note": "David-owned (salesperson David Thunell) — David schedules his own contact; also aged ~4 wk"
+    },
+    {
       "name": "Lee Kraus",
       "town": "Brigham City",
       "url": "https://secure.getjobber.com/work_requests/30103090",
@@ -476,18 +505,16 @@
     }
   ],
   "flags": [
-    "Reconciles to Jobber: 26 unscheduled = 19 staged + 6 held + 1 David-owned (excluded). Pull COMPLETE — 26 of 26 (paginated, count-assert PASS); no PULL-SHORT.",
+    "IN SYNC ✓ — 28 unscheduled = 21 staged + 7 held (held now INCLUDES the 1 David-owned, Penny Malouf, so the board's sync guard reads green). Pull COMPLETE — 28 of 28 (count-assert PASS).",
     "BACKFILL (proposed): Mon Jun 29 8:45 (freed/open slot) → 'Nancy Watts' (Nibley) — cheapest insertion adds ~5.3 mi. Locked stops untouched; export this ONE stop to that slot when ready.",
-    "★ NEW — smart freed-slot backfill is LIVE. Mon 6/29 8:45 freed when Jackie Foster was removed (6/26). The engine filled it via cheapest insertion (the most on-the-way waiting request) — Nancy Watts (Nibley), pulled forward from Thu 7/2 — WITHOUT moving any of the 7 locked/messaged stops. It's a PROPOSAL: export just that one stop to Mon 8:45 in Jobber when you're ready, then its confirm text fires.",
-    "Mon 6/29 FROZEN/LOCKED — 7 scheduled assessments: Roger Cook 8:00 (CONFIRMED ✓, David-assigned/green) → Carol Peterson 1:15 (6 NOT yet confirmed, Joseph/purple). The only non-locked stop on Mon is the proposed Nancy Watts backfill at 8:45.",
-    "Changes since the 6/26 04:23 sweep: Morty Jenkins (stump grinding, Richmond) — assessment completed + request CONVERTED 6/26 → off board. Jackie Foster — completed + archived 6/26 (asked to be removed) → off board + freed Mon 8:45 (now backfilled). Net: unscheduled 27→26; frozen Mon 8→7 (+1 proposed backfill).",
-    "⚠ Wed 7/1 carries BOTH large/complex bids — Todd Horman (~10 trees) and Carolyn St-Onge (removal + 2 maples + 3 aspens) — on a FULL 8-stop day. Two 60–90 min bids will likely push past the 2 PM cap; widen both or move one to a North day with room (Mon 7/6 has only 3 stops). (Large/complex bids are deliberately NOT used for backfill — they need their own wider slot.)",
-    "Pin QA (map-parity) CLEAN — 0 divergence >75 m across all routable stops (max ~21 m, Todd Horman). All geoStatus=FOUND. Terri Jensen & Bill Chandler matched the Jobber FOUND pin (cache street-name variants).",
-    "Cache-first geocoding: 26/26 stops hit the geocode cache (the 9 added last run are now cached) → 0 new TomTom calls, nothing held. Cache holds 37 entries.",
-    "Per-day miles/drive/homeETA are great-circle ESTIMATES (×1.25 road factor). TomTom MCP is reconnected this session but real per-day routes were not pulled this pass — they refresh on the next sweep (or on request). Last appointment ≤ 1:15 every day (ends ≤ 2 PM) by the 8-slot cap.",
-    "Penny & Chris Malouf (1585 Sumac Dr, Logan) EXCLUDED from auto-routing — salesperson = David Thunell (David-owned). Also aged ~25 d.",
+    "FIXED the false OUT-OF-SYNC: a David-owned request (excluded from routing) was neither staged nor held, so the board's staged+held read 25 vs Jobber 26. The engine now puts David-owned in the Held list (reason: 'David schedules his own contact'), so staged+held == jobberUnscheduled again.",
+    "2 NEW requests since the 1:18 PM sweep: Marcy Bentz (8765 Bridger Blvd, Paradise — South) → opens Wed 7/8; Suzanne Janecke (1782 E 1730 N, North Logan — removal, North) → Mon 7/6. Net unscheduled 26 → 28.",
+    "Mon 6/29 FROZEN — 7 scheduled assessments. CONFIRMED ✓: Roger Cook 8:00 (David) AND Gary Fredrickson 9:30 (her re-sent confirm link worked — clientConfirmed flipped true). NOT yet confirmed (5): Nick Salerno 10:15, Kelly Phigpen 11:00, Gene Pintor 11:45, Lyle Shakespear 12:30, Carol Peterson 1:15. The only non-locked Mon stop is the proposed Nancy Watts backfill at 8:45.",
+    "⚠ Wed 7/1 carries BOTH large/complex bids — Todd Horman (~10 trees) and Carolyn St-Onge (removal + 2 maples + 3 aspens) — on a FULL 8-stop day. Two 60–90 min bids will likely push past the 2 PM cap; widen both or move one to a North day with room (Mon 7/6 has 4 stops).",
+    "Per-day miles/drive/homeETA are LIVE TomTom routes (lot → stops → home, historical traffic): Mon 6/29 38.5 mi/1h20m · Wed 7/1 34.4 mi/1h08m · Thu 7/2 40.4 mi/1h22m · Mon 7/6 25.7 mi/54m · Wed 7/8 28.2 mi/55m. Last appointment ≤ 1:15 every day (ends ≤ 2 PM).",
+    "Pin QA (map-parity) CLEAN — 0 divergence >75 m across all routable stops (max ~42 m). All geoStatus=FOUND. Cache now 39 entries (the 2 new addresses added).",
     "Two far-future placeholder assessments (Todd Braeger 2027-04-12 & 2028-04-10, North Logan) sit in `upcoming` — outside the 3-week horizon; excluded from routing."
   ],
-  "jobberUnscheduled": 26,
-  "reconciliation": "OK — 19 staged + 6 held + 1 David-owned excluded == 26 jobberUnscheduled"
+  "jobberUnscheduled": 28,
+  "reconciliation": "OK — 21 staged + 7 held == 28 jobberUnscheduled"
 }
