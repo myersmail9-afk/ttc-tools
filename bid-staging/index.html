@@ -117,7 +117,7 @@ function isConf(s){return (s.tags||[]).includes("confirmed");}
 function confBadge(s){return isConf(s)
   ? `<span class="tag" style="background:#dcfce7;color:#15803d">✓ confirmed</span>`
   : `<span class="tag" style="background:#ffedd5;color:#c2410c">☎ needs call</span>`;}
-function otherTags(s){return (s.tags||[]).filter(t=>t!=="confirmed"&&t!=="LOCKED").map(tag).join("");}
+function otherTags(s){return (s.tags||[]).filter(t=>t!=="confirmed"&&t!=="LOCKED"&&t!=="BACKFILL").map(tag).join("");}
 
 function clearMap(){
   MARKERS.forEach(m=>m.remove()); MARKERS=[];
@@ -143,10 +143,10 @@ function renderDay(date){
   document.getElementById("daymeta").textContent =
     `${day.valley} · ${day.stops.length} stops · ${day.miles} mi · ${day.drive} drive · home ${day.homeETA}`;
   document.getElementById("stops").innerHTML = day.stops.map(s=>`
-    <div class="stop">
+    <div class="stop"${s.fill?' style="border-left:3px solid #f59e0b;background:#fffbeb"':''}>
       <div class="time">${s.time}</div>
-      <div class="pin" style="background:${DAYCOLORS[id]}">${s.n}</div>
-      <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a> ${confBadge(s)}${otherTags(s)}
+      <div class="pin" style="background:${s.fill?'#f59e0b':DAYCOLORS[id]}">${s.fill?'+':s.n}</div>
+      <div class="nm"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a> ${s.fill?`<span class="tag" style="background:#fef3c7;color:#b45309">↳ proposed fill${s.detour!=null?' · +'+s.detour+' mi':''}</span>`:confBadge(s)}${otherTags(s)}
         <div class="mt">${s.town} &middot; ${s.service}</div></div>
     </div>`).join("");
   const btn=document.getElementById("exportBtn");
