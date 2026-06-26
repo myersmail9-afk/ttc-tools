@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-06-26T14:35:56-06:00",
-  "horizon": "Built Mon Jun 29 → Wed Jul 8 · 5 bid days with stops · 20 of 28 staged · 8 held · reconciles to Jobber (28) ✓ · LIVE TomTom routes",
+  "horizon": "Built Mon Jun 29 → Wed Jul 8 · 5 bid days with stops · 5 of 14 staged · 8 held · reconciles to Jobber (28) ✓ · LIVE TomTom routes",
   "lot": {
     "name": "TTC Lot",
     "addr": "3853 N 200 W, Hyde Park",
@@ -134,7 +134,8 @@
           "lat": 41.9347153,
           "lng": -111.8008406,
           "tags": [
-            "PhC"
+            "PhC",
+            "LOCKED"
           ],
           "n": 1
         },
@@ -147,7 +148,8 @@
           "lat": 41.910216,
           "lng": -111.828998,
           "tags": [
-            "PhC"
+            "PhC",
+            "LOCKED"
           ],
           "n": 2
         },
@@ -159,7 +161,9 @@
           "url": "https://secure.getjobber.com/work_requests/31078374",
           "lat": 41.804238,
           "lng": -111.809956,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 3
         },
         {
@@ -171,7 +175,8 @@
           "lat": 41.800668,
           "lng": -111.810295,
           "tags": [
-            "assess"
+            "assess",
+            "LOCKED"
           ],
           "n": 4
         },
@@ -185,7 +190,8 @@
           "lng": -111.8034916,
           "tags": [
             "PhC",
-            "large"
+            "large",
+            "LOCKED"
           ],
           "n": 5
         },
@@ -197,7 +203,9 @@
           "url": "https://secure.getjobber.com/work_requests/31081714",
           "lat": 41.752409,
           "lng": -111.821582,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 6
         },
         {
@@ -210,7 +218,8 @@
           "lng": -111.79759,
           "tags": [
             "PhC",
-            "large"
+            "large",
+            "LOCKED"
           ],
           "n": 7
         },
@@ -223,7 +232,8 @@
           "lat": 41.741151,
           "lng": -111.829116,
           "tags": [
-            "BlueStakes"
+            "BlueStakes",
+            "LOCKED"
           ],
           "n": 8
         }
@@ -246,7 +256,9 @@
           "url": "https://secure.getjobber.com/work_requests/31130652",
           "lat": 41.7061456,
           "lng": -111.9797411,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 1
         },
         {
@@ -258,7 +270,8 @@
           "lat": 41.699092,
           "lng": -111.80545,
           "tags": [
-            "PhC"
+            "PhC",
+            "LOCKED"
           ],
           "n": 2
         },
@@ -270,7 +283,9 @@
           "url": "https://secure.getjobber.com/work_requests/31032682",
           "lat": 41.705353,
           "lng": -111.804067,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 3
         },
         {
@@ -281,7 +296,9 @@
           "url": "https://secure.getjobber.com/work_requests/31123443",
           "lat": 41.703297,
           "lng": -111.815025,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 4
         },
         {
@@ -293,7 +310,8 @@
           "lat": 41.736303,
           "lng": -111.799933,
           "tags": [
-            "PhC"
+            "PhC",
+            "LOCKED"
           ],
           "n": 5
         },
@@ -305,7 +323,9 @@
           "url": "https://secure.getjobber.com/work_requests/30902643",
           "lat": 41.7380369,
           "lng": -111.81213,
-          "tags": [],
+          "tags": [
+            "LOCKED"
+          ],
           "n": 6
         }
       ]
@@ -489,6 +509,7 @@
     }
   ],
   "flags": [
+    "EXPORTED ✓ 2026-06-26: Wed 7/1 (8 stops) + Thu 7/2 (6 stops, +30 min Mendon buffer on Alycia 8:00-9:15) written to Jobber — all assigned Joseph (purple = needs confirm), notifyTeam:false, nothing sent to clients. Bill Chandler held (Joseph removed him). ⚠ Wed 7/1 still carries the two large bids (Todd Horman 11:00 + Carolyn St-Onge 12:30) in 45-min slots — widen in Jobber if they run long.",
     "IN SYNC ✓ — 28 unscheduled = 20 staged + 8 held. Bill Chandler UNSCHEDULED again (Joseph removed the Mon 2:00 slot — a 2 PM bid start overruns the day) → restored to Thu 7/2. Nancy Watts held.",
     "MANUAL EDITS (Joseph, 2026-06-26): (1) dropped the Nancy Watts Mon 8:45 backfill → held. (2) Briefly added then REMOVED Bill Chandler from Mon 2:00 — a 2 PM start overruns the day, so Joseph took him off; his Jobber assessment is UNSCHEDULED again and he's back on Thu 7/2. Mon 6/29 = the 7 frozen assessments, 8:45 slot OPEN.",
     "FIXED the false OUT-OF-SYNC: a David-owned request (excluded from routing) was neither staged nor held, so the board's staged+held read 25 vs Jobber 26. The engine now puts David-owned in the Held list (reason: 'David schedules his own contact'), so staged+held == jobberUnscheduled again.",
@@ -499,6 +520,6 @@
     "Pin QA (map-parity) CLEAN — 0 divergence >75 m across all routable stops (max ~42 m). All geoStatus=FOUND. Cache now 39 entries (the 2 new addresses added).",
     "Two far-future placeholder assessments (Todd Braeger 2027-04-12 & 2028-04-10, North Logan) sit in `upcoming` — outside the 3-week horizon; excluded from routing."
   ],
-  "jobberUnscheduled": 28,
-  "reconciliation": "OK — 20 staged + 8 held == 28 jobberUnscheduled"
+  "jobberUnscheduled": 14,
+  "reconciliation": "OK — 5 staged + 9 held == 14 jobberUnscheduled (Wed 7/1 ×8 and Thu 7/2 ×6 EXPORTED off the pool)"
 }
