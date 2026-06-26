@@ -235,14 +235,14 @@
       "date": "2026-07-02",
       "valley": "South Valley",
       "miles": 40.4,
-      "drive": "1h 22m",
-      "homeETA": "~1:02",
+      "drive": "~1h 20m (est)",
+      "homeETA": "~1:30 (est, +30 Mendon)",
       "stops": [
         {
           "name": "Alycia Hendrickson",
           "town": "Mendon",
           "time": "8:00",
-          "service": "Removal — 4 dead black walnut trees",
+          "service": "Removal — 4 dead black walnut trees · +30 min drive buffer (Mendon is far W)",
           "url": "https://secure.getjobber.com/work_requests/31130652",
           "lat": 41.7061456,
           "lng": -111.9797411,
@@ -252,7 +252,7 @@
         {
           "name": "Mike Beckstrand",
           "town": "Providence",
-          "time": "8:45",
+          "time": "9:15",
           "service": "Plant health care — maple powdery mildew follow-up",
           "url": "https://secure.getjobber.com/work_requests/31057566",
           "lat": 41.699092,
@@ -265,7 +265,7 @@
         {
           "name": "Linda / Wally Smith",
           "town": "Providence",
-          "time": "9:30",
+          "time": "10:00",
           "service": "Consultation + Tree/shrub pruning — city-damaged tree assessment",
           "url": "https://secure.getjobber.com/work_requests/31032682",
           "lat": 41.705353,
@@ -276,7 +276,7 @@
         {
           "name": "Liz Hunsaker",
           "town": "Providence",
-          "time": "10:15",
+          "time": "10:45",
           "service": "Tree/shrub pruning — SW-corner trees (full walkthrough)",
           "url": "https://secure.getjobber.com/work_requests/31123443",
           "lat": 41.703297,
@@ -287,7 +287,7 @@
         {
           "name": "William Wellbaum",
           "town": "Logan",
-          "time": "11:00",
+          "time": "11:30",
           "service": "Tree/shrub pruning + Plant health care — four trees + backyard maple",
           "url": "https://secure.getjobber.com/work_requests/30984165",
           "lat": 41.736303,
@@ -300,26 +300,13 @@
         {
           "name": "Carol Peterson (932 Canyon)",
           "town": "Logan",
-          "time": "11:45",
+          "time": "12:15",
           "service": "Tree/shrub pruning — clearance of neighbor's overhanging trees",
           "url": "https://secure.getjobber.com/work_requests/30902643",
           "lat": 41.7380369,
           "lng": -111.81213,
           "tags": [],
           "n": 6
-        },
-        {
-          "name": "Bill Chandler",
-          "town": "Providence",
-          "time": "12:30",
-          "service": "Tree Risk Assessment — two storm-damaged honey locusts",
-          "url": "https://secure.getjobber.com/work_requests/31037527",
-          "lat": 41.7160509,
-          "lng": -111.8174487,
-          "tags": [
-            "assess"
-          ],
-          "n": 7
         }
       ]
     },
@@ -493,6 +480,12 @@
       "town": "Nibley",
       "url": "https://secure.getjobber.com/work_requests/31092291",
       "note": "deferred OFF Mon 6/29 per Joseph (don't backfill) — near home (Nibley); stage on a later South day"
+    },
+    {
+      "name": "Bill Chandler",
+      "town": "Providence",
+      "url": "https://secure.getjobber.com/work_requests/31037527",
+      "note": "Joseph removed off Mon 2:00; held off Thu too (his view) — re-add to a South day when ready"
     }
   ],
   "flags": [
