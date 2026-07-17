@@ -1,13 +1,13 @@
 // TTC PHC Calendar — live data feed. REWRITTEN by the daily phc-scan run; do not hand-edit.
 window.PHC_DATA = {
-  as_of: "2026-07-17",
+  as_of: "2026-07-17 (run 2 — installed skill)",
   gdd: {
-    value: 1294.2, rate14: 27.7, base: 50, from: "2026-03-01", location: "Logan UT",
+    value: 1294.8, rate14: 27.7, base: 50, from: "2026-03-01", location: "Logan UT",
     next: [
       { label: "Pine needle scale gen-2 crawlers OPEN", gdd: 1388, date: "2026-07-20" },
       { label: "Oystershell scale gen-2 crawlers OPEN", gdd: 1600, date: "2026-07-28" },
       { label: "Pine needle scale gen-2 CLOSES", gdd: 1917, date: "2026-08-08" },
-      { label: "Spruce spider mite fall round OPENS", gdd: 2375, date: "2026-08-25" }
+      { label: "Spruce spider mite fall round OPENS", gdd: 2375, date: "2026-08-24" }
     ]
   },
   worklist: [
@@ -23,10 +23,16 @@ window.PHC_DATA = {
     { s: "CLOSING", job: 7761, client: "Janice Gladwell", line: "FerriPlus — hedge maple + magnolia (+ Tengard aphids NOW)", why: "Iron ASAP rule; aphid spray is scout-open.", action: "ERYN: one visit, both lines", amt: 245 },
     { s: "CLOSING", job: 7785, client: "Karen Higley (Preston)", line: "Soil injection + soil analysis", why: "Iron ASAP rule (PHC in Idaho is fine — no dig).", action: "ERYN: schedule ≤3 wks", amt: 288.5 },
     { s: "CLOSING", job: 7786, client: "Nancy Sassano", line: "Soil injection (+ PGR open)", why: "Iron ASAP rule.", action: "ERYN: schedule ≤3 wks", amt: 407 },
-    { s: "CLOSING", job: 7731, client: "Debbie Hancey", line: "Soil inj + micro inj + foliar + PGR", why: "Iron ASAP + micro-inj pest unverified — check description.", action: "ERYN sched + DAVID verify micro target", amt: 754.5 },
+    { s: "CLOSING", job: 7731, client: "Debbie Hancey", line: "FerriPlus iron (Autumn Blaze) + Cambistat + mildew/aphid foliar", why: "Iron ASAP rule; Cambistat open; mildew preventive is past but aphid half is scout-OK. (Mectinite line listed under PAST.)", action: "ERYN: schedule ≤3 wks", amt: 754.5 },
     { s: "CLOSING", job: 7417, client: "Kami Antriyao", line: "Transtect soil inj — cottony maple scale ('best in spring')", why: "Spring passed; systemic-alternative timing = DAVID call. Cambistat line is OPEN (Mar–Nov).", action: "DAVID: treat now or spring?", amt: 612 },
     { s: "GAP", job: 7788, client: "Shayla Snarr", line: "Mectinite — spruce IPS beetle ×8", why: "Ips window not in windows.md (gap #8) — abstained, not guessed.", action: "DAVID: give the window", amt: 760 },
-    { s: "GAP", job: 7745, client: "Roger Cook", line: "Micro injection (target pest unread) + PGR", why: "Micro-inj target needs description read before classifying.", action: "Next scan: pull desc", amt: 536.5 },
+    { s: "PAST", job: 7731, client: "Debbie Hancey", line: "Mectinite micro — lilac/ash borer (green ash 8.5in)", why: "SOLD 7/2 — after the borer window closed (GDD 148-299; now 1295). The Batty pattern on a brand-new job. Iron + Cambistat + foliar lines on this job handled separately.", action: "DAVID: treat late, spring 2027, or adjust", amt: 0 },
+    { s: "GAP", job: 7745, client: "Roger Cook", line: "Mectinite micro — HONEY LOCUST BORER (option B of borer pair)", why: "Gap #3 verbatim — David: 'I'll have to remind myself the timing.' Now a LIVE job. Cambistat line is OPEN.", action: "DAVID: give the window (gap #3)", amt: 536.5 },
+    { s: "SOON", job: 7759, client: "Steffanie Norton", line: "Verdur macro ×2 — fall window", why: "Unscheduled but the window is fall (Sep 15-Oct 15) — park it with the 9/25 batch.", action: "ERYN: park on the fall batch", amt: 392 },
+    { s: "SOON", job: 7792, client: "Debbie Hancey", line: "Verdur macro — fall window", why: "Same — park with the 9/25 batch.", action: "ERYN: park on the fall batch", amt: 150 },
+    { s: "CLOSING", job: 7758, client: "Steffanie Norton", line: "Soil inj ×2 (iron) + PGR ×2", why: "Iron ASAP rule; PGR lines are open (Mar-Nov) — one visit does all four.", action: "ERYN: schedule ≤3 wks", amt: 379.75 },
+    { s: "CLOSING", job: 7755, client: "Jason Holladay", line: "Soil injection (desc unread — presumed iron)", why: "Iron ASAP rule pending desc verify next run.", action: "ERYN: schedule ≤3 wks", amt: 195 },
+    { s: "OPEN", job: 7776, client: "Rich & Colleen Gordin", line: "Cambistat PGR", why: "Mar-Nov window. (Sibling job 7775 is pruning-only — title lied, dropped from PHC.)", action: "ERYN: schedule anytime", amt: 294 },
     { s: "OPEN", job: 7749, client: "Katie Brinck", line: "Cambistat PGR", why: "Mar–Nov window.", action: "ERYN: schedule anytime", amt: 255 },
     { s: "OPEN", job: 7760, client: "Anna Trappett", line: "Cambistat PGR — Crimson King", why: "Mar–Nov window.", action: "ERYN: schedule anytime", amt: 100 },
     { s: "OPEN", job: 7737, client: "Melanie Kvarfordt", line: "Trimtect PGR — cotoneaster hedge", why: "Event window: apply within 1–2 wks of shearing — schedule WITH the shear (job LATE).", action: "ERYN: pair with topiary shear", amt: 235 },
@@ -46,7 +52,7 @@ window.PHC_DATA = {
   gaps: [
     "#1 Mectinite/bark-beetle on ponderosa — mid-July too late? (LIVE: #6870, client waiting)",
     "#2 Miticide actual month/window",
-    "#3 Honey locust borer window",
+    "#3 Honey locust borer window — NOW LIVE on #7745 Cook ($536.50 waiting)",
     "#4 Lilac/ash borer dates — confirm (hedged)",
     "#5 Cottony maple scale crawler window",
     "#6 Powdery mildew — one or two applications?",
