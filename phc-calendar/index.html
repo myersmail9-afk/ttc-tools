@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TTC PHC Calendar</title>
+<style>
+  :root{--bg:#f6f8f6;--card:#fff;--ink:#1d2b20;--mut:#66756a;--line:#e3e9e4;
+    --past:#c0392b;--closing:#d97706;--open:#1e8e3e;--soon:#2563eb;--dorm:#8a94a6;--track:#0f766e;--gap:#7c3aed;--tri:#b45309}
+  *{box-sizing:border-box}body{margin:0;font:15px/1.45 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:18px}
+  h1{font-size:21px;margin:0 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+  .gdd{background:linear-gradient(135deg,#1e8e3e,#0f766e);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .gdd .big{font-size:34px;font-weight:800;letter-spacing:-1px}.gdd .lbl{opacity:.85;font-size:12.5px}
+  .gdd .next{margin-top:10px;display:grid;gap:4px}.gdd .next div{font-size:13px;background:rgba(255,255,255,.14);border-radius:8px;padding:5px 10px}
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .filters button{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:5px 12px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .filters button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--mut);border-radius:12px;padding:11px 13px;margin-bottom:9px}
+  .card .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .tag{font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap}
+  .who{font-weight:700}.job{color:var(--mut);font-size:12.5px}.line{margin:3px 0 2px;font-size:13.5px}
+  .why{color:var(--mut);font-size:12.5px}.act{margin-top:5px;font-size:12.5px;font-weight:700}
+  .amt{font-weight:800;white-space:nowrap}
+  .P{border-left-color:var(--past)}.P .tag{background:var(--past)}
+  .C{border-left-color:var(--closing)}.C .tag{background:var(--closing)}
+  .O{border-left-color:var(--open)}.O .tag{background:var(--open)}
+  .S{border-left-color:var(--soon)}.S .tag{background:var(--soon)}
+  .D{border-left-color:var(--dorm)}.D .tag{background:var(--dorm)}
+  .T{border-left-color:var(--track)}.T .tag{background:var(--track)}
+  .G{border-left-color:var(--gap)}.G .tag{background:var(--gap)}
+  .R{border-left-color:var(--tri)}.R .tag{background:var(--tri)}
+  .gapbox{background:#f3efff;border:1px solid #ded3fb;border-radius:12px;padding:12px 14px;margin-top:16px;font-size:13px}
+  .gapbox b{color:var(--gap)}
+  .foot{color:var(--mut);font-size:12px;margin-top:14px}
+</style>
+</head>
+<body>
+<h1>🌳 TTC PHC Calendar</h1>
+<div class="sub" id="asof"></div>
+<div class="gdd" id="gdd"></div>
+<div class="filters" id="filters"></div>
+<div id="list"></div>
+<div class="gapbox" id="gaps"></div>
+<div class="foot">Read-only view. Data refreshed by the daily <code>phc-scan</code> run · windows cited in <code>domains/phc/windows.md</code> · Jobber is the system of record.</div>
+<script src="data.js"></script>
+<script>
+const D = window.PHC_DATA || {worklist:[],gaps:[],gdd:{next:[]}};
+const CLS = {PAST:"P",CLOSING:"C",OPEN:"O",SOON:"S",DORMANT:"D",ONTRACK:"T",GAP:"G",TRIAGE:"R"};
+const LABEL = {PAST:"🔴 PAST",CLOSING:"🟠 CLOSING",OPEN:"🟢 OPEN",SOON:"🔵 OPENS SOON",DORMANT:"⚪ DORMANT-OK",ONTRACK:"✅ ON TRACK",GAP:"❓ GAP",TRIAGE:"🧹 TRIAGE"};
+document.getElementById("asof").textContent = "As of " + D.as_of + " · Logan UT · the biology clock for every open PHC job";
+const g = D.gdd;
+document.getElementById("gdd").innerHTML =
+  `<div class="lbl">GROWING DEGREE DAYS (base ${g.base}°F, from ${g.from})</div>
+   <div class="big">${g.value.toLocaleString()} GDD</div>
+   <div class="lbl">accumulating ~${g.rate14}/day (14-day avg)</div>
+   <div class="next">${g.next.map(n=>`<div><b>${n.gdd}</b> — ${n.label} → <b>${n.date}</b></div>`).join("")}</div>`;
+const order = ["PAST","CLOSING","GAP","OPEN","SOON","ONTRACK","DORMANT","TRIAGE"];
+const counts = {}; D.worklist.forEach(r=>counts[r.s]=(counts[r.s]||0)+1);
+let active = "ALL";
+const fdiv = document.getElementById("filters");
+["ALL",...order.filter(s=>counts[s])].forEach(s=>{
+  const b=document.createElement("button");
+  b.textContent = s==="ALL" ? `All (${D.worklist.length})` : `${LABEL[s]} (${counts[s]})`;
+  b.onclick=()=>{active=s;render();[...fdiv.children].forEach(x=>x.classList.remove("on"));b.classList.add("on")};
+  if(s==="ALL")b.classList.add("on");
+  fdiv.appendChild(b);
+});
+function render(){
+  const rows = D.worklist
+    .filter(r=>active==="ALL"||r.s===active)
+    .sort((a,b)=>order.indexOf(a.s)-order.indexOf(b.s));
+  document.getElementById("list").innerHTML = rows.map(r=>`
+    <div class="card ${CLS[r.s]}">
+      <div class="top"><span><span class="tag">${LABEL[r.s]}</span> <span class="who">${r.client}</span>
+      <span class="job">${r.job?("#"+r.job):""}</span></span><span class="amt">${r.amt?("$"+r.amt.toLocaleString()):""}</span></div>
+      <div class="line">${r.line}</div>
+      <div class="why">${r.why}</div>
+      ${r.action && r.action!=="none" ? `<div class="act">→ ${r.action}</div>` : ""}
+    </div>`).join("");
+}
+render();
+document.getElementById("gaps").innerHTML = "<b>Open window gaps (David's interview queue):</b><br>" + D.gaps.map(x=>"• "+x).join("<br>");
+</script>
+</body>
+</html>
