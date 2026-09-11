@@ -2,7 +2,7 @@
 <!--
   TTC Crew — the crew's phone-first menu app.
   All tile content lives in content.js (window.TTC_CONTENT) — edit that file, not this one.
-  This file is the shell: header, emergency block, search, and the renderer.
+  This file is the shell: header, home grid, category view, search, and the router.
   If you change this file (markup, styles, or app logic), bump SHELL_CACHE in sw.js so
   installed phones pick up the change (content.js edits do NOT need a bump).
 -->
@@ -63,15 +63,19 @@
     -webkit-text-size-adjust: 100%;
   }
   .app { max-width: 640px; margin: 0 auto; }
-  a { text-decoration: none; }
+  a { text-decoration: none; color: inherit; }
+  svg { display: block; }
 
-  /* Header */
+  /* ---- Home header ---- */
   .header {
     position: relative;
     background: var(--ttc-dark);
     color: var(--fg-on-dark);
     padding: calc(14px + env(safe-area-inset-top)) 20px 18px;
+    overflow: hidden;
   }
+  .header-texture { position: absolute; inset: 0; opacity: .07; }
+  .header-content { position: relative; z-index: 1; }
   .version-pill {
     position: absolute;
     top: calc(14px + env(safe-area-inset-top));
@@ -82,6 +86,7 @@
     color: var(--fg-on-dark);
     padding: 4px 10px;
     border-radius: 999px;
+    z-index: 2;
   }
   .logo-plate {
     display: inline-block;
@@ -91,67 +96,122 @@
     margin-bottom: 12px;
   }
   .logo-plate img { display: block; width: 150px; height: auto; }
-  .app-title { font-weight: 700; font-size: 22px; margin: 0 0 4px; }
+  .app-title { font-weight: 700; font-size: 24px; margin: 0 0 4px; }
   .app-subtitle { font-size: 13px; margin: 0; opacity: .85; }
 
-  /* Emergency */
-  .emergency {
-    background: var(--danger-bg);
-    border: 1px solid var(--danger-border);
-    color: var(--danger-text);
-    border-radius: 14px;
-    margin: 14px 16px 0;
-    padding: 14px;
+  /* ---- Hero slot (only if hero.jpg exists) ---- */
+  .hero { position: relative; width: 100%; height: 140px; overflow: hidden; background: var(--bg-alt); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 45%, var(--ttc-dark) 100%);
+    opacity: .55;
   }
-  .emergency-label {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
-    font-weight: 600; margin-bottom: 10px;
-  }
-  .emergency-buttons { display: flex; flex-direction: column; gap: 10px; }
-  .ebtn {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    min-height: 56px; border-radius: 12px; padding: 8px 12px;
-    background: var(--card); border: 1px solid var(--danger-border); color: var(--danger-text);
-    font-weight: 600; text-align: center;
-  }
-  .ebtn:active { transform: translateY(1px); }
-  .ebtn-primary {
-    background: var(--ttc-orange); border-color: var(--ttc-orange); color: var(--card);
-    font-size: 17px; font-weight: 700;
-  }
-  .ebtn-label { font-size: 16px; }
-  .ebtn-sub { font-size: 13px; margin-top: 2px; opacity: .85; }
-  .emergency-links { margin-top: 10px; text-align: center; }
-  .emergency-links a { color: var(--danger-text); font-size: 13px; text-decoration: underline; }
 
-  /* Search */
+  /* ---- Emergency (single wide button) ---- */
+  .emergency { margin: 16px; }
+  .emergency-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 56px; border-radius: 14px;
+    background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger-text);
+    font-weight: 700; font-size: 17px; font-family: inherit;
+  }
+  .emergency-btn:active { transform: translateY(1px); }
+  .emergency-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+
+  /* ---- Top bar (category view) ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 6;
+    display: flex; align-items: center;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+  }
+  .topbar-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 56px; flex-shrink: 0; color: var(--fg-on-dark);
+  }
+  .topbar-back svg { width: 22px; height: 22px; }
+  .topbar-title {
+    flex: 1; text-align: center; font-weight: 600; font-size: 17px;
+    padding-right: 48px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ---- Search ---- */
   .search-wrap {
-    position: sticky; top: 0; z-index: 5;
+    position: sticky; z-index: 5;
     background: var(--bg);
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-soft);
   }
+  .search-field { position: relative; }
+  .search-field svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--fg3); pointer-events: none;
+  }
   #search {
     width: 100%; height: 52px; border-radius: 12px;
-    border: 1px solid var(--border); padding: 0 14px;
+    border: 1px solid var(--border); padding: 0 14px 0 42px;
     font-size: 16px; background: var(--card); color: var(--fg1);
     font-family: inherit;
   }
 
-  /* Sections + tiles */
+  /* ---- Home category grid ---- */
   main { padding: 4px 16px 8px; min-height: 40px; }
-  .section { margin-top: 18px; }
-  .section-label {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
-    color: var(--fg2); margin-bottom: 8px; font-weight: 600;
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 0 8px; }
+  .card {
+    position: relative;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 132px;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-top: 4px solid var(--ttc-orange);
+    border-radius: 18px;
+    padding: 18px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
+  .card:active { transform: translateY(1px); }
+  .card-icon svg { width: 48px; height: 48px; }
+  .card-title { font-weight: 600; font-size: 17px; color: var(--fg1); }
+  .card-count { font-size: 13px; color: var(--fg2); }
+  .card-unlocked {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 11px; font-weight: 600;
+    background: var(--ttc-gold); color: var(--fg1);
+    padding: 3px 8px; border-radius: 999px;
+  }
+
+  /* ---- Category head ---- */
+  .cat-head {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+    padding: 20px 16px 6px;
+  }
+  .cat-head svg { width: 64px; height: 64px; }
+  .cat-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--fg1); }
+  .cat-head p { margin: 0; font-size: 14px; color: var(--fg2); max-width: 420px; }
+
+  /* ---- Flat search results (home) ---- */
+  .result-row { margin-bottom: 10px; }
+  .result-cat-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--fg3); margin: 0 0 4px 4px; font-weight: 600;
+  }
+
+  /* ---- Group sub-heading (category view) ---- */
+  .group-label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--fg2); margin: 14px 0 8px; font-weight: 600;
+  }
+
+  /* ---- Tiles ---- */
   .tile {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     background: var(--card); border: 1px solid var(--border-soft);
     border-left: 8px solid var(--ttc-orange); border-radius: 14px;
     padding: 14px 16px; min-height: 64px; margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    color: inherit; transition: transform .05s ease;
+    transition: transform .05s ease;
   }
   .tile:active { transform: translateY(1px); }
   .tile-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -173,7 +233,7 @@
     margin-top: 6px; text-decoration: underline;
   }
 
-  /* Footer */
+  /* ---- Footer ---- */
   .footer {
     text-align: center; font-size: 14px; color: var(--fg3);
     padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
@@ -185,7 +245,7 @@
   }
   .offline-line { margin-top: 8px; font-size: 13px; color: var(--warn-text); }
 
-  /* Update bar */
+  /* ---- Update bar ---- */
   .update-bar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
     background: var(--ttc-dark); color: var(--fg-on-dark);
@@ -194,41 +254,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile, .ebtn { transition: none !important; }
+    .tile, .card, .emergency-btn { transition: none !important; }
   }
 </style>
 </head>
 <body>
-<div class="app">
-
-  <header class="header">
-    <span class="version-pill" id="version-pill" hidden></span>
-    <div class="logo-plate"><img src="ttc-logo-horizontal.png" alt="Total Tree Care" width="150"></div>
-    <h1 class="app-title">TTC Crew</h1>
-    <p class="app-subtitle">Everything the crew needs, one place.</p>
-  </header>
-
-  <section class="emergency" id="emergency" aria-label="Emergency">
-    <div class="emergency-label">Emergency</div>
-    <div class="emergency-buttons" id="emergency-buttons">
-      <a class="ebtn ebtn-primary" href="tel:911">Call 911</a>
-    </div>
-    <div class="emergency-links" id="emergency-links"></div>
-  </section>
-
-  <div class="search-wrap">
-    <input type="search" id="search" placeholder="Find a form, sheet, or page" aria-label="Search">
-  </div>
-
-  <main id="main"></main>
-
-  <footer class="footer">
-    <p id="footer-version"></p>
-    <div class="hint-box" id="install-hint" hidden></div>
-    <p class="offline-line" id="offline-indicator" hidden>You are offline. Showing the last saved version.</p>
-  </footer>
-
-</div>
+<div class="app" id="app"></div>
 
 <div class="update-bar" id="update-bar" hidden>New version available. Tap to reload.</div>
 
@@ -237,6 +268,9 @@
 (function () {
   'use strict';
 
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  // ---- Roles (?office=1 / ?office=0, localStorage ttc-crew-roles) ----
   var ROLE_KEY = 'ttc-crew-roles';
   function loadRoles() {
     var q = new URLSearchParams(location.search);
@@ -245,7 +279,7 @@
     if (q.get('office') === '1') roles = ['crew', 'office'];
     if (q.get('office') === '0') roles = ['crew'];
     try { localStorage.setItem(ROLE_KEY, JSON.stringify(roles)); } catch (e) {}
-    if (q.has('office')) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    if (q.has('office')) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
     return roles;
   }
   var can = function (item, fallbackRoles, roles) {
@@ -255,63 +289,136 @@
   var roles = loadRoles();
   var content = (typeof window.TTC_CONTENT !== 'undefined') ? window.TTC_CONTENT : null;
 
-  // ---- Version pill ----
-  try {
-    if (content && content.meta && content.meta.version) {
-      var vp = document.getElementById('version-pill');
-      vp.textContent = content.meta.version;
-      vp.hidden = false;
-    }
-  } catch (e) {}
-
-  // ---- Emergency block (911 is static HTML above; everything else comes from content.js) ----
-  function makeEmergencyButton(label, display, tel) {
-    var a = document.createElement('a');
-    a.className = 'ebtn';
-    a.href = 'tel:' + tel;
-    var l = document.createElement('span');
-    l.className = 'ebtn-label';
-    l.textContent = label;
-    var s = document.createElement('span');
-    s.className = 'ebtn-sub';
-    s.textContent = display;
-    a.appendChild(l);
-    a.appendChild(s);
-    return a;
+  // ================= Icons =================
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) { e.setAttribute(k, attrs[k]); }
+    return e;
   }
-  try {
-    if (content && content.emergency) {
-      var em = content.emergency;
-      var btnWrap = document.getElementById('emergency-buttons');
-      var linksWrap = document.getElementById('emergency-links');
-      if (em.office) btnWrap.appendChild(makeEmergencyButton(em.office.label, em.office.display, em.office.tel));
-      if (em.poison) btnWrap.appendChild(makeEmergencyButton(em.poison.label, em.poison.display, em.poison.tel));
-      if (em.contacts) {
-        var c = document.createElement('a');
-        c.href = em.contacts.href;
-        c.target = '_blank';
-        c.rel = 'noopener';
-        c.textContent = em.contacts.label;
-        linksWrap.appendChild(c);
-      }
+  function baseSvg() {
+    var s = el('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' });
+    return s;
+  }
+  function strokePath(d, color) {
+    return el('path', { d: d, fill: 'none', stroke: color || 'currentColor', 'stroke-width': '1.75', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  }
+  function fillShape(tag, attrs) {
+    var a = {};
+    for (var k in attrs) a[k] = attrs[k];
+    a.fill = 'var(--ttc-orange)';
+    a.stroke = 'none';
+    return el(tag, a);
+  }
+
+  var ICONS = {
+    shield: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z'));
+      s.appendChild(strokePath('M9 12.2l2 2 4-4.4', 'var(--ttc-orange)'));
+      return s;
+    },
+    book: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M12 6C9.2 4.4 5.3 4 2.5 4.8v13.6c2.8-.8 6.7-.4 9.5 1.2'));
+      s.appendChild(strokePath('M12 6c2.8-1.6 6.7-2 9.5-1.2v13.6c-2.8-.8-6.7-.4-9.5 1.2'));
+      s.appendChild(fillShape('path', { d: 'M14.5 5.2v5l1.8-1.2 1.8 1.2v-5.6' }));
+      return s;
+    },
+    wrench: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M14.7 6.3a4 4 0 00-5.4 5.4L3.5 17.5l3 3 5.8-5.8a4 4 0 005.4-5.4l-2.1 2.1-2-2 2.1-2.1z'));
+      s.appendChild(fillShape('circle', { cx: '7', cy: '17', r: '1.4' }));
+      return s;
+    },
+    clipboard: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M6 5h12v16H6z'));
+      s.appendChild(strokePath('M9.5 12h6M9.5 15.5h4'));
+      s.appendChild(fillShape('path', { d: 'M9 3.3h6v2.4a1 1 0 01-1 1h-4a1 1 0 01-1-1V3.3z' }));
+      return s;
+    },
+    truck: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M2.5 9.5h11v7h-11z'));
+      s.appendChild(strokePath('M13.5 12h4l3 2.7v1.8h-7z'));
+      s.appendChild(fillShape('circle', { cx: '6.5', cy: '18', r: '1.7' }));
+      s.appendChild(fillShape('circle', { cx: '17', cy: '18', r: '1.7' }));
+      return s;
+    },
+    star: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M12 3.2l2.7 5.6 6.1.7-4.5 4.2 1.2 6-5.5-3-5.5 3 1.2-6-4.5-4.2 6.1-.7z'));
+      s.appendChild(fillShape('circle', { cx: '12', cy: '13', r: '1.5' }));
+      return s;
+    },
+    drop: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M12 3c4 5 7 8.7 7 12.2A7 7 0 015 15.2C5 11.7 8 8 12 3z'));
+      s.appendChild(strokePath('M9.6 15.3a2.3 2.3 0 002.3 2.1', 'var(--ttc-orange)'));
+      return s;
+    },
+    building: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M5 21V3.5h14V21'));
+      s.appendChild(strokePath('M8 7.5h2v2H8zM14 7.5h2v2h-2zM8 12h2v2H8zM14 12h2v2h-2z'));
+      s.appendChild(fillShape('path', { d: 'M10 15h4v6h-4z' }));
+      return s;
+    },
+    phone: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z'));
+      return s;
+    },
+    'chevron-left': function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M15 5l-7 7 7 7'));
+      return s;
+    },
+    search: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M11 4.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z'));
+      s.appendChild(strokePath('M15.8 15.8l4.2 4.2'));
+      return s;
     }
-  } catch (e) {}
+  };
+  function icon(name, extraClass) {
+    var fn = ICONS[name];
+    if (!fn) return document.createElementNS(SVGNS, 'svg');
+    var s = fn();
+    if (extraClass) s.setAttribute('class', extraClass);
+    s.setAttribute('stroke', 'currentColor');
+    return s;
+  }
 
-  // ---- Sections + search ----
-  var main = document.getElementById('main');
-  var searchInput = document.getElementById('search');
-
+  // ================= Shared helpers =================
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
   function normalize(s) { return (s || '').toString().toLowerCase(); }
-
   var KIND_LABELS = { sheet: 'Sheet', form: 'Form', doc: 'Doc', pdf: 'PDF', app: 'App', link: 'Link', file: 'File' };
+
+  function visibleSections() {
+    if (!content || !content.sections) return [];
+    return content.sections.filter(function (section) { return can(section, ['crew'], roles); });
+  }
+  function findSection(id) {
+    var list = visibleSections();
+    for (var i = 0; i < list.length; i++) { if (list[i].id === id) return list[i]; }
+    return null;
+  }
+  function sectionTiles(section) {
+    return section.tiles.filter(function (t) { return can(t, section.roles, roles); });
+  }
+  function matchesQuery(hay, terms) {
+    return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+  }
+  function queryTerms(q) {
+    return normalize(q).trim().split(/\s+/).filter(function (t) { return t.length > 0; });
+  }
 
   function buildTile(tile) {
     var a = document.createElement('a');
     a.className = 'tile';
     a.href = tile.href;
-    if (tile.kind === 'file') {
-      // same window
-    } else {
+    if (tile.kind !== 'file') {
       a.target = '_blank';
       a.rel = 'noopener';
     }
@@ -345,51 +452,261 @@
     return a;
   }
 
-  function showLoadError() {
-    while (main.firstChild) main.removeChild(main.firstChild);
+  function buildSearchField(placeholder, value, onInput) {
+    var wrap = document.createElement('div');
+    wrap.className = 'search-wrap';
+    var field = document.createElement('div');
+    field.className = 'search-field';
+    field.appendChild(icon('search'));
+    var input = document.createElement('input');
+    input.type = 'search';
+    input.id = 'search';
+    input.placeholder = placeholder;
+    input.setAttribute('aria-label', 'Search');
+    input.value = value || '';
+    field.appendChild(input);
+    wrap.appendChild(field);
+    input.addEventListener('input', function () { onInput(input.value); });
+    input.addEventListener('search', function () { onInput(input.value); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { input.value = ''; onInput(''); }
+    });
+    return { wrap: wrap, input: input };
+  }
+
+  function buildEmergencyButton() {
+    var section = document.createElement('section');
+    section.setAttribute('aria-label', 'Emergency');
+    section.className = 'emergency';
+    if (content && content.emergency && content.emergency.contacts) {
+      var em = content.emergency.contacts;
+      var a = document.createElement('a');
+      a.className = 'emergency-btn';
+      a.href = em.href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.appendChild(icon('phone'));
+      var label = document.createElement('span');
+      label.textContent = em.label;
+      a.appendChild(label);
+      section.appendChild(a);
+    }
+    return section;
+  }
+
+  function buildFooter() {
+    var footer = document.createElement('footer');
+    footer.className = 'footer';
+    var v = document.createElement('p');
+    v.id = 'footer-version';
+    if (content && content.meta) {
+      v.textContent = 'Version ' + content.meta.version + '. Updated ' + content.meta.updated + '.';
+    }
+    footer.appendChild(v);
+
+    var hint = document.createElement('div');
+    hint.className = 'hint-box';
+    hint.id = 'install-hint';
+    hint.hidden = true;
+    footer.appendChild(hint);
+
+    var offline = document.createElement('p');
+    offline.className = 'offline-line';
+    offline.id = 'offline-indicator';
+    offline.hidden = true;
+    offline.textContent = 'You are offline. Showing the last saved version.';
+    footer.appendChild(offline);
+
+    try {
+      var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+      if (!standalone) {
+        var isIOS = /iPhone|iPad/.test(navigator.userAgent);
+        hint.textContent = isIOS
+          ? 'To install: tap Share, then Add to Home Screen.'
+          : 'To install: open the browser menu, then Install app or Add to Home Screen.';
+        hint.hidden = false;
+      }
+    } catch (e) {}
+
+    try { offline.hidden = navigator.onLine !== false; } catch (e) {}
+
+    return footer;
+  }
+
+  function showLoadError(main) {
+    clear(main);
     var p = document.createElement('p');
     p.className = 'load-error';
     p.textContent = 'Could not load the list. Check your signal and reopen.';
     main.appendChild(p);
   }
 
-  function renderAll(query) {
-    while (main.firstChild) main.removeChild(main.firstChild);
-    var terms = normalize(query).trim().split(/\s+/).filter(function (t) { return t.length > 0; });
-    var anyVisible = false;
-    var lastOfficeSectionEl = null;
+  // ================= Router =================
+  var app = document.getElementById('app');
+  var currentQuery = '';
 
-    content.sections.forEach(function (section) {
-      if (!can(section, ['crew'], roles)) return;
+  function parseRoute() {
+    var h = location.hash || '';
+    var m = h.match(/^#\/?([a-z0-9-]*)$/i);
+    return m && m[1] ? m[1] : null;
+  }
 
-      var tiles = section.tiles.filter(function (tile) {
-        if (!can(tile, section.roles, roles)) return false;
-        if (terms.length === 0) return true;
-        var hay = normalize(tile.label) + ' ' + normalize(tile.desc) + ' ' + normalize(tile.search) + ' ' + normalize(section.title);
-        return terms.every(function (t) { return hay.indexOf(t) !== -1; });
-      });
-      if (tiles.length === 0) return;
-
-      anyVisible = true;
-      var sectionEl = document.createElement('div');
-      sectionEl.className = 'section';
-      var label = document.createElement('div');
-      label.className = 'section-label';
-      label.textContent = section.title;
-      sectionEl.appendChild(label);
-      tiles.forEach(function (tile) { sectionEl.appendChild(buildTile(tile)); });
-      main.appendChild(sectionEl);
-
-      if ((section.roles || []).indexOf('office') !== -1) lastOfficeSectionEl = sectionEl;
-    });
-
-    if (lastOfficeSectionEl) {
-      var hide = document.createElement('a');
-      hide.className = 'hide-office-link';
-      hide.href = '?office=0';
-      hide.textContent = 'Hide office tools on this phone';
-      lastOfficeSectionEl.appendChild(hide);
+  function route() {
+    currentQuery = '';
+    var id = parseRoute();
+    var section = id ? findSection(id) : null;
+    if (!content || !content.sections) {
+      clear(app);
+      showLoadError(app);
+      return;
     }
+    if (section) {
+      renderCategory(section);
+    } else {
+      renderHome();
+    }
+    window.scrollTo(0, 0);
+  }
+
+  // ---- Home ----
+  function renderHome() {
+    clear(app);
+
+    var header = document.createElement('header');
+    header.className = 'header';
+
+    var texture = el('svg', { class: 'header-texture', viewBox: '0 0 200 100', preserveAspectRatio: 'xMidYMid slice', 'aria-hidden': 'true' });
+    var defs = el('defs');
+    var pattern = el('pattern', { id: 'chevPattern', width: '40', height: '34', patternUnits: 'userSpaceOnUse' });
+    ['M0 10 L10 0 L20 10', 'M0 20 L10 10 L20 20', 'M0 30 L10 20 L20 30'].forEach(function (d) {
+      pattern.appendChild(el('path', { d: d, stroke: 'var(--fg-on-dark)', 'stroke-width': '2', fill: 'none' }));
+    });
+    defs.appendChild(pattern);
+    texture.appendChild(defs);
+    texture.appendChild(el('rect', { width: '200', height: '100', fill: 'url(#chevPattern)' }));
+    header.appendChild(texture);
+
+    var pill = document.createElement('span');
+    pill.className = 'version-pill';
+    pill.hidden = true;
+    if (content && content.meta && content.meta.version) {
+      pill.textContent = content.meta.version;
+      pill.hidden = false;
+    }
+    header.appendChild(pill);
+
+    var headContent = document.createElement('div');
+    headContent.className = 'header-content';
+    var logoPlate = document.createElement('div');
+    logoPlate.className = 'logo-plate';
+    var logoImg = document.createElement('img');
+    logoImg.src = 'ttc-logo-horizontal.png';
+    logoImg.alt = 'Total Tree Care';
+    logoImg.width = 150;
+    logoPlate.appendChild(logoImg);
+    headContent.appendChild(logoPlate);
+    var h1 = document.createElement('h1');
+    h1.className = 'app-title';
+    h1.textContent = 'TTC Crew';
+    headContent.appendChild(h1);
+    var sub = document.createElement('p');
+    sub.className = 'app-subtitle';
+    sub.textContent = 'Everything the crew needs, one place.';
+    headContent.appendChild(sub);
+    header.appendChild(headContent);
+
+    app.appendChild(header);
+
+    // Hero (only if hero.jpg exists)
+    var heroWrap = document.createElement('div');
+    heroWrap.className = 'hero';
+    heroWrap.hidden = true;
+    var heroImg = document.createElement('img');
+    heroImg.alt = '';
+    heroImg.onload = function () { heroWrap.hidden = false; };
+    heroImg.onerror = function () {
+      heroWrap.hidden = true;
+      if (heroImg.parentNode) heroImg.parentNode.removeChild(heroImg);
+    };
+    heroWrap.appendChild(heroImg);
+    app.appendChild(heroWrap);
+    heroImg.src = 'hero.jpg';
+
+    app.appendChild(buildEmergencyButton());
+
+    var searchField = buildSearchField('Find a form, sheet, or page', currentQuery, function (val) {
+      currentQuery = val;
+      renderHomeBody(val);
+    });
+    app.appendChild(searchField.wrap);
+
+    var main = document.createElement('main');
+    main.id = 'main';
+    app.appendChild(main);
+
+    app.appendChild(buildFooter());
+
+    renderHomeBody('');
+  }
+
+  function renderHomeBody(query) {
+    var main = document.getElementById('main');
+    if (!main) return;
+    clear(main);
+
+    var terms = queryTerms(query);
+    var sections = visibleSections();
+
+    if (terms.length === 0) {
+      var grid = document.createElement('div');
+      grid.className = 'grid';
+      sections.forEach(function (section) {
+        var tiles = sectionTiles(section);
+        var card = document.createElement('a');
+        card.className = 'card';
+        card.href = '#/' + section.id;
+        if ((section.roles || []).indexOf('office') !== -1) {
+          var pill = document.createElement('span');
+          pill.className = 'card-unlocked';
+          pill.textContent = 'Unlocked';
+          card.appendChild(pill);
+        }
+        var iconWrap = document.createElement('div');
+        iconWrap.className = 'card-icon';
+        iconWrap.appendChild(icon(section.icon));
+        card.appendChild(iconWrap);
+        var title = document.createElement('div');
+        title.className = 'card-title';
+        title.textContent = section.title;
+        card.appendChild(title);
+        var count = document.createElement('div');
+        count.className = 'card-count';
+        count.textContent = tiles.length + (tiles.length === 1 ? ' item' : ' items');
+        card.appendChild(count);
+        grid.appendChild(card);
+      });
+      main.appendChild(grid);
+      return;
+    }
+
+    var anyVisible = false;
+    sections.forEach(function (section) {
+      var tiles = sectionTiles(section).filter(function (tile) {
+        var hay = normalize(tile.label) + ' ' + normalize(tile.desc) + ' ' + normalize(tile.search) + ' ' + normalize(section.title);
+        return matchesQuery(hay, terms);
+      });
+      tiles.forEach(function (tile) {
+        anyVisible = true;
+        var row = document.createElement('div');
+        row.className = 'result-row';
+        var label = document.createElement('div');
+        label.className = 'result-cat-label';
+        label.textContent = section.title;
+        row.appendChild(label);
+        row.appendChild(buildTile(tile));
+        main.appendChild(row);
+      });
+    });
 
     if (!anyVisible) {
       var msg = document.createElement('p');
@@ -399,52 +716,116 @@
     }
   }
 
+  // ---- Category ----
+  function renderCategory(section) {
+    clear(app);
+
+    var topbar = document.createElement('div');
+    topbar.className = 'topbar';
+    var back = document.createElement('a');
+    back.className = 'topbar-back';
+    back.href = '#/';
+    back.setAttribute('aria-label', 'Back');
+    back.appendChild(icon('chevron-left'));
+    topbar.appendChild(back);
+    var title = document.createElement('div');
+    title.className = 'topbar-title';
+    title.textContent = section.title;
+    topbar.appendChild(title);
+    app.appendChild(topbar);
+
+    var searchField = buildSearchField('Find a form, sheet, or page', currentQuery, function (val) {
+      currentQuery = val;
+      renderCategoryBody(section, val);
+    });
+    app.appendChild(searchField.wrap);
+
+    var main = document.createElement('main');
+    main.id = 'main';
+    app.appendChild(main);
+
+    app.appendChild(buildFooter());
+
+    renderCategoryBody(section, '');
+  }
+
+  function renderCategoryBody(section, query) {
+    var main = document.getElementById('main');
+    if (!main) return;
+    clear(main);
+
+    var head = document.createElement('div');
+    head.className = 'cat-head';
+    head.appendChild(icon(section.icon));
+    var h2 = document.createElement('h2');
+    h2.textContent = section.title;
+    head.appendChild(h2);
+    if (section.blurb) {
+      var p = document.createElement('p');
+      p.textContent = section.blurb;
+      head.appendChild(p);
+    }
+    main.appendChild(head);
+
+    var terms = queryTerms(query);
+    var tiles = sectionTiles(section).filter(function (tile) {
+      if (terms.length === 0) return true;
+      var hay = normalize(tile.label) + ' ' + normalize(tile.desc) + ' ' + normalize(tile.search) + ' ' + normalize(section.title);
+      return matchesQuery(hay, terms);
+    });
+
+    if (tiles.length === 0) {
+      var msg = document.createElement('p');
+      msg.className = 'no-match';
+      msg.textContent = 'Nothing matches. Try another word.';
+      main.appendChild(msg);
+    } else {
+      var prevGroup = null;
+      tiles.forEach(function (tile) {
+        var g = tile.group || null;
+        if (g && g !== prevGroup) {
+          var gl = document.createElement('div');
+          gl.className = 'group-label';
+          gl.textContent = g;
+          main.appendChild(gl);
+        }
+        prevGroup = g;
+        main.appendChild(buildTile(tile));
+      });
+    }
+
+    if ((section.roles || []).indexOf('office') !== -1) {
+      var hide = document.createElement('a');
+      hide.className = 'hide-office-link';
+      hide.href = '?office=0';
+      hide.textContent = 'Hide office tools on this phone';
+      main.appendChild(hide);
+    }
+  }
+
+  // ================= Boot =================
   try {
     if (content && content.sections) {
-      renderAll('');
-      searchInput.addEventListener('input', function () { renderAll(searchInput.value); });
-      searchInput.addEventListener('search', function () { renderAll(searchInput.value); });
-      searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { searchInput.value = ''; renderAll(''); }
-      });
+      window.addEventListener('hashchange', route);
+      route();
     } else {
-      showLoadError();
+      clear(app);
+      app.appendChild(buildFooter());
+      showLoadError(app);
     }
   } catch (e) {
-    showLoadError();
+    clear(app);
+    showLoadError(app);
   }
 
-  // ---- Footer ----
-  try {
-    if (content && content.meta) {
-      document.getElementById('footer-version').textContent =
-        'Version ' + content.meta.version + '. Updated ' + content.meta.updated + '.';
-    }
-  } catch (e) {}
-
-  try {
-    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-    if (!standalone) {
-      var hint = document.getElementById('install-hint');
-      var isIOS = /iPhone|iPad/.test(navigator.userAgent);
-      hint.textContent = isIOS
-        ? 'To install: tap Share, then Add to Home Screen.'
-        : 'To install: open the browser menu, then Install app or Add to Home Screen.';
-      hint.hidden = false;
-    }
-  } catch (e) {}
-
-  function updateOfflineIndicator() {
-    try {
-      var el = document.getElementById('offline-indicator');
-      el.hidden = navigator.onLine !== false;
-    } catch (e) {}
-  }
-  try {
-    updateOfflineIndicator();
-    window.addEventListener('online', updateOfflineIndicator);
-    window.addEventListener('offline', updateOfflineIndicator);
-  } catch (e) {}
+  window.addEventListener('online', function () {
+    var el2 = document.getElementById('offline-indicator');
+    if (el2) el2.hidden = true;
+  });
+  window.addEventListener('offline', function () {
+    var el2 = document.getElementById('offline-indicator');
+    if (el2) el2.hidden = false;
+  });
 
   // ---- Service worker + update bar ----
   try {
