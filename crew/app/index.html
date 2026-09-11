@@ -119,6 +119,10 @@
   }
   .emergency-btn:active { transform: translateY(1px); }
   .emergency-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+  .emergency-sheet-link {
+    display: block; text-align: center; margin-top: 8px;
+    font-size: 13px; color: var(--danger-text); text-decoration: underline;
+  }
 
   /* ---- Top bar (category view) ---- */
   .topbar {
@@ -206,14 +210,18 @@
 
   /* ---- Tiles ---- */
   .tile {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
     background: var(--card); border: 1px solid var(--border-soft);
     border-left: 8px solid var(--ttc-orange); border-radius: 14px;
-    padding: 14px 16px; min-height: 64px; margin-bottom: 10px;
+    margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .tile-main {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; min-height: 56px;
     transition: transform .05s ease;
   }
-  .tile:active { transform: translateY(1px); }
+  .tile-main:active { transform: translateY(1px); }
   .tile-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .tile-label { font-weight: 600; font-size: 17px; color: var(--fg1); }
   .tile-desc { font-size: 14px; color: var(--fg2); }
@@ -224,6 +232,11 @@
     white-space: nowrap;
   }
   .tile-chevron { font-size: 18px; color: var(--fg3); line-height: 1; }
+  .tile-sheet-link {
+    display: flex; align-items: center;
+    min-height: 32px; padding: 0 16px 8px;
+    font-size: 12px; color: var(--fg2); text-decoration: underline;
+  }
 
   .no-match, .load-error {
     text-align: center; color: var(--fg2); font-size: 14px; padding: 28px 8px;
@@ -254,7 +267,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile, .card, .emergency-btn { transition: none !important; }
+    .tile-main, .card, .emergency-btn { transition: none !important; }
   }
 </style>
 </head>
@@ -415,8 +428,11 @@
   }
 
   function buildTile(tile) {
+    var wrap = document.createElement('div');
+    wrap.className = 'tile';
+
     var a = document.createElement('a');
-    a.className = 'tile';
+    a.className = 'tile-main';
     a.href = tile.href;
     if (tile.kind !== 'file') {
       a.target = '_blank';
@@ -449,7 +465,19 @@
     right.appendChild(chev);
     a.appendChild(right);
 
-    return a;
+    wrap.appendChild(a);
+
+    if (tile.sheetHref) {
+      var sheetLink = document.createElement('a');
+      sheetLink.className = 'tile-sheet-link';
+      sheetLink.href = tile.sheetHref;
+      sheetLink.target = '_blank';
+      sheetLink.rel = 'noopener';
+      sheetLink.textContent = tile.sheetLabel || 'Open the sheet';
+      wrap.appendChild(sheetLink);
+    }
+
+    return wrap;
   }
 
   function buildSearchField(placeholder, value, onInput) {
@@ -482,7 +510,7 @@
       var em = content.emergency.contacts;
       var a = document.createElement('a');
       a.className = 'emergency-btn';
-      a.href = em.href;
+      a.href = em.pageHref || em.sheetHref;
       a.target = '_blank';
       a.rel = 'noopener';
       a.appendChild(icon('phone'));
@@ -490,6 +518,16 @@
       label.textContent = em.label;
       a.appendChild(label);
       section.appendChild(a);
+
+      if (em.pageHref) {
+        var sheetLink = document.createElement('a');
+        sheetLink.className = 'emergency-sheet-link';
+        sheetLink.href = em.sheetHref;
+        sheetLink.target = '_blank';
+        sheetLink.rel = 'noopener';
+        sheetLink.textContent = em.sheetLabel || 'Open the sheet';
+        section.appendChild(sheetLink);
+      }
     }
     return section;
   }

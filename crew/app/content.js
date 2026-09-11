@@ -28,6 +28,10 @@
 // Emergency: a single "Crew Emergency Contacts" button on the home screen. Personal numbers stay in
 // that Google-gated sheet; no other phone numbers belong in this file except the ones already removed.
 //
+// sheetHref (optional, any tile): use when a tile opens a nice page built on top of a sheet; the sheet
+// stays one tap away. Pair with an optional sheetLabel (defaults to "Open the sheet"). Not used on any
+// tile yet except the emergency entry below.
+//
 // Bump meta.version whenever you change this file (shown in the footer, helps you confirm a phone updated).
 
 window.TTC_CONTENT = {
@@ -40,7 +44,11 @@ window.TTC_CONTENT = {
   emergency: {
     contacts: {
       label: "Crew Emergency Contacts",
-      href: "https://docs.google.com/spreadsheets/u/0/d/1soPoRlkpGhM4rb2Xb3E8e-Q_BiGhDhwpxGSAhSblgvw/edit"
+      // pageHref: the login-gated contacts page (Apps Script web app). Empty until deployed — when empty,
+      // the button falls back to sheetHref. Once the web app URL exists, paste it in here.
+      pageHref: "https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec",
+      sheetHref: "https://docs.google.com/spreadsheets/u/0/d/1soPoRlkpGhM4rb2Xb3E8e-Q_BiGhDhwpxGSAhSblgvw/edit",
+      sheetLabel: "Open the sheet"
     }
   },
 
@@ -128,8 +136,6 @@ window.TTC_CONTENT = {
         { id: "hub", label: "TTC Tools Hub", desc: "Every dashboard and page in one place", href: "https://myersmail9-afk.github.io/ttc-tools/", kind: "app" },
         { id: "chip-drop-qa", label: "Chip Drop QA", desc: "Check every new pin before setting it Active", href: "https://myersmail9-afk.github.io/ttc-tools/chip-drop-qa/", kind: "app" },
         { id: "phc-calendar", label: "PHC Calendar", desc: "Growing degree days and every open PHC job by window", href: "https://myersmail9-afk.github.io/ttc-tools/phc-calendar/", kind: "app", search: "gdd spray window" },
-        { id: "verdur-board", label: "Verdur Campaign Board", desc: "The client list, prices and contact check-off. Private — not on this site.", href: "https://claude.ai/code/artifact/957b4885-1420-4941-a832-d50ad129cee2", kind: "app", search: "iron chlorosis phc macro injection campaign re-treat" },
-        { id: "verdur-how", label: "Verdur Pricing and Script", desc: "Price a tree by diameter, the phone script, and how to get a measurement without a visit", href: "https://myersmail9-afk.github.io/ttc-tools/verdur/", kind: "app", search: "iron chlorosis dbh calculator macro injection rate script" },
         { id: "rate-analysis", label: "Rate Analysis", desc: "Net dollars per hour by bidder, refreshed nightly from Jobber", href: "https://myersmail9-afk.github.io/ttc-rate-analysis/", kind: "app", search: "bids win loss" },
         { id: "employee-resources-sheet", label: "Employee Resources Sheet (original)", desc: "The Google Sheet button grid this app replaces. Still the place to edit the underlying sheets.", href: "https://docs.google.com/spreadsheets/d/1XjYf1F-ODZ6Yv4_I_jzocY6d1GdiI6JoNH2dc38WrMQ/edit", kind: "sheet" },
         { id: "chip-drops-sheet", label: "Chip Drops Live (v2)", desc: "The sheet behind the Chip Drop App", href: "https://docs.google.com/spreadsheets/d/1VLwiva5-3ZHEGjLe_coKDKy5cgRAgGHzDHOz4wOsQPA/edit", kind: "sheet" },
