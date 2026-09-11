@@ -2,10 +2,15 @@
 
 One **public** GitHub repo that hosts all of Joseph's **internal** dashboards as web pages, so each internal tool does NOT need its own repo. Kept separate from customer/crew apps so a change to one never affects another.
 
-## What's here
-- `index.html` — landing page that lists the internal tools.
-- `chip-drop-qa/index.html` — the Chip Drop visual QA dashboard (reads the live v2 chip-drops Google Sheet; shows non-active rows to eyeball before activating). Linked from column V of the chip-drops sheet.
+## What's here (layout per `_ai-os/APP-PLATFORM-PLAN.md` in the main repo)
+- `index.html` — the hub. Office tiles, then Crew, then Customers (public).
+- Office: `chip-drop-qa/`, `phc-calendar/` (`data.js` rewritten daily by phc-scan), `bid-staging/` (retired 2026-06-29).
+- Crew: `crew/leaderboard/`, `crew/reviews-bonus/`, `crew/post-job-walkthrough/`.
+- Customers (public): `tree-watering/` (+ `ttc-logo.png`), `chip-drop-calculator/`, `door-hanger/`.
+- Not here on purpose: the Chip Drop App (installed PWA with its own Apps Script backend — moving it would orphan installed copies), Rate Analysis and the Debtor Map (need a login-gated home first).
 - `.nojekyll` — tells GitHub Pages to serve files as-is.
+
+Migrated in 2026-09-11 (plan step 6). The old one-repo-per-app addresses stay live until Joseph archives those repos; each app's source of truth remains in the main repo under `domains/`.
 
 ## Live address (once Pages is on)
 - Landing: `https://myersmail9-afk.github.io/ttc-tools/`
