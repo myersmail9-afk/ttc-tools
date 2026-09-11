@@ -198,13 +198,13 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
   </a>
   <div class="topbar-title">Policies and Procedures</div>
-  <a class="topbar-pdf" href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">PDF</a>
+  <a class="topbar-pdf" href="../../files/handbook/handbook-2020.pdf" target="_blank" rel="noopener">PDF</a>
 </div>
 
 <div class="info-band">
   <p>The 2020 book, as it stands. Changes collect in Notes until the next edition.</p>
   <div class="info-links">
-    <a href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">Download the PDF</a>
+    <a href="../../files/handbook/handbook-2020.pdf" target="_blank" rel="noopener">Download the PDF</a>
     <a href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">Original in Drive</a>
   </div>
 </div>
@@ -269,7 +269,7 @@
 
   function buildPagesFallback() {
     var pages = [];
-    for (var n = 1; n <= TOTAL_PAGES; n++) { pages.push(n === 5 ? { n: n, title: null, withheld: true, note: WITHHELD_NOTE } : { n: n, title: null }); }
+    for (var n = 1; n <= TOTAL_PAGES; n++) { pages.push({ n: n, title: null }); }
     return pages;
   }
 

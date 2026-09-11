@@ -72,7 +72,7 @@ window.TTC_CONTENT = {
         { id: "handbook-2020", label: "Policies and Procedures Book (2020)", desc: "Read it here, page by page. The PDF is one tap away.", href: "pages/handbook/", kind: "file", search: "handbook rules uniform training schedule compensation knots" },
         { id: "handbook-notes", label: "Notes and Proposed Changes", desc: "David's notes on the printed copy, and anything we agree to change", href: "pages/handbook/notes.html", kind: "file", search: "updates revisions" },
         { id: "dispute-policy", label: "Customer Complaint and Dispute Policy", desc: "What to do when a customer is unhappy", href: "https://docs.google.com/document/d/1eNTcB9_abKSMaJCsqItSOBzv8ysv9pLPO-SFqNqns3A/edit", kind: "doc" },
-        { id: "handbook-pdf", label: "Download the PDF", desc: "The 2020 book as a file, behind the Google sign-in", href: "https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view", kind: "pdf" }
+        { id: "handbook-pdf", label: "Download the PDF", desc: "The 2020 book as a file", href: "files/handbook/handbook-2020.pdf", kind: "pdf" }
       ]
     },
 
