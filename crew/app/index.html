@@ -113,6 +113,18 @@
   .app-title { font-weight: 700; font-size: 26px; margin: 0 0 4px; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
   .app-subtitle { font-size: 13px; margin: 0; opacity: .9; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
 
+  /* ---- Front-door crew code gate ---- */
+  .gate-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); text-align: center; color: var(--fg-on-dark); }
+  .gate-badge { width: 96px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); margin-bottom: 10px; }
+  .gate-title { font-weight: 700; font-size: 26px; margin: 0 0 22px; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
+  .gate-card { width: 100%; max-width: 420px; background: rgba(255,255,255,.78); -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; padding: 22px 18px; box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.16); color: var(--fg1); text-align: center; }
+  .gate-card h2 { font-size: 19px; margin: 0 0 6px; }
+  .gate-card p { font-size: 14px; color: var(--fg2); margin: 0 0 16px; line-height: 1.5; }
+  .gate-input { width: 100%; height: 56px; border-radius: 14px; border: 1px solid var(--border); font-size: 24px; letter-spacing: .2em; text-align: center; font-family: inherit; background: var(--card); color: var(--fg1); }
+  .gate-btn { width: 100%; height: 56px; margin-top: 12px; border: 0; border-radius: 14px; background: var(--ttc-orange); color: #fff; font-size: 17px; font-weight: 700; font-family: inherit; }
+  .gate-btn[disabled] { opacity: .6; }
+  .gate-msg { margin-top: 12px; font-size: 14px; color: var(--danger-text); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 12px; padding: 10px 12px; }
+  .gate-msg.quiet { color: var(--fg2); background: transparent; border: 0; padding: 0; }
   /* ---- Emergency (single wide button) ---- */
   .emergency { margin: 18px 20px 0; }
   .emergency-btn {
@@ -892,11 +904,72 @@
     }
   }
 
+  // ================= Front door: the crew code, asked once per phone =================
+  // Level 1 only (the app's files are public on GitHub Pages); the code is checked against the
+  // contacts script so a wrong code is refused, then remembered in localStorage.
+  var CODE_KEY = 'ttc-crew-code';
+  var CODE_CHECK_URL = 'https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec';
+  function checkCode(code, attempt, done) {
+    var delays = [1500, 3000, 6000];
+    fetch(CODE_CHECK_URL + '?format=json&k=' + encodeURIComponent(code) + '&t=' + Date.now(), { redirect: 'follow', credentials: 'omit' })
+      .then(function (r) { return r.text(); })
+      .then(function (txt) {
+        var d = null; try { d = JSON.parse(txt); } catch (e) {}
+        if (!d || typeof d.ok !== 'boolean') throw new Error('bad-response');
+        done(d.ok ? 'ok' : (d.error === 'code' ? 'wrong' : 'ok'));
+      })
+      .catch(function () {
+        if (attempt < delays.length) setTimeout(function () { checkCode(code, attempt + 1, done); }, delays[attempt]);
+        else done('offline');
+      });
+  }
+  function ensureCrewCode(next) {
+    var saved = null; try { saved = localStorage.getItem(CODE_KEY); } catch (e) {}
+    if (saved) { next(); return; }
+    clear(app);
+    var wrap = document.createElement('div'); wrap.className = 'gate-wrap';
+    var badge = document.createElement('img'); badge.className = 'gate-badge'; badge.src = 'badge.png'; badge.alt = '';
+    var title = document.createElement('div'); title.className = 'gate-title'; title.textContent = 'TTC Crew';
+    var card = document.createElement('div'); card.className = 'gate-card';
+    var h2 = document.createElement('h2'); h2.textContent = 'Enter the crew code';
+    var p = document.createElement('p'); p.textContent = 'Ask Joseph or David for it. This phone remembers it after the first time.';
+    var form = document.createElement('form');
+    var input = document.createElement('input'); input.className = 'gate-input'; input.type = 'text'; input.inputMode = 'numeric'; input.autocomplete = 'one-time-code'; input.maxLength = 8; input.setAttribute('aria-label', 'Crew code');
+    var btn = document.createElement('button'); btn.className = 'gate-btn'; btn.type = 'submit'; btn.textContent = 'Open the App';
+    var msg = document.createElement('div'); msg.className = 'gate-msg quiet'; msg.hidden = true;
+    form.appendChild(input); form.appendChild(btn);
+    card.appendChild(h2); card.appendChild(p); card.appendChild(form); card.appendChild(msg);
+    wrap.appendChild(badge); wrap.appendChild(title); wrap.appendChild(card);
+    app.appendChild(wrap);
+    setTimeout(function () { try { input.focus(); } catch (e) {} }, 50);
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var code = input.value.trim();
+      if (!code) return;
+      btn.disabled = true; btn.textContent = 'Checking';
+      msg.className = 'gate-msg quiet'; msg.hidden = false; msg.textContent = 'One moment.';
+      checkCode(code, 0, function (result) {
+        if (result === 'ok') {
+          try { localStorage.setItem(CODE_KEY, code); } catch (e) {}
+          next();
+        } else if (result === 'wrong') {
+          btn.disabled = false; btn.textContent = 'Open the App';
+          msg.className = 'gate-msg'; msg.textContent = 'That code did not match. Try again.';
+        } else {
+          btn.disabled = false; btn.textContent = 'Open the App';
+          msg.className = 'gate-msg'; msg.textContent = 'Could not check the code. Check your signal and try again.';
+        }
+      });
+    });
+  }
+
   // ================= Boot =================
   try {
     if (content && content.sections) {
-      window.addEventListener('hashchange', route);
-      route();
+      ensureCrewCode(function () {
+        window.addEventListener('hashchange', route);
+        route();
+      });
     } else {
       clear(app);
       app.appendChild(buildFooter());
