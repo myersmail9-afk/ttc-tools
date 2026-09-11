@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Verdur Campaign — Total Tree Care</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FBFAF6;--panel:#FFF;--sunk:#F3F1E9;--ink:#1C2118;--bark:#6B5F52;--hair:#DFDACB;
+  --chlorotic:#B8911C;--chlorotic-bg:#FAF2D8;--recovered:#3E6B4A;--recovered-bg:#E4EEE4;
+  --rust:#A4462D;--rust-bg:#F8E7E1;
+  --serif:"Source Serif 4",Georgia,serif;--sans:"Public Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --ground:#14170F;--panel:#1C2118;--sunk:#232920;--ink:#EDE9DC;--bark:#A29883;--hair:#343B2E;
+  --chlorotic:#E0BB45;--chlorotic-bg:#2D2713;--recovered:#7FB98C;--recovered-bg:#1B2A1E;
+  --rust:#E08A6B;--rust-bg:#2E1A13;}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+  margin:0;padding:24px 16px 48px;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--serif);font-size:30px;font-weight:700;margin:0;line-height:1.08;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0}
+p,ul,ol{margin:0}
+ul,ol{padding-left:19px;display:flex;flex-direction:column;gap:6px}
+li::marker{color:var(--bark)}
+a{color:var(--rust)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--bark)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{border-bottom:2px solid var(--ink);padding-bottom:16px;display:flex;flex-wrap:wrap;
+  gap:16px;align-items:flex-end;justify-content:space-between}
+.htext{display:flex;flex-direction:column;gap:5px}
+.clock{background:var(--rust-bg);border:1px solid var(--rust);padding:10px 16px;text-align:right;min-width:150px}
+.clock b{display:block;font-family:var(--mono);font-size:34px;font-weight:600;color:var(--rust);line-height:1}
+.clock span{font-size:11px;color:var(--rust);display:block;margin-top:3px}
+section{background:var(--panel);border:1px solid var(--hair);padding:16px 17px;display:flex;flex-direction:column;gap:11px}
+.formula{background:var(--ink);color:var(--ground);padding:15px 17px}
+.formula b{font-family:var(--mono);font-size:17px;display:block;margin-bottom:5px}
+.formula span{font-size:13px;opacity:.75;display:block}
+.formula em{font-style:normal;font-family:var(--mono);opacity:.95}
+.say{border-left:3px solid var(--recovered);background:var(--recovered-bg);padding:12px 14px;font-size:15px}
+.say b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--recovered);display:block;margin-bottom:5px}
+.warn{border-left:3px solid var(--chlorotic);background:var(--chlorotic-bg);padding:12px 14px;font-size:14px}
+.warn b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--chlorotic);display:block;margin-bottom:5px}
+.calc{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:4px;flex:1 1 130px}
+.fld label{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--bark)}
+.fld input,.fld select{font-family:var(--mono);font-size:17px;padding:9px 10px;border:1px solid var(--hair);
+  background:var(--ground);color:var(--ink);width:100%;border-radius:0}
+.fld input:focus,.fld select:focus{outline:2px solid var(--chlorotic);outline-offset:1px}
+.res{background:var(--recovered-bg);border:1px solid var(--recovered);padding:11px 16px;flex:1 1 150px}
+.res b{display:block;font-family:var(--mono);font-size:27px;font-weight:600;color:var(--recovered);line-height:1.05}
+.res span{font-size:11px;color:var(--recovered);display:block;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--hair);text-align:left}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--bark);font-weight:400}
+td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--bark)}
+code{font-family:var(--mono);font-size:12.5px;background:var(--sunk);padding:1px 5px}
+.btn{display:inline-block;background:var(--ink);color:var(--ground);text-decoration:none;
+  font-weight:600;font-size:14px;padding:10px 16px;border:1px solid var(--ink)}
+.btn.alt{background:transparent;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:9px}
+footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:var(--bark)}
+@media (max-width:560px){h1{font-size:25px}body{padding-top:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="htext">
+    <div class="eyebrow">Total Tree Care · Plant Health Care · fall 2026</div>
+    <h1>Verdur re-treat campaign</h1>
+    <p class="note">How we price it, what to say, and how to measure a tree without a bid visit.</p>
+  </div>
+  <div class="clock"><b id="days">–</b><span id="lbl">days of window left</span></div>
+</header>
+
+<div class="formula">
+  <b>macro injection = $/inch × total DBH</b>
+  <span><em>$13.00/in</em> on work quoted 2020–2022 &nbsp;·&nbsp; <em>$15.00/in</em> from 2023 on</span>
+  <span>No base fee. No minimum. No species adjustment. Multiple trees on one line: add the diameters.</span>
+  <span>Micro injection is separate and flat: <em>$7.50 per injection</em>.</span>
+</div>
+
+<section>
+  <h2>Price a tree</h2>
+  <p class="note">Diameter at breast height — about 4½ feet up. If you only have the distance around the trunk, put that in instead and this converts it.</p>
+  <div class="calc">
+    <div class="fld"><label for="n">Trees</label><input id="n" type="number" inputmode="numeric" value="1" min="1" step="1"></div>
+    <div class="fld"><label for="m">Measurement</label><select id="m"><option value="d">Diameter (in)</option><option value="c">Around the trunk (in)</option></select></div>
+    <div class="fld"><label for="v">Inches, each tree</label><input id="v" type="number" inputmode="decimal" value="22" min="1" step="0.5"></div>
+    <div class="fld"><label for="r">Rate $/in</label><input id="r" type="number" inputmode="decimal" value="15" min="1" step="0.5"></div>
+    <div class="res"><b id="out">$330</b><span id="show">22″ × $15/in</span></div>
+  </div>
+  <p class="note">Quotes historically round to the nearest $5. Rate is <strong>unconfirmed for 2026</strong> — $15/in is the 2023–2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
+</section>
+
+<section>
+  <h2>Getting the measurement without going out</h2>
+  <p>Roughly a third of the trees on this list have no diameter on file, and a client may well point at a different tree than the one we treated. A photo shows the foliage but has no scale in it, so it cannot set a price. A tape can.</p>
+  <div class="say"><b>the line to use</b>Wrap a tape measure or a piece of string around the trunk at about chest height and tell me the inches around. That is all I need to price it exactly — and send a photo of the leaves while you're out there.</div>
+  <p class="note">Around the trunk ÷ 3.14 = diameter. Anyone can read a tape; nobody can eyeball a diameter. It also means <em>any</em> tree in the yard becomes quotable, including ones we have never treated — which is upside. A yard with one chlorotic maple usually has two.</p>
+</section>
+
+<section>
+  <h2>What to say on the phone</h2>
+  <p><strong>Open with the tree, not the offer.</strong> “Joseph at Total Tree Care. Calling about the 22″ silver maple on your corner — we injected it for iron in 2023. Two minutes?”</p>
+  <ol>
+    <li><strong>Did it respond?</strong> Did it green up. Did it hold.</li>
+    <li><strong>Are the symptoms back?</strong> Pale leaves with green veins, worst on the new growth up top. Any dieback in the upper canopy.</li>
+    <li><strong>Quote it on the call.</strong> “No visit needed, we still have the diameter.” Say the number.</li>
+    <li><strong>No diameter on file?</strong> Use the tape line above and price it the same day.</li>
+    <li><strong>Different tree?</strong> Fine — measure that one. Two trees is a better job than one.</li>
+    <li><strong>Should it be treated?</strong> Symptoms plus a healthy tree, yes. <strong>A hard-stressed tree does not get injected.</strong> Say so out loud.</li>
+    <li><strong>Cambistat also due?</strong> “Growth regulator from that year is on the same cycle — one visit covers both.”</li>
+    <li><strong>No thanks?</strong> Offer spring. Soil injection runs March–April and keeps them in the book.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Why fall, and why now</h2>
+  <ul>
+    <li><strong>Inject before leaf drop.</strong> The tree pulls the iron down as it goes dormant, so it is loaded for spring. The window is roughly <strong>15 Sep – 15 Oct</strong>.</li>
+    <li><strong>A macro injection holds two to three years.</strong> Anything treated 2024 or earlier is at or past the end of its cycle.</li>
+    <li><strong>No bid visit.</strong> We have the diameter from last time, so the price is arithmetic. If a client really wants eyes on it, Trevor measures on a PHC day and can treat the same trip on approval.</li>
+    <li><strong>The photo is the honesty check</strong>, not the price check — it tells us whether the tree actually needs another round. If it is holding, we leave it alone.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Two rate eras, and what that means for the ask</h2>
+  <table>
+    <thead><tr><th>treated</th><th>paid</th><th>today at $15/in</th><th>what to say</th></tr></thead>
+    <tbody>
+      <tr><td>2020–2022</td><td class="r">$13/in</td><td class="r">+15%</td><td>“Our rate went from $13 to $15 an inch.”</td></tr>
+      <tr><td>2023–2024</td><td class="r">$15/in</td><td class="r">same</td><td>“Same price as last time.”</td></tr>
+    </tbody>
+  </table>
+  <div class="warn"><b>don't say “your tree grew”</b>We reuse the diameter from the previous quote rather than re-measuring, so our own records show no growth to bill for. The rate change is real and a client can check it against their invoice. The growth story cannot be backed up — use the rate.</div>
+</section>
+
+<section>
+  <h2>The client list</h2>
+  <p>Names, numbers, prices and contact marks live on the private campaign board, not on this page — <strong>this page is public</strong>.</p>
+  <div class="row">
+    <a class="btn" href="https://claude.ai/code/artifact/957b4885-1420-4941-a832-d50ad129cee2">Open the campaign board</a>
+    <a class="btn alt" href="https://www.totaltreecareutah.com/our-services/plant-health-care/">Plant health care page</a>
+  </div>
+</section>
+
+<footer>Total Tree Care · internal · pricing derived from 383 plant-health line items in Jobber, 11 Sep 2026 · rate unconfirmed for 2026</footer>
+</div>
+
+<script>
+(function(){
+  var CLOSE = new Date(2026,9,15);
+  var d = Math.ceil((CLOSE - new Date())/86400000);
+  document.getElementById('days').textContent = d > 0 ? d : 0;
+  document.getElementById('lbl').textContent = d > 0 ? 'days of window left' : 'window closed';
+
+  var n=document.getElementById('n'), m=document.getElementById('m'),
+      v=document.getElementById('v'), r=document.getElementById('r'),
+      out=document.getElementById('out'), show=document.getElementById('show');
+  function calc(){
+    var trees=Math.max(1, parseInt(n.value,10)||1),
+        raw=parseFloat(v.value)||0, rate=parseFloat(r.value)||0,
+        dbh = m.value==='c' ? raw/Math.PI : raw,
+        total = Math.round(dbh*trees*rate/5)*5;
+    out.textContent = '$' + total.toLocaleString();
+    show.textContent = (trees>1 ? trees+' × ' : '') + (Math.round(dbh*10)/10) + '″ × $' + rate + '/in'
+      + (m.value==='c' ? '  (from ' + raw + '″ around)' : '');
+  }
+  [n,m,v,r].forEach(function(e){ e.addEventListener('input', calc); e.addEventListener('change', calc); });
+  calc();
+})();
+</script>
+</body>
+</html>
