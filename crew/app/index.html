@@ -574,8 +574,12 @@
       var a = document.createElement('a');
       a.className = 'emergency-btn';
       a.href = em.pageHref || em.sheetHref;
-      a.target = '_blank';
-      a.rel = 'noopener';
+      if (!/^http/i.test(a.getAttribute('href') || '')) {
+        // In-app page: open in the same window (no target, no rel).
+      } else {
+        a.target = '_blank';
+        a.rel = 'noopener';
+      }
       a.appendChild(icon('phone'));
       var label = document.createElement('span');
       label.textContent = em.label;

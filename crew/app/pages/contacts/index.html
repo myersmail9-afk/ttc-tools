@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<!--
+  TTC Crew — Crew Emergency Contacts.
+  Self-contained page: inline CSS + vanilla JS, no libraries. Fetches the contact list as JSON
+  from the Apps Script web app (no cookies, so it sidesteps the "Sorry, unable to open the file
+  at this time" problem phones hit opening Apps Script pages directly in the browser). The crew
+  code gates the fetch; it is never hardcoded here and never logged.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crew Emergency Contacts — TTC Crew</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ttc-orange:    #C9601A;
+    --ttc-orange-dk: #a14d14;
+    --ttc-green:     #4a6741;
+    --ttc-dark:      #2a3a25;
+    --ttc-gold:      #f0c080;
+    --ttc-sage:      #B7B681;
+
+    --bg:      #f9f6f2;
+    --bg-alt:  #f4f0ea;
+    --bg-dark: #2a3a25;
+    --card:    #ffffff;
+
+    --fg1:        #1a1a1a;
+    --fg2:        #555555;
+    --fg3:        #888888;
+    --fg-on-dark: #f9f6f2;
+
+    --border:         rgba(0,0,0,0.12);
+    --border-soft:    rgba(0,0,0,0.07);
+    --border-on-dark: rgba(255,255,255,0.18);
+
+    --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
+    --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+    --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+    --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    position: relative;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
+      url('../../assets/photos/ttc-0137.jpg');
+    background-size: cover;
+    background-position: center 28%;
+    background-repeat: no-repeat;
+  }
+  a { text-decoration: none; color: inherit; }
+  svg { display: block; }
+  button { font-family: inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--ttc-orange);
+    outline-offset: 2px;
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: rgba(42,58,37,.86);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    color: var(--fg-on-dark);
+  }
+  .topbar-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 56px; flex-shrink: 0; color: var(--fg-on-dark);
+  }
+  .topbar-back svg { width: 22px; height: 22px; }
+  .topbar-title {
+    flex: 1; text-align: center; font-weight: 600; font-size: 17px;
+    padding-right: 48px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  main { padding: 20px 20px 8px; }
+
+  /* ---- Glass card (shared look) ---- */
+  .glass-card {
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,.75);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass-card { background: rgba(255,255,255,.92); }
+  }
+
+  /* ---- Code gate ---- */
+  .gate h2 { margin: 0 0 8px; font-size: 19px; font-weight: 700; color: var(--fg1); }
+  .gate p.gate-hint { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--fg2); }
+  .code-input {
+    width: 100%; height: 56px; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--card);
+    font-size: 26px; font-weight: 600; letter-spacing: .08em; text-align: center;
+    color: var(--fg1); font-family: inherit;
+  }
+  .gate-error {
+    margin: 10px 0 0; font-size: 13.5px; color: var(--danger-text);
+  }
+  .btn-orange {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; min-height: 56px; margin-top: 14px;
+    border: none; border-radius: 14px; cursor: pointer;
+    background: var(--ttc-orange); color: var(--fg-on-dark);
+    font-weight: 700; font-size: 16px; font-family: inherit;
+    transition: background-color .16s ease-out, transform .16s ease-out;
+  }
+  .btn-orange:active { background: var(--ttc-orange-dk); transform: translateY(1px); }
+  .btn-orange:disabled { opacity: .6; }
+
+  /* ---- Status line ---- */
+  .status-line {
+    text-align: center; font-size: 13px; color: var(--fg2);
+    margin: 0 0 14px;
+  }
+  .status-line.status-warn { color: var(--warn-text); }
+
+  /* ---- Loading / error text ---- */
+  .quiet-line, .error-line {
+    text-align: center; font-size: 14.5px; color: var(--fg2);
+    padding: 24px 8px;
+  }
+  .error-line { color: var(--danger-text); }
+
+  /* ---- Contact card ---- */
+  .contact-card { padding: 18px; }
+  .contact-name { font-weight: 600; font-size: 18px; color: var(--fg1); margin: 0 0 12px; }
+  .call-row { margin-bottom: 14px; }
+  .call-row:last-child { margin-bottom: 0; }
+  .call-row-label { font-size: 12px; color: var(--fg3); margin: 0 0 6px; }
+  .call-row-name { font-size: 14.5px; color: var(--fg1); margin: 0 0 2px; font-weight: 600; }
+  .call-row-rel { font-size: 13px; color: var(--fg3); margin: 0 0 8px; }
+  .call-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; min-height: 56px; border-radius: 14px;
+    font-weight: 700; font-size: 16px; font-family: inherit;
+    transition: transform .16s ease-out;
+  }
+  .call-btn:active { transform: translateY(1px); }
+  .call-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .call-btn-primary {
+    background: var(--ttc-orange); color: var(--fg-on-dark); border: none;
+  }
+  .call-btn-outline {
+    background: rgba(255,255,255,.55); color: var(--fg1); border: 1px solid var(--border);
+  }
+  .call-number { text-align: center; font-size: 13px; color: var(--fg2); margin: 6px 0 0; }
+
+  /* ---- Footer ---- */
+  .footer {
+    text-align: center; font-size: 13px; color: var(--fg3);
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+  .footer a { color: var(--fg2); text-decoration: underline; }
+  .footer p { margin: 0 0 10px; line-height: 1.5; }
+  .forget-link { display: inline-block; margin-top: 4px; font-size: 12.5px; }
+
+  .retry-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; padding: 0 20px; margin-top: 6px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); color: var(--fg1);
+    font-weight: 600; font-size: 14.5px; font-family: inherit; cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-orange, .call-btn { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="topbar-back" href="../../" aria-label="Back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <div class="topbar-title">Crew Emergency Contacts</div>
+  </div>
+  <main id="main"></main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var BASE_URL = 'https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec';
+  var CODE_KEY = 'ttc-crew-code';
+  var CACHE_KEY = 'ttc-crew-contacts-cache';
+
+  var main = document.getElementById('main');
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  // ---- ?k= convenience: read it, store it, then strip it from the URL bar ----
+  (function pickUpQueryCode() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var k = q.get('k');
+      if (k && /^[0-9]+$/.test(k)) {
+        localStorage.setItem(CODE_KEY, k);
+        q.delete('k');
+        var rest = q.toString();
+        history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+      }
+    } catch (e) {}
+  })();
+
+  function getStoredCode() {
+    try { return localStorage.getItem(CODE_KEY) || ''; } catch (e) { return ''; }
+  }
+  function storeCode(code) {
+    try { localStorage.setItem(CODE_KEY, code); } catch (e) {}
+  }
+  function clearCode() {
+    try { localStorage.removeItem(CODE_KEY); } catch (e) {}
+  }
+  function getCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function setCache(data) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function digitsOnly(s) { return (s || '').toString().replace(/[^0-9+]/g, ''); }
+
+  function phoneIcon() {
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('aria-hidden', 'true');
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', 'M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z');
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', 'currentColor');
+    p.setAttribute('stroke-width', '1.75');
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('stroke-linejoin', 'round');
+    s.appendChild(p);
+    return s;
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return null;
+    var then = new Date(iso).getTime();
+    if (isNaN(then)) return null;
+    var mins = Math.round((Date.now() - then) / 60000);
+    if (mins <= 1) return 'Updated just now';
+    if (mins < 60) return 'Updated ' + mins + ' minutes ago';
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return 'Updated ' + hrs + (hrs === 1 ? ' hour ago' : ' hours ago');
+    var days = Math.round(hrs / 24);
+    return 'Updated ' + days + (days === 1 ? ' day ago' : ' days ago');
+  }
+
+  function formatWhen(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    try {
+      return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  // ================= Views =================
+
+  function renderGate(errorMsg) {
+    clear(main);
+    var card = document.createElement('div');
+    card.className = 'glass-card gate';
+
+    var h2 = document.createElement('h2');
+    h2.textContent = 'Enter the crew code';
+    card.appendChild(h2);
+
+    var hint = document.createElement('p');
+    hint.className = 'gate-hint';
+    hint.textContent = 'Ask Joseph or David for it. Your phone remembers it after the first time.';
+    card.appendChild(hint);
+
+    var input = document.createElement('input');
+    input.className = 'code-input';
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.autocomplete = 'off';
+    input.setAttribute('aria-label', 'Crew code');
+    card.appendChild(input);
+
+    var errLine = document.createElement('p');
+    errLine.className = 'gate-error';
+    errLine.hidden = true;
+    errLine.textContent = 'That code did not match. Try again.';
+    if (errorMsg === 'code') errLine.hidden = false;
+    card.appendChild(errLine);
+
+    var btn = document.createElement('button');
+    btn.className = 'btn-orange';
+    btn.type = 'button';
+    btn.textContent = 'Open Contacts';
+    card.appendChild(btn);
+
+    main.appendChild(card);
+
+    function submit() {
+      var code = (input.value || '').trim();
+      if (!code) return;
+      errLine.hidden = true;
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      loadContacts(code, function (result) {
+        btn.disabled = false;
+        btn.textContent = 'Open Contacts';
+        if (result.ok) {
+          storeCode(code);
+          renderContacts(result.data, false);
+        } else if (result.error === 'code') {
+          errLine.hidden = false;
+          input.focus();
+        } else if (result.error === 'setup') {
+          renderSetupError();
+        } else {
+          renderNetworkError(code);
+        }
+      });
+    }
+
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') submit();
+    });
+    input.focus();
+  }
+
+  function renderLoading() {
+    clear(main);
+    var p = document.createElement('p');
+    p.className = 'quiet-line';
+    p.textContent = 'Loading the latest list.';
+    main.appendChild(p);
+  }
+
+  function renderSetupError() {
+    clear(main);
+    var p = document.createElement('p');
+    p.className = 'error-line';
+    p.textContent = 'The contacts tab is not set up yet. Tell Joseph.';
+    main.appendChild(p);
+  }
+
+  function renderNetworkError(code) {
+    clear(main);
+    var p = document.createElement('p');
+    p.className = 'error-line';
+    p.textContent = 'Could not reach the sheet. Check your signal and try again.';
+    main.appendChild(p);
+    var retry = document.createElement('div');
+    retry.style.textAlign = 'center';
+    var btn = document.createElement('button');
+    btn.className = 'retry-btn';
+    btn.type = 'button';
+    btn.textContent = 'Retry';
+    btn.addEventListener('click', function () {
+      renderLoading();
+      loadContacts(code, function (result) {
+        if (result.ok) renderContacts(result.data, false);
+        else if (result.error === 'code') renderGate('code');
+        else if (result.error === 'setup') renderSetupError();
+        else renderNetworkError(code);
+      });
+    });
+    retry.appendChild(btn);
+    main.appendChild(retry);
+  }
+
+  function buildContactCard(person) {
+    var card = document.createElement('div');
+    card.className = 'glass-card contact-card';
+
+    var name = document.createElement('p');
+    name.className = 'contact-name';
+    name.textContent = ((person.firstName || '') + ' ' + (person.lastName || '')).trim();
+    card.appendChild(name);
+
+    if (person.phone) {
+      var row = document.createElement('div');
+      row.className = 'call-row';
+      var btn = document.createElement('a');
+      btn.className = 'call-btn call-btn-primary';
+      btn.href = 'tel:' + digitsOnly(person.phone);
+      btn.appendChild(phoneIcon());
+      var lbl = document.createElement('span');
+      lbl.textContent = 'Call ' + (person.firstName || 'them');
+      btn.appendChild(lbl);
+      row.appendChild(btn);
+      var num = document.createElement('p');
+      num.className = 'call-number';
+      num.textContent = person.phone;
+      row.appendChild(num);
+      card.appendChild(row);
+    }
+
+    function emergencyRow(name2, rel, phone) {
+      if (!name2 && !phone) return;
+      var row = document.createElement('div');
+      row.className = 'call-row';
+      var label = document.createElement('p');
+      label.className = 'call-row-label';
+      label.textContent = 'Emergency contact';
+      row.appendChild(label);
+      if (name2) {
+        var n = document.createElement('p');
+        n.className = 'call-row-name';
+        n.textContent = name2;
+        row.appendChild(n);
+      }
+      if (rel) {
+        var r = document.createElement('p');
+        r.className = 'call-row-rel';
+        r.textContent = rel;
+        row.appendChild(r);
+      }
+      if (phone) {
+        var btn = document.createElement('a');
+        btn.className = 'call-btn call-btn-outline';
+        btn.href = 'tel:' + digitsOnly(phone);
+        btn.appendChild(phoneIcon());
+        var lbl = document.createElement('span');
+        lbl.textContent = 'Call';
+        btn.appendChild(lbl);
+        row.appendChild(btn);
+        var num = document.createElement('p');
+        num.className = 'call-number';
+        num.textContent = phone;
+        row.appendChild(num);
+      }
+      card.appendChild(row);
+    }
+
+    emergencyRow(person.emergencyContact, person.relationship, person.emergencyPhone);
+    if (person.secondContact || person.secondPhone) {
+      emergencyRow(person.secondContact, person.secondRelationship, person.secondPhone);
+    }
+
+    return card;
+  }
+
+  function renderContacts(data, fromCacheOnly) {
+    clear(main);
+
+    var status = document.createElement('p');
+    status.className = 'status-line';
+    if (fromCacheOnly) {
+      status.className = 'status-line status-warn';
+      status.textContent = 'Could not reach the sheet. Showing the list from ' + formatWhen(data.updatedAt) + '.';
+    } else {
+      status.textContent = timeAgo(data.updatedAt) || '';
+    }
+    main.appendChild(status);
+
+    var list = data.contacts || [];
+    list.forEach(function (person) {
+      main.appendChild(buildContactCard(person));
+    });
+
+    var footer = document.createElement('div');
+    footer.className = 'footer';
+    var p1 = document.createElement('p');
+    p1.textContent = 'Edited by the office in the Google Sheet. Updated on every open.';
+    footer.appendChild(p1);
+    if (data.sheetUrl) {
+      var sheetLink = document.createElement('a');
+      sheetLink.href = data.sheetUrl;
+      sheetLink.target = '_blank';
+      sheetLink.rel = 'noopener';
+      sheetLink.textContent = 'Open the sheet';
+      footer.appendChild(sheetLink);
+    }
+    var forget = document.createElement('a');
+    forget.className = 'forget-link';
+    forget.href = '#';
+    forget.textContent = 'Forget the code on this phone';
+    forget.style.display = 'block';
+    forget.addEventListener('click', function (e) {
+      e.preventDefault();
+      clearCode();
+      try { localStorage.removeItem(CACHE_KEY); } catch (err) {}
+      renderGate();
+    });
+    footer.appendChild(forget);
+    main.appendChild(footer);
+  }
+
+  // ---- Network ----
+  function loadContacts(code, cb) {
+    var url = BASE_URL + '?format=json&k=' + encodeURIComponent(code);
+    fetch(url, { redirect: 'follow', credentials: 'omit' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.ok) {
+          setCache(data);
+          cb({ ok: true, data: data });
+        } else {
+          cb({ ok: false, error: (data && data.error) || 'unknown' });
+        }
+      })
+      .catch(function () {
+        cb({ ok: false, error: 'network' });
+      });
+  }
+
+  // ================= Boot =================
+  var storedCode = getStoredCode();
+  var cache = getCache();
+
+  if (!storedCode) {
+    if (cache) {
+      // Shouldn't normally happen (cache implies a code worked before), but if the code was
+      // forgotten while a cache remains, still ask for the code before showing anything.
+    }
+    renderGate();
+  } else if (cache) {
+    renderContacts(cache, false);
+    loadContacts(storedCode, function (result) {
+      if (result.ok) {
+        renderContacts(result.data, false);
+      } else if (result.error === 'code') {
+        renderGate('code');
+      } else if (result.error === 'setup') {
+        renderSetupError();
+      } else {
+        renderContacts(cache, true);
+      }
+    });
+  } else {
+    renderLoading();
+    loadContacts(storedCode, function (result) {
+      if (result.ok) {
+        renderContacts(result.data, false);
+      } else if (result.error === 'code') {
+        renderGate('code');
+      } else if (result.error === 'setup') {
+        renderSetupError();
+      } else {
+        renderNetworkError(storedCode);
+      }
+    });
+  }
+
+})();
+</script>
+</body>
+</html>

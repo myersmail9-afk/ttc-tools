@@ -36,7 +36,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-11.5",
+    version: "2026-09-11.6",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
@@ -44,9 +44,8 @@ window.TTC_CONTENT = {
   emergency: {
     contacts: {
       label: "Crew Emergency Contacts",
-      // pageHref: the login-gated contacts page (Apps Script web app). Empty until deployed — when empty,
-      // the button falls back to sheetHref. Once the web app URL exists, paste it in here.
-      pageHref: "https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec",
+      // pageHref: the in-app contacts page (relative, no Google session problem on phones).
+      pageHref: "pages/contacts/",
       sheetHref: "https://docs.google.com/spreadsheets/u/0/d/1soPoRlkpGhM4rb2Xb3E8e-Q_BiGhDhwpxGSAhSblgvw/edit",
       sheetLabel: "Open the sheet"
     }
