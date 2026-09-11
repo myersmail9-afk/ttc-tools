@@ -581,16 +581,6 @@
       label.textContent = em.label;
       a.appendChild(label);
       section.appendChild(a);
-
-      if (em.pageHref) {
-        var sheetLink = document.createElement('a');
-        sheetLink.className = 'emergency-sheet-link';
-        sheetLink.href = em.sheetHref;
-        sheetLink.target = '_blank';
-        sheetLink.rel = 'noopener';
-        sheetLink.textContent = em.sheetLabel || 'Open the sheet';
-        section.appendChild(sheetLink);
-      }
     }
     return section;
   }
