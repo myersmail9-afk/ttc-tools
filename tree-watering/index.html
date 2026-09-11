@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a3a25">
+<title>Tree Watering Calculator — Total Tree Care</title>
+<meta name="description" content="How much water does your landscape tree need? Auto-pulls this week's evapotranspiration and rainfall for your location, then computes gallons using the published USU Extension method (Poudyal, 2022).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+:root{
+  /* Total Tree Care brand tokens — knowledge/brand-kit/tokens.css */
+  --ttc-orange:#C9601A; --ttc-orange-dk:#a14d14; --ttc-green:#4a6741;
+  --ttc-dark:#2a3a25;   --ttc-gold:#f0c080;
+  --bg:#f9f6f2; --bg-alt:#f4f0ea; --card:#ffffff;
+  --ink:#1a1a1a; --dim:#555555; --faint:#888888;
+  --line:rgba(0,0,0,.12); --line-soft:rgba(0,0,0,.07);
+  --ac:var(--ttc-orange); --ac-dk:var(--ttc-orange-dk);
+  --ac-soft:#f4f0ea; --ac-line:rgba(0,0,0,.12);
+  --gold:#fdf6ea; --gold-line:rgba(240,192,128,.55);
+  --font-display:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  --r-sm:4px; --r-md:8px; --r-lg:16px; --r-pill:999px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 4px 12px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--font-body);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-text-size-adjust:100%}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 72px}
+.logo{width:180px;height:auto;display:block;margin:0 0 18px}
+.brand{font-family:var(--font-body);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ttc-green)}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1.1;margin:10px 0 8px;letter-spacing:-.01em;color:var(--ink)}
+.sub{color:var(--dim);font-size:18px;line-height:1.5;margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.step{display:flex;align-items:center;gap:9px;margin:0 0 14px}
+.num{width:24px;height:24px;border-radius:50%;background:var(--ttc-green);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.step h2{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.25;margin:0}
+label{display:block;font-size:13.5px;font-weight:600;margin-bottom:5px}
+.hint{display:block;font-weight:400;color:var(--faint);font-size:12.5px;margin-top:4px;line-height:1.45}
+.hint a{color:var(--ac)}
+input,select,button{font:inherit}
+input[type=number],input[type=text],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff;color:var(--ink);font-family:var(--font-body);-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%235d6b58' stroke-width='1.8'><path d='M1 1l5 5 5-5'/></svg>");background-repeat:no-repeat;background-position:right 12px center}
+input:focus,select:focus{outline:2px solid rgba(201,96,26,.25);border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.grid .full{grid-column:1/-1}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.unit{font-size:12px;color:var(--faint);margin-left:5px;font-weight:400}
+
+/* location */
+.locbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.btn{background:var(--ac);color:#fff;border:1px solid transparent;border-radius:var(--r-md);padding:13px 20px;font-family:var(--font-body);font-weight:600;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:44px;transition:background 200ms cubic-bezier(.2,.8,.2,1)}
+.btn:hover{background:var(--ac-dk)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--ttc-dark);border:1px solid var(--ttc-dark)}
+.btn.ghost:hover{background:var(--ttc-dark);color:var(--bg)}
+.btn[disabled]{opacity:.55;cursor:default}
+.addrrow{display:flex;gap:8px}
+.addrrow input{flex:1}
+#map{height:220px;border-radius:var(--r-md);border:1px solid var(--line);margin-top:12px;z-index:0}
+.maphint{font-size:12.5px;color:var(--faint);margin-top:7px;text-align:center}
+#locstat{font-size:13.5px;margin-top:10px;padding:10px 12px;border-radius:var(--r-md);background:#eaf3de;border:1px solid #97C459;color:#27500A;display:none}
+#locstat.show{display:block}
+#locstat.err{background:#faeeda;border-color:#EF9F27;color:#633806}
+#locstat b{font-variant-numeric:tabular-nums}
+.wx{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--dim)}
+.wx span{background:rgba(255,255,255,.7);border-radius:var(--r-pill);padding:3px 10px}
+
+/* answer */
+.answer{background:var(--bg-alt);border:1px solid var(--line-soft);border-left:4px solid var(--ttc-orange);border-radius:var(--r-lg);padding:24px 22px;text-align:center;margin-bottom:16px}
+.answer .lead{font-family:var(--font-body);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ttc-orange);font-weight:600}
+.answer .val{font-family:var(--font-display);font-size:clamp(32px,9vw,44px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:8px 0 2px;font-variant-numeric:tabular-nums;color:var(--ttc-dark)}
+.answer .freq{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ttc-green)}
+.answer .note{font-size:13.5px;color:var(--dim);margin-top:10px}
+.answer.zero .val{font-size:22px}
+details.work{margin-top:14px;text-align:left}
+details.work summary{font-size:12.5px;color:var(--faint);cursor:pointer;list-style:none}
+details.work summary::-webkit-details-marker{display:none}
+details.work summary:before{content:"▸ ";}
+details.work[open] summary:before{content:"▾ ";}
+.row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.row:last-child{border-bottom:0}
+.row .v{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+
+/* delivery tabs */
+.tabs{display:flex;gap:6px;background:var(--bg-alt);padding:4px;border-radius:var(--r-md);margin-bottom:16px}
+.tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:14px;font-weight:600;color:var(--dim);cursor:pointer;min-height:42px}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ttc-dark);box-shadow:var(--shadow-sm)}
+.pane{display:none}.pane.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+td{padding:8px 6px;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.result{background:var(--gold);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:14px;margin-top:14px;font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--ttc-dark)}
+.result small{display:block;font-weight:400;color:var(--dim);font-size:12.5px;margin-top:4px}
+.bucket{background:var(--bg-alt);border-radius:var(--r-md);padding:12px;margin-top:10px;font-size:13px;color:var(--dim)}
+
+.attrib{background:var(--card);border:1px solid var(--line-soft);border-left:4px solid var(--ttc-green);border-radius:var(--r-md);padding:12px 15px;font-size:13px;color:var(--dim);margin-bottom:22px}
+.attrib a{color:var(--ac)}
+.sendbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.sendbtns .btn{flex:1 1 auto;justify-content:center}
+#sendstat{font-size:13px;margin-top:10px;padding:9px 12px;border-radius:var(--r-md);display:none}
+#sendstat.show{display:block}
+#sendstat.ok{background:#eaf3de;border:1px solid #97C459;color:#27500A}
+#sendstat.err{background:#faeeda;border:1px solid #EF9F27;color:#633806}
+ol.process{margin:0;padding:0;list-style:none;counter-reset:pstep}
+ol.process li{counter-increment:pstep;position:relative;padding:0 0 16px 34px;font-size:14px;line-height:1.5;color:var(--dim)}
+ol.process li:before{content:counter(pstep);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:var(--bg-alt);color:var(--ttc-green);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+ol.process li:not(:last-child):after{content:"";position:absolute;left:10.5px;top:26px;bottom:2px;width:1px;background:var(--line)}
+ol.process li strong{color:var(--ink);font-weight:600}
+ol.process li b.why{display:block;color:var(--faint);font-size:12.5px;margin-top:3px;font-weight:400}
+.cites{font-size:12.5px;color:var(--dim);line-height:1.55}
+.cites h3{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.cites .sub2{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:18px 0 7px}
+.cites p{margin:0 0 9px;padding-left:14px;text-indent:-14px}
+.cites a{color:var(--ac)}
+ul.points{margin:6px 0 0;padding-left:19px;font-size:13.5px;color:var(--dim)}
+ul.points li{margin-bottom:7px}
+footer{font-size:12px;color:var(--faint);line-height:1.6;border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--ac)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<img src="ttc-logo.png" alt="Total Tree Care" class="logo">
+<div class="brand">Cache Valley, Utah</div>
+<h1>How much water does your tree need?</h1>
+<p class="sub">Tell us where the tree is and we'll pull this week's real weather for you. No spreadsheets, no guessing.</p>
+
+<div class="attrib">
+  <strong>The math:</strong> Poudyal, S. (2022). <em>How Much Water Do Landscape Trees Require in Utah? An Irrigation Calculator.</em> USU Extension —
+  <a href="https://extension.usu.edu/yardandgarden/research/how-much-water-do-landscape-trees-require" target="_blank" rel="noopener">fact sheet</a> ·
+  <a href="https://doi.org/10.26077/1tv6-zd17" target="_blank" rel="noopener">calculator</a>.
+  Independent implementation by Total Tree Care, credited to the author — not affiliated with or endorsed by USU Extension.
+</div>
+
+<!-- STEP 1 -->
+<div class="card">
+  <div class="step"><span class="num">1</span><h2>Where is the tree?</h2></div>
+  <div class="locbtns">
+    <button class="btn" id="geo">◎ Use my location</button>
+  </div>
+  <label for="addr">Or type an address or town</label>
+  <div class="addrrow">
+    <input id="addr" type="text" placeholder="e.g. 783 Canyon Road, Logan UT" autocomplete="off" enterkeyhint="search">
+    <button class="btn ghost" id="find">Find</button>
+  </div>
+  <div id="map"></div>
+  <div class="maphint">Or drag the pin to the tree.</div>
+  <div id="locstat"></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="card">
+  <div class="step"><span class="num">2</span><h2>This week's weather</h2></div>
+  <div class="grid">
+    <div>
+      <label for="eto">Reference evapotranspiration (ETo) <span class="unit">in</span></label>
+      <input id="eto" type="number" min="0" step="0.01" value="2">
+      <span class="hint">How much water the weather pulled out of the ground over the last 7 days.</span>
+    </div>
+    <div>
+      <label for="precip">Rainfall <span class="unit">in</span></label>
+      <input id="precip" type="number" min="0" step="0.01" value="0.6">
+      <span class="hint">What fell from the sky over the same 7 days — the tree already got this.</span>
+    </div>
+  </div>
+  <span class="hint" style="margin-top:10px">Filled automatically from Step 1. You can override either number by hand — or pull the official station values from the <a href="https://climate.usu.edu/mchd/index.php" target="_blank" rel="noopener">Utah Climate Center</a>.</span>
+</div>
+
+<!-- STEP 3 -->
+<div class="card">
+  <div class="step"><span class="num">3</span><h2>About the tree</h2></div>
+  <div class="grid">
+    <div class="full">
+      <label for="dia">Canopy diameter <span class="unit">feet</span></label>
+      <input id="dia" type="number" min="1" max="100" step="0.5" value="30">
+      <span class="hint">The width of the shade it casts. Measure across two directions and average them: (width 1 + width 2) ÷ 2.</span>
+    </div>
+    <div>
+      <label for="tree">Type of tree</label>
+      <select id="tree">
+        <option>Mature broadleaf shade trees</option>
+        <option>Established native or low water use trees</option>
+        <option>Newly planted tree</option>
+        <option>Other trees</option>
+      </select>
+      <span class="hint">Not sure? Pick "Other trees" — or ask us.</span>
+    </div>
+    <div>
+      <label for="soil">Soil type</label>
+      <select id="soil">
+        <option>Coarse sand</option>
+        <option selected>Sandy loam</option>
+        <option>Clay</option>
+      </select>
+      <span class="hint">Wet a handful: sticky, little grit → Clay · very gritty → Coarse sand · in between → Sandy loam.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ANSWER -->
+<div class="answer" id="answer">
+  <div class="lead">Your tree needs</div>
+  <div class="val" id="recval">—</div>
+  <div class="freq" id="recfreq"></div>
+  <div class="note" id="recnote"></div>
+  <details class="work">
+    <summary>Show the math</summary>
+    <div class="row"><span>Canopy area × (ETo − rain) × 0.62</span><span class="v" id="loss">—</span></div>
+    <div class="row"><span>Plant factor (<span id="pfname">—</span>)</span><span class="v" id="pf">—</span></div>
+    <div class="row"><span>Adjusted weekly need</span><span class="v" id="adj">—</span></div>
+    <div class="row"><span>Split for your soil</span><span class="v" id="split">—</span></div>
+  </details>
+</div>
+
+<!-- DELIVERY -->
+<div class="card">
+  <div class="step"><span class="num">4</span><h2>How to actually put it down</h2></div>
+  <p class="hint" style="margin:-8px 0 14px">The number above is the science. These are just ways to hit it — pick whichever you've got.</p>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-pane="drip">Drip system</button>
+    <button role="tab" aria-selected="false" data-pane="hose">Garden hose</button>
+  </div>
+
+  <div class="pane on" id="pane-drip">
+    <div class="row"><span>Drip circles (loops) to install</span><span class="v" id="loops">—</span></div>
+    <table id="looptable">
+      <thead><tr><th>Loop</th><th>Pipe length</th><th>Emitters</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="margin-top:14px">
+      <label for="gph">Emitter flow rate <span class="unit">gallons per hour</span></label>
+      <input id="gph" type="number" min="0.1" step="0.5" value="5">
+      <span class="hint">2–3 gph for clay, 5–8 gph for sandy, in between for sandy loam. Space emitters 5 ft apart, keep loops 5 ft apart, and keep them off the trunk.</span>
+    </div>
+    <div class="result" id="dripres">—<small>each time you water</small></div>
+    <div style="margin-top:14px">
+      <label for="exn">Already have emitters out there?</label>
+      <div class="grid" style="margin-top:5px">
+        <div><input id="exn" type="number" min="0" step="1" value="22" aria-label="number of emitters"><span class="hint">How many in the root zone</span></div>
+        <div><input id="exgph" type="number" min="0.1" step="0.5" value="5" aria-label="flow rate"><span class="hint">Their flow rate (gph)</span></div>
+      </div>
+      <div class="result" id="exres">—<small>each time you water, with your existing system</small></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-hose">
+    <label for="gpm">Your hose flow rate <span class="unit">gallons per minute</span></label>
+    <input id="gpm" type="number" min="0.1" step="0.1" value="2">
+    <div class="bucket">
+      <strong>Don't know it? Measure it — takes a minute.</strong><br>
+      Set the hose where you'll actually water it (a slow trickle, not blasting), and time how long it takes to fill a 5-gallon bucket.
+      <div class="grid" style="margin-top:10px">
+        <div><input id="secs" type="number" min="1" step="1" placeholder="seconds" aria-label="seconds to fill"><span class="hint">Seconds to fill 5 gal</span></div>
+        <div><button class="btn ghost" id="usebucket" style="width:100%">Use this</button></div>
+      </div>
+    </div>
+    <div class="result" id="hoseres">—<small>each time you water</small></div>
+    <p class="hint" style="margin-top:12px">Move the hose around the drip line partway through so you're not dumping it all in one spot — you want the whole root zone, not the trunk. Slow and long beats fast and short: a wide-open hose runs off before it soaks in.</p>
+  </div>
+</div>
+
+<!-- SEND -->
+<div class="card">
+  <div class="step"><span class="num">5</span><h2>Send it to the customer</h2></div>
+  <div class="grid">
+    <div>
+      <label for="forwho">Prepared for <span class="unit">optional</span></label>
+      <input id="forwho" type="text" placeholder="e.g. Curtis Wall" autocomplete="off">
+    </div>
+    <div>
+      <label for="custemail">Their email <span class="unit">optional</span></label>
+      <input id="custemail" type="text" placeholder="name@example.com" autocomplete="off" inputmode="email">
+    </div>
+  </div>
+  <div class="sendbtns">
+    <button class="btn" id="sendplan">Email this plan</button>
+    <button class="btn ghost" id="pdfbtn">Download PDF</button>
+  </div>
+  <div id="sendstat"></div>
+  <span class="hint" style="margin-top:12px">The PDF is branded Total Tree Care with the office email on it, so the customer knows who it came from and how to reach us &mdash; not whichever account happens to send it. On a phone this opens the share sheet with the PDF already attached. On a computer it downloads the PDF and opens Gmail with the email written — attach it and hit send.</span>
+</div>
+
+<!-- PROCESS -->
+<div class="card">
+  <div class="step"><span class="num">6</span><h2>Getting it right</h2></div>
+  <p style="margin:-6px 0 16px;font-size:14.5px;color:var(--dim)">A number on a screen isn't water in the soil. This is the loop that closes the gap — do it once properly and you're set for the season.</p>
+  <ol class="process">
+    <li><strong>Measure the canopy honestly.</strong> Two widths at right angles to each other, averaged. Don't eyeball it.
+      <b class="why">This drives everything. The area uses the radius squared, so guessing the canopy 20% too small underestimates the water by about a third.</b></li>
+    <li><strong>Put the water at the drip line — not the trunk.</strong> Water the outer two-thirds of the root zone, in a ring under the canopy edge.
+      <b class="why">The feeder roots that actually drink are out at the edge of the canopy. A puddle at the trunk soaks the one place that doesn't need it, and keeps the root collar wet, which invites decay.</b></li>
+    <li><strong>Go slow and long, not fast and short.</strong> One long soak beats daily sprinkling every time.
+      <b class="why">Tree roots live 10–20 inches down. A quick spray wets the top inch, evaporates, and teaches roots to stay shallow — which makes the tree more fragile in wind and drought, not less.</b></li>
+    <li><strong>Check it with a screwdriver.</strong> Three or four hours after you water, push a long screwdriver into the soil inside the watered ring. It should slide easily to 10–20 inches.
+      <b class="why">This is the only step that tells you the truth. Everything before it is an estimate; this is a measurement.</b></li>
+    <li><strong>Adjust the run time until it slides — then lock it.</strong> Hits resistance at 6 inches? Run it longer and check again. Once the screwdriver goes down easily, that duration is your setting.
+      <b class="why">You've now calibrated your specific soil, your specific emitters, your specific pressure. No calculator can do that part for you.</b></li>
+    <li><strong>Re-run this page weekly.</strong> The gallons change with the weather, not the calendar.
+      <b class="why">Evapotranspiration swings a lot week to week — a hot, windy stretch can pull double what a mild cloudy one does. Same tree, different number.</b></li>
+    <li><strong>Re-check after anything changes.</strong> New deck or patio over the roots, lawn removed, sprinklers reworked, a big prune.
+      <b class="why">Hardscape over roots and lawn removal both quietly cut a tree's water off. The tree won't tell you for a year or two — by then you're fixing decline instead of preventing it.</b></li>
+  </ol>
+  <ul class="points" style="margin-top:6px;border-top:1px solid var(--line-soft);padding-top:16px">
+    <li><strong>These numbers assume a healthy tree.</strong> A tree with trunk damage, a buried root flare, or girdling roots can't take up water efficiently no matter how much you put down — if that's your tree, have an arborist look at it.</li>
+    <li>Built for <strong>established trees with a trunk over 4 inches</strong>, during the hot summer months.</li>
+    <li>A heavily pruned or oddly shaped tree can throw the estimate off.</li>
+  </ul>
+</div>
+
+<div class="card cites">
+  <h3>Where this comes from</h3>
+  <p style="padding-left:0;text-indent:0;margin-bottom:14px">The math on this page is not ours. It is the method published by <strong>Dr. Shital Poudyal</strong>, Assistant Professor and Ornamental Horticulture Specialist in Plants, Soils &amp; Climate at Utah State University, and we follow it exactly — same formula, same plant factors, same soil logic. We built this so his calculator can be used from a phone at the tree instead of a spreadsheet at a desk. Total Tree Care is not affiliated with, sponsored by, or endorsed by USU Extension.</p>
+
+  <div class="sub2">The method</div>
+  <p>Poudyal, S. (2022). <em>How Much Water Do Landscape Trees Require in Utah? An Irrigation Calculator</em> [Fact sheet]. Utah State University Extension. <a href="https://extension.usu.edu/yardandgarden/research/how-much-water-do-landscape-trees-require" target="_blank" rel="noopener">extension.usu.edu</a> · doi:<a href="https://doi.org/10.26077/my9e-yn94" target="_blank" rel="noopener">10.26077/my9e-yn94</a></p>
+  <p>Poudyal, S. (2022). <em>Landscape Tree Irrigation Calculator</em> [Excel spreadsheet]. Utah State University Extension. doi:<a href="https://doi.org/10.26077/1tv6-zd17" target="_blank" rel="noopener">10.26077/1tv6-zd17</a></p>
+  <p>Poudyal, S. <em>Managing Shrubs and Trees During Drought in Utah</em> [Presentation]. Utah State University Extension.</p>
+  <p>Dr. Poudyal's faculty page: <a href="https://extension.usu.edu/directory/poudyal-shital" target="_blank" rel="noopener">extension.usu.edu/directory/poudyal-shital</a></p>
+
+  <div class="sub2">What his method builds on</div>
+  <p>Center for Landscape &amp; Urban Horticulture. <em>Estimating Tree Water Requirements</em> [Fact sheet]. University of California, Division of Agriculture and Natural Resources.</p>
+  <p>Kuhns, M. <em>Drip Irrigation for Trees</em>. Utah State University Forestry Extension. <a href="https://forestry.usu.edu/trees-cities-towns/treecare/drip-irrigation" target="_blank" rel="noopener">forestry.usu.edu</a></p>
+  <p>Cerny, T. A., Kuhns, M., Kopp, K., &amp; Johnson, M. (2002). <em>Efficient Irrigation of Trees and Shrubs</em> [Fact sheet]. Utah State University Extension.</p>
+  <p>Utah Climate Center, Utah State University. <a href="https://climate.usu.edu/mchd/index.php" target="_blank" rel="noopener">climate.usu.edu</a> — the ground-station source for ETo and precipitation that the fact sheet directs you to.</p>
+
+  <div class="sub2">Weather data on this page</div>
+  <p><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — FAO-56 Penman-Monteith reference evapotranspiration and precipitation. This is a gridded model rather than a ground station, which is how we can fill it in automatically from your location; the Utah Climate Center remains the station source the fact sheet cites, and you can type those values in by hand above.</p>
+  <p>Geocoding and map tiles: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.</p>
+</div>
+
+<footer>
+  Implementation © Total Tree Care — an independent implementation of a published USU Extension method, credited to its author. General guidance, not a site-specific prescription. If a tree is struggling, have it looked at.
+  <br><br><strong>Total Tree Care</strong> · Logan, Utah · <a href="https://totaltreecareutah.com" target="_blank" rel="noopener">totaltreecareutah.com</a>
+</footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* =========================================================================
+   POUDYAL MATH — byte-for-byte the workbook's Sheet1 formulas. UNCHANGED.
+   Verified at 251/251 exact parity against the spreadsheet.
+   ========================================================================= */
+function xlRound(x, n){ const m = Math.pow(10,n); const v = Math.sign(x)*Math.round(Math.abs(x)*m)/m; return v === 0 ? 0 : v; }
+function xlFloor5(x){ return Math.floor(x/5)*5; }
+function waterLoss(D, ETo, P){ return xlRound(((D/2)*(D/2)*3.14)*(ETo-P)*0.62, 2); }              // C11
+const PLANT_FACTORS = {
+  "Mature broadleaf shade trees":0.8, "Established native or low water use trees":0.4,
+  "Newly planted tree":0.9, "Other trees":0.5,
+};
+function adjusted(c11, tree){ return xlRound(c11*PLANT_FACTORS[tree], 0); }                        // C15
+function recommendation(c15, soil){                                                                // C14
+  if (soil === "Sandy loam")  return xlRound(c15/2,0) + "  gallons/biweekly";
+  if (soil === "Clay")        return xlRound(c15,0)   + " gallons/weekly";
+  if (soil === "Coarse sand") return xlRound(c15/3,0) + " gallons/three times a week";
+  return "";
+}
+function leadingNumberExcelStyle(str){                                                              // C21/C25 LEFT(...)
+  const d = (str.match(/[0-9]/g)||[]).length;
+  return parseFloat(str.slice(0,d));
+}
+function loopCount(D){                                                                             // C17
+  let s = "";
+  if (D<27) s+="1";
+  if (D>26 && D<47) s+="2";
+  if (D>46 && D<67) s+="3";
+  if (D>66 && D<87) s+="4";
+  if (D>86 && D<107) s+="5";
+  return s;
+}
+function loopDesign(D){                                                                            // C18..G18 / C19..G19
+  const lens = [2*3.14*(D/4)];
+  for (let i=0;i<4;i++){ const p = lens[lens.length-1]; lens.push(p/6.28>6.5 ? ((p/6.28)-5)*2*3.14 : 0); }
+  const emitters = lens.map((len,i)=> i===0 ? xlFloor5(len)/5 : (len>10 ? xlFloor5(len)/5 : 0));
+  return { lens, emitters };
+}
+function runTime(recStr, totalEmitters, gph){                                                       // C21 / C25
+  const gal = leadingNumberExcelStyle(recStr);
+  const denom = totalEmitters*gph;
+  if (!isFinite(gal) || denom <= 0) return null;
+  return xlRound(gal/denom, 2);
+}
+
+/* ================================ UI ================================== */
+const $ = id => document.getElementById(id);
+const fmt = n => Number.isFinite(n) ? (Math.round(n*100)/100).toLocaleString() : "—";
+const FREQ = { "Sandy loam":"twice a week", "Clay":"once a week", "Coarse sand":"three times a week" };
+
+/* ---- map + location ---- */
+let map, marker;
+const DEFAULT = [41.7370, -111.8338];   // Logan, UT
+function initMap(){
+  map = L.map('map', { scrollWheelZoom:false }).setView(DEFAULT, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© OpenStreetMap'
+  }).addTo(map);
+  marker = L.marker(DEFAULT, { draggable:true }).addTo(map);
+  marker.on('dragend', () => { const p = marker.getLatLng(); fetchWeather(p.lat, p.lng, 'pin'); });
+  map.on('click', e => { marker.setLatLng(e.latlng); fetchWeather(e.latlng.lat, e.latlng.lng, 'pin'); });
+}
+function setStatus(html, isErr){
+  const el = $('locstat');
+  el.innerHTML = html;
+  el.className = 'show' + (isErr ? ' err' : '');
+}
+function moveTo(lat, lon, zoom){
+  marker.setLatLng([lat,lon]);
+  map.setView([lat,lon], zoom || 13);
+}
+async function fetchWeather(lat, lon, how, label){
+  setStatus('Pulling this week\'s weather…');
+  moveTo(lat, lon);
+  try{
+    const url = 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4)
+      + '&daily=et0_fao_evapotranspiration,precipitation_sum'
+      + '&past_days=7&forecast_days=0&timezone=auto&precipitation_unit=inch';
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('weather service returned ' + r.status);
+    const j = await r.json();
+    const etoArr = (j.daily.et0_fao_evapotranspiration||[]).filter(v => v !== null);
+    const pArr   = (j.daily.precipitation_sum||[]).filter(v => v !== null);
+    if (!etoArr.length) throw new Error('no data for that spot');
+    const eto = etoArr.reduce((a,b)=>a+b,0);
+    const p   = pArr.reduce((a,b)=>a+b,0);
+    $('eto').value = eto.toFixed(2);
+    $('precip').value = p.toFixed(2);
+    const days = j.daily.time;
+    const span = days[0] + ' → ' + days[days.length-1];
+    setStatus('<b>' + (label || (lat.toFixed(3) + ', ' + lon.toFixed(3))) + '</b> — last 7 days ('
+      + span + ')<div class="wx"><span>ETo <b>' + eto.toFixed(2) + '"</b></span><span>Rain <b>'
+      + p.toFixed(2) + '"</b></span></div>');
+    recalc();
+  }catch(e){
+    setStatus('Couldn\'t pull the weather (' + e.message + '). Enter ETo and rainfall by hand in Step 2 — the '
+      + '<a href="https://climate.usu.edu/mchd/index.php" target="_blank" rel="noopener">Utah Climate Center</a> has them.', true);
+  }
+}
+$('geo').addEventListener('click', () => {
+  if (!navigator.geolocation) return setStatus('This browser won\'t share location. Type an address instead.', true);
+  setStatus('Asking your browser for your location…');
+  navigator.geolocation.getCurrentPosition(
+    pos => fetchWeather(pos.coords.latitude, pos.coords.longitude, 'geo', 'Your location'),
+    err => setStatus('Location denied or unavailable (' + err.message + '). Type an address or drag the pin instead.', true),
+    { enableHighAccuracy:true, timeout:10000, maximumAge:600000 }
+  );
+});
+/* Geocoding via Nominatim (OpenStreetMap): handles full street addresses, not just
+   town names, and is CORS-open. Scoped to the US so a bare town name can't silently
+   resolve to the wrong state (plain "Smithfield" otherwise lands in North Carolina). */
+async function findAddress(){
+  const q = $('addr').value.trim();
+  if (!q) return;
+  setStatus('Looking up "' + q + '"…');
+  try{
+    const u = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1'
+      + '&limit=1&countrycodes=us&q=' + encodeURIComponent(q);
+    const r = await fetch(u, { headers: { 'Accept':'application/json' } });
+    if (!r.ok) throw new Error('lookup service returned ' + r.status);
+    const j = await r.json();
+    if (!j.length) throw new Error('no match');
+    const hit = j[0];
+    const a = hit.address || {};
+    const town = a.city || a.town || a.village || a.hamlet || a.county;
+    const label = [ (a.house_number && a.road) ? (a.house_number + ' ' + a.road) : a.road, town, a.state ]
+      .filter(Boolean).join(', ') || hit.display_name.split(',').slice(0,3).join(',');
+    const lat = parseFloat(hit.lat), lon = parseFloat(hit.lon);
+    map.setView([lat, lon], 15);
+    fetchWeather(lat, lon, 'addr', label);
+  }catch(e){
+    setStatus('Couldn\'t find "' + q + '". Try adding the town and state (e.g. "783 Canyon Rd, Logan UT"), '
+      + 'or just drag the pin to the tree.', true);
+  }
+}
+$('find').addEventListener('click', findAddress);
+$('addr').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); findAddress(); } });
+
+/* ---- delivery tabs ---- */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + b.dataset.pane));
+}));
+$('usebucket').addEventListener('click', () => {
+  const s = parseFloat($('secs').value);
+  if (s > 0){ $('gpm').value = (5/(s/60)).toFixed(2); recalc(); }
+});
+
+/* ---- the recalc ---- */
+function recalc(){
+  let D = parseFloat($('dia').value);
+  const ETo = parseFloat($('eto').value), P = parseFloat($('precip').value);
+  const tree = $('tree').value, soil = $('soil').value;
+  if (!(D>0) || !isFinite(ETo) || !isFinite(P)) return;
+  if (D > 100){ D = 100; $('dia').value = 100; }
+
+  const c11 = waterLoss(D, ETo, P);
+  const c15 = adjusted(c11, tree);
+  const rec = recommendation(c15, soil);
+  const perEvent = leadingNumberExcelStyle(rec);
+
+  /* the answer */
+  const ans = $('answer');
+  if (c11 <= 0){
+    ans.classList.add('zero');
+    $('recval').textContent = 'Nothing this week';
+    $('recfreq').textContent = '';
+    $('recnote').textContent = 'Rain met or beat what the weather pulled out — your tree is covered. Check again next week.';
+  } else {
+    ans.classList.remove('zero');
+    $('recval').textContent = fmt(perEvent) + ' gallons';
+    $('recfreq').textContent = FREQ[soil];
+    $('recnote').textContent = fmt(c15) + ' gallons a week total, split across ' + FREQ[soil].replace('once a week','one watering') + '.';
+  }
+  $('loss').textContent = fmt(c11) + ' gal';
+  $('pfname').textContent = tree.toLowerCase();
+  $('pf').textContent = '× ' + PLANT_FACTORS[tree];
+  $('adj').textContent = fmt(c15) + ' gal/week';
+  $('split').textContent = fmt(perEvent) + ' gal × ' + FREQ[soil];
+
+  /* drip */
+  $('loops').textContent = loopCount(D);
+  const { lens, emitters } = loopDesign(D);
+  const tb = $('looptable').querySelector('tbody');
+  tb.innerHTML = '';
+  lens.forEach((len,i) => {
+    if (i>0 && len===0) return;
+    tb.insertAdjacentHTML('beforeend', '<tr><td>Loop '+(i+1)+'</td><td>'+fmt(len)+' ft</td><td>'+emitters[i]+'</td></tr>');
+  });
+  const totalEm = emitters.reduce((a,b)=>a+b,0);
+  const nr = runTime(rec, totalEm, parseFloat($('gph').value));
+  $('dripres').firstChild.textContent = nr === null ? 'Enter a flow rate' : nr + ' hours';
+  const er = runTime(rec, parseFloat($('exn').value), parseFloat($('exgph').value));
+  $('exres').firstChild.textContent = er === null ? 'Enter emitters + flow rate' : er + ' hours';
+
+  /* hose — same per-event gallons, different delivery */
+  const gpm = parseFloat($('gpm').value);
+  if (gpm > 0 && isFinite(perEvent) && perEvent > 0){
+    const mins = perEvent/gpm;
+    $('hoseres').firstChild.textContent = mins >= 60
+      ? (Math.floor(mins/60) + ' hr ' + Math.round(mins%60) + ' min')
+      : (Math.round(mins) + ' minutes');
+  } else {
+    $('hoseres').firstChild.textContent = 'Enter a flow rate';
+  }
+}
+['dia','eto','precip','tree','soil','gph','exn','exgph','gpm'].forEach(id => $(id).addEventListener('input', recalc));
+
+
+/* ================== PLAN SUMMARY -> PDF -> SEND ==================
+   All client-side. The PDF carries Total Tree Care's identity + office
+   contact, so the customer knows who it's from regardless of which
+   account actually sends it (mailto/share cannot set a From address). */
+const TTC = {
+  name: 'Total Tree Care',
+  phone: '',                       // office line — deliberately blank; never invent a number
+  email: 'office@totaltreecareutah.com',
+  site:  'totaltreecareutah.com',
+};
+const ttcContact = () => [TTC.phone, TTC.email, TTC.site].filter(Boolean).join('  ·  ');
+
+function planData(){
+  const soil = $('soil').value, tree = $('tree').value;
+  const rec = recommendation(adjusted(waterLoss(parseFloat($('dia').value), parseFloat($('eto').value), parseFloat($('precip').value)), tree), soil);
+  const perEvent = leadingNumberExcelStyle(rec);
+  const loc = ($('locstat').textContent || '').split('—')[0].trim();
+  return {
+    who: $('forwho').value.trim(),
+    where: (!loc || /^your location$/i.test(loc)) ? 'your property' : loc,
+    date: new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
+    eto: $('eto').value, rain: $('precip').value,
+    dia: $('dia').value, tree, soil,
+    perEvent, freq: FREQ[soil],
+    weekly: $('adj').textContent,
+    drip: $('dripres').firstChild.textContent,
+    loops: $('loops').textContent,
+    hose: $('hoseres').firstChild.textContent,
+    gpm: $('gpm').value,
+    zero: perEvent === 0 || !isFinite(perEvent),
+  };
+}
+
+function planText(d){
+  if (d.zero) return `Watering plan for ${d.who || d.where} — ${d.date}\n\nGood news: no watering needed this week. Rain met or beat what the weather pulled out of the ground.\n\n— ${TTC.name} · ${ttcContact()}`;
+  return [
+    `Watering plan for ${d.who || d.where} — ${d.date}`,
+    ``,
+    `WATER THIS MUCH: ${d.perEvent} gallons, ${d.freq}.`,
+    `(${d.weekly} total for the week, split across ${d.freq}.)`,
+    ``,
+    `Two ways to do it:`,
+    `  • Drip system — ${d.drip} each time you water.`,
+    `  • Garden hose at ${d.gpm} gal/min — ${d.hose} each time.`,
+    ``,
+    `Check your work: 3-4 hours after watering, push a long screwdriver into the soil. It should slide easily to 10-20 inches, where the roots drink. If it stops short, run it longer.`,
+    ``,
+    `Based on this week's actual weather near ${d.where}: ${d.eto}" of evapotranspiration, ${d.rain}" of rain. A ${d.dia}-ft canopy, ${d.tree.toLowerCase()}, in ${d.soil.toLowerCase()}.`,
+    `Method: Utah State University Extension (Poudyal, 2022).`,
+    ``,
+    `Questions? We're happy to look at the tree.`,
+    `${TTC.name} · ${ttcContact()}`,
+  ].join('\n');
+}
+
+async function logoDataURL(){
+  try{
+    const img = await new Promise((res, rej) => {
+      const i = new Image(); i.crossOrigin = 'anonymous';
+      i.onload = () => res(i); i.onerror = rej; i.src = 'ttc-logo.png';
+    });
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    c.getContext('2d').drawImage(img, 0, 0);
+    return { url: c.toDataURL('image/png'), w: img.width, h: img.height };
+  }catch(e){ return null; }
+}
+
+async function buildPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'letter' });
+  const d = planData();
+  const M = 54, W = 612, right = W - M;
+  let y = M;
+
+  const logo = await logoDataURL();
+  if (logo){
+    const lw = 150, lh = lw * (logo.h / logo.w);
+    doc.addImage(logo.url, 'PNG', M, y, lw, lh);
+    y += lh + 16;
+  } else {
+    doc.setFont('helvetica','bold').setFontSize(16).setTextColor(42,58,37).text(TTC.name, M, y+10); y += 30;
+  }
+
+  doc.setFont('helvetica','bold').setFontSize(22).setTextColor(26,26,26);
+  doc.text('Your Tree Watering Plan', M, y); y += 22;
+  doc.setFont('helvetica','normal').setFontSize(10.5).setTextColor(85,85,85);
+  doc.text(`${d.who ? 'Prepared for ' + d.who + '  ·  ' : ''}${d.where}  ·  ${d.date}`, M, y); y += 24;
+
+  if (d.zero){
+    doc.setFillColor(244,240,234); doc.roundedRect(M, y, right-M, 72, 8, 8, 'F');
+    doc.setFillColor(201,96,26); doc.rect(M, y, 4, 72, 'F');
+    doc.setFont('helvetica','bold').setFontSize(16).setTextColor(42,58,37);
+    doc.text('No watering needed this week', M+18, y+30);
+    doc.setFont('helvetica','normal').setFontSize(10.5).setTextColor(85,85,85);
+    doc.text('Rain met or beat what the weather pulled out of the ground.', M+18, y+50);
+    y += 92;
+  } else {
+    doc.setFillColor(244,240,234); doc.roundedRect(M, y, right-M, 92, 8, 8, 'F');
+    doc.setFillColor(201,96,26); doc.rect(M, y, 4, 92, 'F');
+    doc.setFont('helvetica','bold').setFontSize(9).setTextColor(201,96,26);
+    doc.text('WATER THIS MUCH', M+18, y+22);
+    doc.setFont('helvetica','bold').setFontSize(26).setTextColor(42,58,37);
+    doc.text(`${d.perEvent} gallons`, M+18, y+52);
+    doc.setFont('helvetica','bold').setFontSize(13).setTextColor(74,103,65);
+    doc.text(d.freq, M+18, y+72);
+    doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(120,120,120);
+    doc.text(`${d.weekly} total for the week`, right-18, y+72, { align:'right' });
+    y += 112;
+
+    doc.setFont('helvetica','bold').setFontSize(12).setTextColor(26,26,26);
+    doc.text('Two ways to put it down', M, y); y += 18;
+    doc.setFont('helvetica','normal').setFontSize(10.5).setTextColor(60,60,60);
+    doc.text(`Drip system  —  run it ${d.drip} each time you water.`, M+10, y); y += 16;
+    doc.text(`Garden hose at ${d.gpm} gal/min  —  ${d.hose} each time.`, M+10, y); y += 26;
+  }
+
+  doc.setFont('helvetica','bold').setFontSize(12).setTextColor(26,26,26);
+  doc.text('Check your work', M, y); y += 16;
+  doc.setFont('helvetica','normal').setFontSize(10.5).setTextColor(60,60,60);
+  doc.text(doc.splitTextToSize('Three or four hours after watering, push a long screwdriver into the soil. It should slide easily to about 10-20 inches down, where tree roots drink. If it hits firm resistance, the water has not reached yet - run it longer next time.', right-M-10), M+10, y);
+  y += 44;
+
+  doc.setDrawColor(220,216,208); doc.line(M, y, right, y); y += 18;
+  doc.setFont('helvetica','bold').setFontSize(10).setTextColor(26,26,26);
+  doc.text('What this is based on', M, y); y += 15;
+  doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(100,100,100);
+  const basis = [
+    `This week's weather near ${d.where}: ${d.eto}" evapotranspiration, ${d.rain}" rain.`,
+    `Tree: ${d.dia} ft canopy, ${d.tree.toLowerCase()}, growing in ${d.soil.toLowerCase()}.`,
+    `Method: Utah State University Extension - "How Much Water Do Landscape Trees Require in Utah?" (Poudyal, 2022).`,
+    `Assumes a healthy tree. Trunk damage, a buried root flare, or girdling roots all reduce how much water a tree can actually take up.`,
+  ];
+  basis.forEach(t => { doc.text(doc.splitTextToSize(t, right-M-10), M+10, y); y += (t.length > 95 ? 22 : 12); });
+
+  y = 720;
+  doc.setDrawColor(220,216,208); doc.line(M, y, right, y); y += 16;
+  doc.setFont('helvetica','bold').setFontSize(10).setTextColor(74,103,65);
+  doc.text(TTC.name, M, y);
+  doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(100,100,100);
+  doc.text(ttcContact(), right, y, { align:'right' });
+
+  const safe = (d.who || d.where || 'plan').replace(/[^a-z0-9]+/gi,'-').toLowerCase().slice(0,40);
+  return { blob: doc.output('blob'), filename: `tree-watering-plan-${safe}.pdf`, data: d };
+}
+
+function sendStat(msg, cls){
+  const el = $('sendstat');
+  el.textContent = msg;
+  el.className = 'show ' + (cls || 'ok');
+}
+
+$('pdfbtn').addEventListener('click', async () => {
+  try{
+    const { blob, filename } = await buildPDF();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.append(a); a.click(); a.remove();
+    sendStat('PDF downloaded — ' + filename, 'ok');
+  }catch(e){ sendStat('Could not build the PDF: ' + e.message, 'err'); }
+});
+
+$('sendplan').addEventListener('click', async () => {
+  try{
+    const { blob, filename, data } = await buildPDF();
+    const subject = `Your tree watering plan${data.who ? ' — ' + data.who : ''} | ${TTC.name}`;
+    const body = planText(data);
+    const to = $('custemail').value.trim();
+    const file = new File([blob], filename, { type:'application/pdf' });
+
+    // Phone: native share sheet WITH the PDF attached — the one path that can attach a file.
+    if (navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title: subject, text: body });
+      sendStat('Shared — pick Mail to send it with the PDF attached.', 'ok');
+      return;
+    }
+
+    // Desktop: download the PDF, then open Gmail already written.
+    // (mailto: silently does nothing on a machine with no default mail app — Gmail always opens.)
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.append(a); a.click(); a.remove();
+
+    const gmail = 'https://mail.google.com/mail/?view=cm&fs=1&tf=1'
+      + '&to=' + encodeURIComponent(to)
+      + '&su=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(body + '\n\n---\nThe plan PDF just downloaded to this computer — attach it before you send.');
+
+    const win = window.open(gmail, '_blank');
+    if (win) { try { win.opener = null; } catch(_){} }
+    if (win){
+      sendStat('Gmail is open with the email written. Attach ' + filename + ' (it just downloaded) and send. If Gmail opened the wrong account, switch it in the top-right — sending from ' + TTC.email + ' looks best to a customer.', 'ok');
+    } else {
+      sendStat('Your browser blocked the Gmail tab. Allow pop-ups for this page, or use Download PDF and email it yourself.', 'err');
+    }
+  }catch(e){
+    if (e && e.name === 'AbortError') return;   // user dismissed the share sheet
+    sendStat('Could not build the email: ' + e.message, 'err');
+  }
+});
+
+initMap();
+recalc();
+window.__calc = { xlRound, xlFloor5, waterLoss, adjusted, recommendation, leadingNumberExcelStyle, loopCount, loopDesign, runTime, PLANT_FACTORS };
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0B">
+<title>TTC Crew Leaderboard</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ttc-orange:#C2602B; --ttc-orange-bright:#E07A3D; --ttc-orange-deep:#8E4419;
+    --ttc-olive-dark:#4F5F32; --ttc-olive:#6F7F47; --ttc-olive-light:#9CAB6E;
+    --ttc-charcoal:#4D4D4D; --ttc-charcoal-soft:#8A8A8C;
+    --ttc-cream:#F4EDE2; --ttc-black:#0A0A0B; --ttc-near-black:#141416;
+    --ttc-panel:#1A1A1D; --ttc-panel-edge:#2A2A2E;
+    --font-display:"Helvetica Neue","Arial Black",Impact,sans-serif;
+    --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;
+    --ease-out:cubic-bezier(0.2,0.8,0.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--ttc-black);color:var(--ttc-cream);font-family:var(--font-body);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  body{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(194,96,43,0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(79,95,50,0.08), transparent 60%),
+      linear-gradient(180deg, var(--ttc-black) 0%, var(--ttc-near-black) 100%);
+    background-attachment:fixed;padding:18px 14px 32px;
+  }
+  .wrap{max-width:780px;margin:0 auto;}
+
+  /* Header */
+  .hdr{display:flex;align-items:center;gap:14px;padding:6px 0 18px;border-bottom:1px solid var(--ttc-panel-edge);margin-bottom:18px;}
+  .hdr__logo{width:64px;height:64px;flex-shrink:0;}
+  .hdr__title{flex:1;min-width:0;}
+  .hdr__eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--ttc-orange-bright);text-transform:uppercase;font-weight:600;margin-bottom:4px;}
+  .hdr__h1{font-family:var(--font-display);font-weight:900;font-size:clamp(26px,7vw,42px);line-height:0.95;letter-spacing:-0.02em;color:var(--ttc-cream);text-transform:uppercase;}
+  .hdr__h1 em{font-style:normal;color:var(--ttc-orange-bright);}
+  .hdr__sub{margin-top:6px;font-size:12px;color:var(--ttc-charcoal-soft);line-height:1.45;}
+
+  /* Status pill */
+  .status-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;color:var(--ttc-charcoal-soft);text-transform:uppercase;flex-wrap:wrap;}
+  .status-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 11px;border:1px solid var(--ttc-panel-edge);border-radius:100px;background:var(--ttc-panel);}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--ttc-olive-light);box-shadow:0 0 8px currentColor;animation:pulse 2s ease-in-out infinite;}
+  .status-dot.err{background:#c54a3e;}
+  .status-dot.idle{background:var(--ttc-charcoal-soft);animation:none;}
+  .status-meta b{color:var(--ttc-cream);font-weight:600;}
+  .refresh-btn{border:1px solid var(--ttc-panel-edge);background:transparent;color:var(--ttc-cream);padding:5px 11px;border-radius:100px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+  .refresh-btn:hover{border-color:var(--ttc-orange);color:var(--ttc-orange-bright);}
+
+  /* Stats row */
+  .totals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+  .stat{background:var(--ttc-panel);border:1px solid var(--ttc-panel-edge);border-radius:8px;padding:12px 14px;position:relative;}
+  .stat__edge{position:absolute;top:0;left:0;right:0;height:3px;border-top-left-radius:8px;border-top-right-radius:8px;background:linear-gradient(90deg,var(--ttc-orange),var(--ttc-orange-bright));}
+  .stat--olive .stat__edge{background:linear-gradient(90deg,var(--ttc-olive-dark),var(--ttc-olive-light));}
+  .stat__label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.16em;color:var(--ttc-charcoal-soft);text-transform:uppercase;margin-bottom:4px;}
+  .stat__value{font-family:var(--font-display);font-weight:900;font-size:24px;line-height:1;color:var(--ttc-cream);letter-spacing:-0.01em;}
+  .stat--money .stat__value{color:var(--ttc-orange-bright);}
+  .stat__hint{margin-top:3px;font-family:var(--font-mono);font-size:9px;color:var(--ttc-charcoal-soft);}
+
+  /* Podium */
+  .podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;margin-bottom:22px;padding-top:18px;}
+  .pod{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.4)),var(--ttc-panel);border:1px solid var(--ttc-panel-edge);border-radius:8px;padding:18px 10px 16px;position:relative;text-align:center;opacity:0;animation:rise 0.7s var(--ease-out) forwards;}
+  .pod--1{animation-delay:0.3s;}
+  .pod--2{animation-delay:0.1s;}
+  .pod--3{animation-delay:0.2s;}
+  .pod__edge{position:absolute;top:0;left:0;right:0;height:4px;border-top-left-radius:8px;border-top-right-radius:8px;}
+  .pod--1 .pod__edge{background:linear-gradient(90deg,var(--ttc-orange),var(--ttc-orange-bright),var(--ttc-orange));}
+  .pod--2 .pod__edge{background:linear-gradient(90deg,var(--ttc-olive),var(--ttc-olive-light),var(--ttc-olive));}
+  .pod--3 .pod__edge{background:linear-gradient(90deg,var(--ttc-olive-dark),var(--ttc-olive),var(--ttc-olive-dark));}
+  .pod--1{border-color:rgba(194,96,43,0.4);box-shadow:0 12px 40px rgba(194,96,43,0.15);}
+  @keyframes riseLeader{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(-12px);}}
+  .pod--1{animation:riseLeader 0.7s var(--ease-out) 0.3s forwards;}
+  @media (max-width:520px){
+    .podium{grid-template-columns:1fr;gap:8px;}
+    @keyframes riseLeader{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  }
+  .pod__rank{font-family:var(--font-display);font-weight:900;font-size:11px;letter-spacing:0.18em;color:var(--ttc-charcoal-soft);text-transform:uppercase;margin-bottom:10px;}
+  .pod--1 .pod__rank{color:var(--ttc-orange-bright);}
+  .hex{width:64px;height:64px;margin:0 auto 10px;position:relative;display:flex;align-items:center;justify-content:center;}
+  .pod--1 .hex{width:78px;height:78px;animation:leaderPulse 3.5s ease-in-out infinite;}
+  .hex svg{position:absolute;inset:0;width:100%;height:100%;}
+  .hex__initial{position:relative;z-index:2;font-family:var(--font-display);font-weight:900;font-size:24px;color:var(--ttc-cream);line-height:1;}
+  .pod--1 .hex__initial{font-size:30px;}
+  .pod__name{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:0.01em;color:var(--ttc-cream);text-transform:uppercase;margin-bottom:4px;line-height:1.05;word-break:break-word;}
+  .pod--1 .pod__name{font-size:18px;}
+  .pod__title{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;margin-bottom:10px;font-family:var(--font-mono);}
+  .pod__points{font-family:var(--font-display);font-weight:900;font-size:36px;line-height:1;color:var(--ttc-cream);letter-spacing:-0.02em;}
+  .pod--1 .pod__points{font-size:46px;color:var(--ttc-orange-bright);}
+  .pod__pts-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;color:var(--ttc-charcoal-soft);text-transform:uppercase;margin-top:3px;}
+  .pod__money{margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--ttc-olive-light);letter-spacing:0.05em;font-weight:600;}
+  .pod--1 .pod__money{color:var(--ttc-orange-bright);}
+  .pod__crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--ttc-orange);color:var(--ttc-cream);font-size:8px;font-family:var(--font-mono);font-weight:700;letter-spacing:0.18em;padding:4px 10px;border-radius:100px;text-transform:uppercase;white-space:nowrap;box-shadow:0 4px 14px rgba(194,96,43,0.4);}
+
+  /* Leaderboard */
+  .board{background:var(--ttc-panel);border:1px solid var(--ttc-panel-edge);border-radius:8px;overflow:hidden;}
+  .board__head{display:grid;grid-template-columns:36px 1fr 60px 80px;column-gap:8px;padding:10px 14px;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--ttc-panel-edge);font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;color:var(--ttc-charcoal-soft);text-transform:uppercase;}
+  .col-pts,.col-money{text-align:right;}
+  .row{display:grid;grid-template-columns:36px 1fr 60px 80px;column-gap:8px;padding:12px 14px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.2s;opacity:0;animation:fadeIn 0.5s var(--ease-out) forwards;}
+  .row:last-child{border-bottom:none;}
+  .row__rank{font-family:var(--font-display);font-weight:900;font-size:16px;color:var(--ttc-charcoal-soft);}
+  .row--top3 .row__rank{color:var(--ttc-orange-bright);}
+  .row__name-wrap{display:flex;align-items:center;gap:10px;min-width:0;}
+  .row__hex{width:30px;height:30px;flex-shrink:0;position:relative;}
+  .row__hex svg{width:100%;height:100%;}
+  .row__hex-initial{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:13px;color:var(--ttc-cream);}
+  .row__name-col{min-width:0;}
+  .row__name{font-family:var(--font-display);font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:0.01em;line-height:1.05;}
+  .row__progress{display:block;margin-top:5px;width:100%;max-width:180px;height:3px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden;}
+  .row__progress-fill{height:100%;background:linear-gradient(90deg,var(--ttc-olive),var(--ttc-orange));border-radius:100px;transition:width 1.2s var(--ease-out);}
+  .row__progress-label{display:block;margin-top:3px;font-family:var(--font-mono);font-size:8px;letter-spacing:0.10em;color:var(--ttc-charcoal-soft);text-transform:uppercase;}
+  .row__pts{font-family:var(--font-display);font-weight:900;font-size:22px;text-align:right;color:var(--ttc-cream);line-height:1;}
+  .row--top1 .row__pts{color:var(--ttc-orange-bright);}
+  .row__money{font-family:var(--font-mono);font-size:11px;text-align:right;color:var(--ttc-olive-light);font-weight:600;letter-spacing:0.04em;}
+  .row--top1 .row__money{color:var(--ttc-orange-bright);}
+
+  /* Tier ladder */
+  .legend{margin-top:20px;padding:14px 16px;background:var(--ttc-panel);border:1px solid var(--ttc-panel-edge);border-radius:8px;}
+  .legend__title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;color:var(--ttc-charcoal-soft);text-transform:uppercase;margin-bottom:10px;}
+  .legend__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;}
+  .legend__item{display:flex;flex-direction:column;gap:2px;padding-left:8px;border-left:3px solid;}
+  .legend__name{font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:0.02em;line-height:1;}
+  .legend__range{font-family:var(--font-mono);font-size:8px;color:var(--ttc-charcoal-soft);letter-spacing:0.06em;}
+
+  /* Rules card */
+  .rules{margin-top:20px;padding:14px 16px;background:var(--ttc-panel);border:1px solid var(--ttc-panel-edge);border-radius:8px;}
+  .rules__title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;color:var(--ttc-charcoal-soft);text-transform:uppercase;margin-bottom:10px;}
+  .rule{display:flex;gap:8px;font-size:12px;line-height:1.5;color:var(--ttc-cream);margin-bottom:6px;}
+  .rule:last-child{margin-bottom:0;}
+  .rule__num{font-family:var(--font-mono);font-size:9px;color:var(--ttc-orange-bright);font-weight:700;letter-spacing:0.06em;flex-shrink:0;width:18px;}
+  .rule b{color:var(--ttc-orange-bright);font-weight:700;}
+
+  /* Footer */
+  .ftr{margin-top:24px;padding-top:16px;border-top:1px solid var(--ttc-panel-edge);font-family:var(--font-mono);font-size:9px;letter-spacing:0.10em;color:var(--ttc-charcoal-soft);text-transform:uppercase;text-align:center;line-height:1.6;}
+
+  /* Errors */
+  .error-banner{display:none;padding:12px 14px;border:1px solid #c54a3e;background:rgba(197,74,62,0.1);border-radius:6px;margin-bottom:16px;font-size:12px;line-height:1.5;color:#FFB4AC;}
+  .error-banner.show{display:block;}
+  .error-banner b{color:#FFE6E2;}
+
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.9);}}
+  @keyframes leaderPulse{0%,100%{filter:drop-shadow(0 0 0 rgba(224,122,61,0));}50%{filter:drop-shadow(0 0 14px rgba(224,122,61,0.5));}}
+  @keyframes rise{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <svg class="hdr__logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Total Tree Care">
+      <path d="M50,5 L86,25 Q90,27 90,32 L90,68 Q90,73 86,75 L50,95 L14,75 Q10,73 10,68 L10,32 Q10,27 14,25 Z" fill="#0A0A0B" stroke="#C2602B" stroke-width="6" stroke-linejoin="round"/>
+      <polygon points="50,26 50,32 45,38 36,38" fill="#6F7F47"/>
+      <polygon points="50,26 50,32 55,38 64,38" fill="#9CAB6E"/>
+      <polygon points="50,36 50,42 41,52 28,52" fill="#6F7F47"/>
+      <polygon points="50,36 50,42 59,52 72,52" fill="#9CAB6E"/>
+      <polygon points="50,48 50,55 39,68 22,68" fill="#C2602B"/>
+      <polygon points="50,48 50,55 61,68 78,68" fill="#E07A3D"/>
+      <polygon points="46,68 54,68 53,76 47,76" fill="#4D4D4D"/>
+    </svg>
+    <div class="hdr__title">
+      <div class="hdr__eyebrow">2026 Crew Bonus &middot; Public</div>
+      <h1 class="hdr__h1">Crew <em>Leaderboard</em></h1>
+      <p class="hdr__sub">Five-star Google review = 1 point per crew member on the job. $2.50 per point. Paid quarterly in cash.</p>
+    </div>
+  </header>
+
+  <div class="status-row">
+    <span class="status-pill"><span class="status-dot" id="dot"></span><span id="statusLabel">Loading</span></span>
+    <span class="status-meta">Updated <b id="updatedAt">&mdash;</b></span>
+    <button class="refresh-btn" id="refreshBtn">&#x21bb; Refresh</button>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="totals">
+    <div class="stat"><div class="stat__edge"></div><div class="stat__label">Total Points</div><div class="stat__value" id="totalPts">0</div><div class="stat__hint">Across the crew, 2026</div></div>
+    <div class="stat stat--money"><div class="stat__edge"></div><div class="stat__label">Bonus Pool</div><div class="stat__value" id="totalMoney">$0</div><div class="stat__hint">$2.50 per point</div></div>
+  </div>
+
+  <div id="podiumWrap"></div>
+  <div id="boardWrap"></div>
+
+  <div class="legend">
+    <div class="legend__title">Rank Ladder</div>
+    <div class="legend__grid" id="legendGrid"></div>
+  </div>
+
+  <div class="rules">
+    <div class="rules__title">How It Works</div>
+    <div class="rule"><span class="rule__num">&sect;01</span><span><b>5&#9733; only.</b> Anything less doesn't count.</span></div>
+    <div class="rule"><span class="rule__num">&sect;02</span><span><b>1 point each.</b> Every crew member on the job earns one point. No ranking, no split.</span></div>
+    <div class="rule"><span class="rule__num">&sect;03</span><span><b>$2.50 per point.</b> Paid out in cash quarterly.</span></div>
+  </div>
+
+  <footer class="ftr">
+    Total Tree Care &middot; Crew Review Bonus<br>
+    Internal &middot; do not share with customers
+  </footer>
+</div>
+
+<script>
+  const SHEET_ID = '1MGuOKTQkaoeb-USFJnhydKDL311ZpvTf_kchJYuhGeo';
+  const POINT_VALUE = 2.50;
+  const REFRESH_MS = 60_000; // auto-refresh every 60 seconds
+
+  const CREW = [
+    'Trevor Stevens','Matthew Gil','Ethan Risenmay','Gabriel Dye','Cole Cook',
+    'Tyler Montoya','Trevon Campbell','David Thunell','Joseph Myers'
+  ];
+  const RANKS = [
+    { min:21, label:'Canopy King',  color:'#E07A3D' },
+    { min:11, label:'Crew Boss',    color:'#C2602B' },
+    { min:6,  label:'Top Climber',  color:'#9CAB6E' },
+    { min:3,  label:'Saw Hand',     color:'#6F7F47' },
+    { min:1,  label:'Greenhorn',    color:'#4F5F32' },
+    { min:0,  label:'Fresh Sap',    color:'#8A8A8C' }
+  ];
+
+  function rankFor(p){return RANKS.find(r=>p>=r.min)||RANKS[RANKS.length-1];}
+  function nextRank(p){for(let i=RANKS.length-1;i>=0;i--){if(RANKS[i].min>p)return Object.assign({},RANKS[i],{pointsNeeded:RANKS[i].min-p});}return null;}
+  function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);}
+  function initialOf(n){const t=(n||'?').trim();return (t[0]||'?').toUpperCase();}
+  function fmtMoney(p){const v=p*POINT_VALUE;return '$'+v.toFixed(2).replace(/\.00$/,'');}
+  function hexSVG(c){return '<svg viewBox="0 0 100 100"><polygon points="50,5 90,27 90,73 50,95 10,73 10,27" fill="'+c+'" fill-opacity="0.18" stroke="'+c+'" stroke-width="2.5"/><polygon points="50,12 84,30 84,70 50,88 16,70 16,30" fill="none" stroke="'+c+'" stroke-width="1" stroke-opacity="0.4"/></svg>';}
+  function setStatus(s,l){const dot=document.getElementById('dot');const lbl=document.getElementById('statusLabel');dot.className='status-dot'+(s==='err'?' err':(s==='idle'?' idle':''));lbl.textContent=l||(s==='live'?'Live':s==='err'?'Error':'Idle');}
+  function setUpdated(){document.getElementById('updatedAt').textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+  function showError(html){const el=document.getElementById('errorBanner');el.innerHTML=html;el.classList.add('show');}
+  function clearError(){document.getElementById('errorBanner').classList.remove('show');}
+
+  /* CSV parser handling quoted fields */
+  function parseCSV(text){
+    const rows=[];let row=[],field='',inQuote=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(inQuote){
+        if(c==='"' && text[i+1]==='"'){field+='"';i++;}
+        else if(c==='"'){inQuote=false;}
+        else{field+=c;}
+      } else {
+        if(c==='"'){inQuote=true;}
+        else if(c===','){row.push(field);field='';}
+        else if(c==='\n'||c==='\r'){
+          if(c==='\r'&&text[i+1]==='\n')i++;
+          row.push(field);rows.push(row);row=[];field='';
+        } else {field+=c;}
+      }
+    }
+    if(field.length||row.length){row.push(field);rows.push(row);}
+    return rows;
+  }
+
+  async function loadFromPublicSheet(){
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&t=${Date.now()}`;
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok){
+      if(res.status===404||res.status===401||res.status===403){
+        throw new Error('SHEET_NOT_PUBLIC');
+      }
+      throw new Error('HTTP '+res.status);
+    }
+    const text=await res.text();
+    return parseCSV(text);
+  }
+
+  function rowsToCrewMap(rows,crewNames){
+    const map={};
+    crewNames.forEach(n=>map[n]={points:0,last:''});
+    if(!rows||rows.length<2)return map;
+    // assume first row is header; iterate rest looking for crew name in column 0
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r||!r[0])continue;
+      const name=String(r[0]).trim();
+      // exact match against canonical roster
+      const matched=crewNames.find(n=>n.toLowerCase()===name.toLowerCase());
+      if(!matched)continue;
+      const pts=parseInt(r[1],10);
+      if(!isNaN(pts))map[matched].points=pts;
+      const lastDate=r[3]?String(r[3]).trim():'';
+      if(lastDate)map[matched].last=lastDate;
+    }
+    return map;
+  }
+
+  /* Render */
+  function renderPodium(rows){
+    const top3=rows.slice(0,3);while(top3.length<3)top3.push(null);
+    const order=[top3[1],top3[0],top3[2]];const labels=['2nd','1st','3rd'];const cls=['pod--2','pod--1','pod--3'];
+    let html='<div class="podium">';
+    for(let i=0;i<3;i++){
+      const m=order[i];
+      if(!m||m.points===0){
+        html+=`<div class="pod ${cls[i]}" style="opacity:0.45"><div class="pod__edge"></div><div class="pod__rank">${labels[i]}</div><div class="hex">${hexSVG('#8A8A8C')}<span class="hex__initial">&mdash;</span></div><div class="pod__name">Unclaimed</div><div class="pod__title" style="color:#8A8A8C;">Standing By</div><div class="pod__points">0</div><div class="pod__pts-label">Pts</div><div class="pod__money">$0.00</div></div>`;
+        continue;
+      }
+      const r=rankFor(m.points);
+      html+=`<div class="pod ${cls[i]}"><div class="pod__edge"></div>${cls[i]==='pod--1'?'<div class="pod__crown">&#9733; Top Crew &#9733;</div>':''}<div class="pod__rank">${labels[i]}</div><div class="hex">${hexSVG(r.color)}<span class="hex__initial">${initialOf(m.name)}</span></div><div class="pod__name">${escapeHtml(m.name)}</div><div class="pod__title" style="color:${r.color};">${r.label}</div><div class="pod__points">${m.points}</div><div class="pod__pts-label">Pts Earned</div><div class="pod__money">${fmtMoney(m.points)} bonus</div></div>`;
+    }
+    html+='</div>';
+    document.getElementById('podiumWrap').innerHTML=html;
+  }
+
+  function renderBoard(rows){
+    let body='';
+    rows.forEach((m,idx)=>{
+      const r=rankFor(m.points);const next=nextRank(m.points);
+      const span=next?(next.min-r.min):1;
+      const pct=next?Math.min(100,Math.max(0,((m.points-r.min)/span)*100)):100;
+      const lbl=next?(next.pointsNeeded+' to '+next.label):'Top tier';
+      const tc=idx===0&&m.points>0?'row--top1':(idx<3&&m.points>0?'row--top3':'');
+      body+=`<div class="row ${tc}" style="animation-delay:${0.05*idx}s"><div class="row__rank">#${idx+1}</div><div class="row__name-wrap"><div class="row__hex">${hexSVG(r.color)}<div class="row__hex-initial">${initialOf(m.name)}</div></div><div class="row__name-col"><div class="row__name">${escapeHtml(m.name)}</div><div class="row__progress" title="${lbl}"><div class="row__progress-fill" style="width:${pct}%"></div></div><span class="row__progress-label">${lbl}</span></div></div><div class="row__pts col-pts">${m.points}</div><div class="row__money col-money">${fmtMoney(m.points)}</div></div>`;
+    });
+    document.getElementById('boardWrap').innerHTML=`<div class="board"><div class="board__head"><span>#</span><span>Crew</span><span class="col-pts">Pts</span><span class="col-money">Earned</span></div>${body}</div>`;
+  }
+
+  function renderTotals(rows){
+    const total=rows.reduce((s,m)=>s+m.points,0);
+    document.getElementById('totalPts').textContent=total;
+    document.getElementById('totalMoney').textContent=fmtMoney(total);
+  }
+
+  function renderLegend(){
+    const asc=RANKS.slice().reverse();
+    document.getElementById('legendGrid').innerHTML=asc.map((r,idx)=>{
+      const next=asc[idx+1];
+      const range=next?(r.min+'–'+(next.min-1)+' pts'):(r.min+'+ pts');
+      return `<div class="legend__item" style="border-color:${r.color}"><span class="legend__name" style="color:${r.color}">${r.label}</span><span class="legend__range">${range}</span></div>`;
+    }).join('');
+  }
+
+  async function refresh(){
+    setStatus('idle','Loading');
+    let tallyMap={};
+    try {
+      const rawRows=await loadFromPublicSheet();
+      tallyMap=rowsToCrewMap(rawRows,CREW);
+      clearError();
+      setStatus('live','Live');
+    } catch (e){
+      console.error(e);
+      CREW.forEach(n=>tallyMap[n]={points:0,last:''});
+      if(e.message==='SHEET_NOT_PUBLIC'){
+        showError(`<b>Sheet isn't publicly readable yet.</b><br>Open the sheet, click <b>Share</b> &rarr; change "Restricted" to <b>Anyone with the link</b> &rarr; <b>Viewer</b>. Then refresh.`);
+        setStatus('err','Sheet not public');
+      } else {
+        showError(`<b>Couldn't load the sheet.</b><br>${escapeHtml(e.message)}. Try refresh in a moment.`);
+        setStatus('err','Load error');
+      }
+    }
+    const rows=CREW.map(n=>({name:n,points:(tallyMap[n]&&tallyMap[n].points)||0,last:(tallyMap[n]&&tallyMap[n].last)||''})).sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name));
+    renderPodium(rows);
+    renderBoard(rows);
+    renderTotals(rows);
+    renderLegend();
+    setUpdated();
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click',refresh);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
+  refresh();
+  setInterval(refresh,REFRESH_MS);
+</script>
+</body>
+</html>
