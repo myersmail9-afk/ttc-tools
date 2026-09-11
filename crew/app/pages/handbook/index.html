@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<!--
+  TTC Crew — Policies and Procedures reader.
+  Self-contained page: inline CSS + vanilla JS, no libraries. Shows the 2020 handbook page by
+  page from files/handbook/page-NN.jpg (rendered by tools/render-handbook.swift). Section
+  titles come from pages/handbook/pages.json (fetched relative to this file); if that fetch
+  fails (e.g. opened directly from disk with no server), pages still render, just without
+  section titles in the captions.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Policies and Procedures — TTC Crew</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ttc-orange:    #C9601A;
+    --ttc-orange-dk: #a14d14;
+    --ttc-green:     #4a6741;
+    --ttc-dark:      #2a3a25;
+    --ttc-gold:      #f0c080;
+    --ttc-sage:      #B7B681;
+
+    --bg:      #f9f6f2;
+    --bg-alt:  #f4f0ea;
+    --bg-dark: #2a3a25;
+    --card:    #ffffff;
+
+    --fg1:        #1a1a1a;
+    --fg2:        #555555;
+    --fg3:        #888888;
+    --fg-on-dark: #f9f6f2;
+
+    --border:         rgba(0,0,0,0.12);
+    --border-soft:    rgba(0,0,0,0.07);
+    --border-on-dark: rgba(255,255,255,0.18);
+
+    --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
+    --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+    --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+    --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    padding-bottom: 56px; /* room for the sticky progress line */
+  }
+  a { text-decoration: none; color: inherit; }
+  svg { display: block; }
+  button { font-family: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--ttc-orange); outline-offset: 2px; }
+
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: grid; grid-template-columns: 48px 1fr 56px; align-items: center;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+  }
+  .topbar-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 56px; color: var(--fg-on-dark);
+  }
+  .topbar-back svg { width: 22px; height: 22px; }
+  .topbar-title {
+    text-align: center; font-weight: 600; font-size: 16px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar-pdf {
+    display: flex; align-items: center; justify-content: center;
+    height: 56px; margin-right: 12px;
+    font-weight: 600; font-size: 13px; letter-spacing: .02em;
+    color: var(--fg-on-dark); border: 1px solid var(--border-on-dark);
+    border-radius: 8px; padding: 0 10px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ---- Info band ---- */
+  .info-band {
+    background: var(--bg-alt);
+    padding: 14px 20px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .info-band p { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--fg2); }
+  .info-links { display: flex; gap: 16px; flex-wrap: wrap; }
+  .info-links a { font-size: 13px; font-weight: 600; color: var(--ttc-orange); }
+  .info-links a:active { color: var(--ttc-orange-dk); }
+
+  /* ---- Contents chips ---- */
+  .chips-wrap {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-soft);
+    padding: 12px 0;
+  }
+  .chips {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 0 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    height: 34px; padding: 0 14px;
+    border-radius: 17px; border: 1px solid var(--border);
+    background: var(--card); color: var(--fg1);
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+  }
+  .chip:active { background: var(--bg-alt); }
+  .chip.chip--current { background: var(--ttc-green); border-color: var(--ttc-green); color: var(--fg-on-dark); }
+
+  /* ---- Pages ---- */
+  main { padding: 18px 16px 8px; }
+.page-held { background: var(--card, #fff); border: 1px dashed rgba(42,58,37,.25); border-radius: 12px; padding: 22px 18px; text-align: center; color: #555; }
+  .page-held-title { font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+  .page-held p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+  .page-held a { color: #C9601A; text-decoration: underline; font-size: 14px; }
+  .page-card { margin: 0 0 22px; }
+  .page-image-btn {
+    display: block; width: 100%; padding: 0; margin: 0;
+    border: none; background: none; cursor: pointer;
+  }
+  .page-image-btn img {
+    display: block; width: 100%; height: auto;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 8px 20px rgba(42,58,37,.10);
+    background: var(--card);
+  }
+  .page-caption {
+    margin-top: 8px; font-size: 12.5px; color: var(--fg3); text-align: center;
+  }
+
+  /* ---- Sticky progress line ---- */
+  .progress-line {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    height: calc(30px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+    font-size: 12px; font-weight: 600; letter-spacing: .02em;
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    padding: 10px 20px calc(20px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  footer p { margin: 0 0 8px; font-size: 12px; color: var(--fg3); line-height: 1.5; }
+  footer a { font-size: 12px; font-weight: 600; color: var(--ttc-orange); }
+
+  /* ---- Lightbox ---- */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox[hidden] { display: none; }
+  .lightbox img {
+    max-width: 96vw; max-height: 90vh;
+    display: block;
+  }
+  .lightbox-close, .lightbox-prev, .lightbox-next {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 22px;
+    background: rgba(255,255,255,0.12); color: var(--fg-on-dark);
+    border: none;
+  }
+  .lightbox-close { top: calc(12px + env(safe-area-inset-top)); right: 12px; }
+  .lightbox-prev { left: 8px; top: 50%; transform: translateY(-50%); }
+  .lightbox-next { right: 8px; top: 50%; transform: translateY(-50%); }
+  .lightbox-close svg, .lightbox-prev svg, .lightbox-next svg { width: 22px; height: 22px; }
+  .lightbox-caption {
+    position: absolute; left: 0; right: 0;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    text-align: center; color: var(--fg-on-dark); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../../" aria-label="Back to app home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">Policies and Procedures</div>
+  <a class="topbar-pdf" href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">PDF</a>
+</div>
+
+<div class="info-band">
+  <p>The 2020 book, as it stands. Changes collect in Notes until the next edition.</p>
+  <div class="info-links">
+    <a href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">Download the PDF</a>
+    <a href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">Original in Drive</a>
+  </div>
+</div>
+
+<div class="chips-wrap">
+  <div class="chips" id="chips"></div>
+</div>
+
+<div class="wrap">
+  <main id="main"></main>
+</div>
+
+<div class="progress-line" id="progressLine">Page 1 of 19</div>
+
+<footer>
+  <p>Pages you have opened stay available offline.</p>
+  <p>Rendered from Policies-Procedures-TTC-v1.pdf (2020). Not re-approved since.
+    <a href="notes.html">Notes and proposed changes</a>
+  </p>
+</footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <button class="lightbox-prev" id="lightboxPrev" aria-label="Previous page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <img id="lightboxImg" src="" alt="">
+  <button class="lightbox-next" id="lightboxNext" aria-label="Next page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var TOTAL_PAGES = 19;
+  var SECTION_TITLES = [
+    'Job Description & Compensation',
+    'Training',
+    'Safety',
+    'Work Schedule',
+    'Company Uniform Policy',
+    'Required Knots',
+    'Signature'
+  ];
+
+  var main = document.getElementById('main');
+  var chipsEl = document.getElementById('chips');
+  var progressLine = document.getElementById('progressLine');
+
+  var PDF_URL = 'https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view';
+  var WITHHELD_NOTE = 'This page is the hourly wage table. It is in the PDF (Google sign-in) and at the office, not on this public page.';
+
+  function imgSrc(n) {
+    var nn = (n < 10 ? '0' : '') + n;
+    return '../../files/handbook/page-' + nn + '.jpg';
+  }
+
+  function buildPagesFallback() {
+    var pages = [];
+    for (var n = 1; n <= TOTAL_PAGES; n++) { pages.push(n === 5 ? { n: n, title: null, withheld: true, note: WITHHELD_NOTE } : { n: n, title: null }); }
+    return pages;
+  }
+
+  function renderPages(pages) {
+    // ---- page cards ----
+    main.innerHTML = '';
+    pages.forEach(function (p) {
+      var card = document.createElement('div');
+      card.className = 'page-card';
+      card.setAttribute('data-page', p.n);
+      if (p.title) card.setAttribute('data-title', p.title);
+
+      if (p.withheld) {
+        var held = document.createElement('div');
+        held.className = 'page-held';
+        var heldTitle = document.createElement('div');
+        heldTitle.className = 'page-held-title';
+        heldTitle.textContent = 'Not shown on this page';
+        var heldText = document.createElement('p');
+        heldText.textContent = p.note || WITHHELD_NOTE;
+        var heldLink = document.createElement('a');
+        heldLink.href = PDF_URL; heldLink.target = '_blank'; heldLink.rel = 'noopener';
+        heldLink.textContent = 'Open the PDF (Google sign-in)';
+        held.appendChild(heldTitle); held.appendChild(heldText); held.appendChild(heldLink);
+        card.appendChild(held);
+        var heldCaption = document.createElement('div');
+        heldCaption.className = 'page-caption';
+        heldCaption.textContent = 'Page ' + p.n + ' of ' + TOTAL_PAGES + (p.title ? ' · ' + p.title : '');
+        card.appendChild(heldCaption);
+        main.appendChild(card);
+        return;
+      }
+      var btn = document.createElement('button');
+      btn.className = 'page-image-btn';
+      btn.setAttribute('aria-label', 'Open page ' + p.n + ' full screen');
+      var img = document.createElement('img');
+      img.src = imgSrc(p.n);
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.alt = 'Page ' + p.n + (p.title ? ' — ' + p.title : '');
+      btn.appendChild(img);
+      btn.addEventListener('click', function () { openLightbox(p.n); });
+      card.appendChild(btn);
+
+      var caption = document.createElement('div');
+      caption.className = 'page-caption';
+      caption.textContent = 'Page ' + p.n + ' of ' + TOTAL_PAGES + (p.title ? ' · ' + p.title : '');
+      card.appendChild(caption);
+
+      main.appendChild(card);
+    });
+
+    // ---- contents chips ----
+    chipsEl.innerHTML = '';
+    SECTION_TITLES.forEach(function (title) {
+      var firstPage = null;
+      for (var i = 0; i < pages.length; i++) {
+        if (pages[i].title === title) { firstPage = pages[i].n; break; }
+      }
+      var chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.type = 'button';
+      chip.textContent = title;
+      chip.addEventListener('click', function () {
+        if (!firstPage) return;
+        var target = main.querySelector('.page-card[data-page="' + firstPage + '"]');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      chipsEl.appendChild(chip);
+    });
+
+    // ---- progress line via IntersectionObserver ----
+    var cards = Array.prototype.slice.call(main.querySelectorAll('.page-card'));
+    if ('IntersectionObserver' in window && cards.length) {
+      var current = 1;
+      var io = new IntersectionObserver(function (entries) {
+        var best = null;
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
+          }
+        });
+        if (best) {
+          current = parseInt(best.target.getAttribute('data-page'), 10);
+          progressLine.textContent = 'Page ' + current + ' of ' + TOTAL_PAGES;
+        }
+      }, { threshold: [0.25, 0.5, 0.75], rootMargin: '-40% 0px -40% 0px' });
+      cards.forEach(function (c) { io.observe(c); });
+    }
+
+    setupLightbox(pages);
+  }
+
+  // ---- lightbox ----
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCaption = document.getElementById('lightboxCaption');
+  var lightboxClose = document.getElementById('lightboxClose');
+  var lightboxPrev = document.getElementById('lightboxPrev');
+  var lightboxNext = document.getElementById('lightboxNext');
+  var lbPages = ([]).filter(function (x) { return !x.withheld; });
+  var lbCurrent = 1;
+
+  function openLightbox(n) {
+    lbCurrent = n;
+    updateLightbox();
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lightbox.hidden = true;
+    document.body.style.overflow = '';
+  }
+  function updateLightbox() {
+    lightboxImg.src = imgSrc(lbCurrent);
+    var p = lbPages.filter(function (x) { return x.n === lbCurrent; })[0];
+    lightboxCaption.textContent = 'Page ' + lbCurrent + ' of ' + TOTAL_PAGES + (p && p.title ? ' · ' + p.title : '');
+    lightboxPrev.style.visibility = lbCurrent <= 1 ? 'hidden' : 'visible';
+    lightboxNext.style.visibility = lbCurrent >= TOTAL_PAGES ? 'hidden' : 'visible';
+  }
+  function lbGo(delta) {
+    var next = lbCurrent + delta;
+    if (next < 1 || next > TOTAL_PAGES) return;
+    lbCurrent = next;
+    updateLightbox();
+  }
+
+  function setupLightbox(pages) {
+    lbPages = pages;
+  }
+
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxPrev.addEventListener('click', function () { lbGo(-1); });
+  lightboxNext.addEventListener('click', function () { lbGo(1); });
+  lightbox.addEventListener('click', function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (lightbox.hidden) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lbGo(-1);
+    if (e.key === 'ArrowRight') lbGo(1);
+  });
+
+  // swipe (single-touch only, so pinch-zoom is left alone)
+  var touchStartX = null, touchStartY = null, touchCount = 0;
+  lightbox.addEventListener('touchstart', function (e) {
+    touchCount = e.touches.length;
+    if (touchCount === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+  lightbox.addEventListener('touchend', function (e) {
+    if (touchCount !== 1 || touchStartX === null) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStartX;
+    var dy = t.clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) lbGo(1); else lbGo(-1);
+    }
+    touchStartX = null; touchStartY = null;
+  }, { passive: true });
+
+  // ---- load pages.json, fall back to untitled pages on failure ----
+  fetch('pages.json')
+    .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
+    .then(function (data) {
+      if (!Array.isArray(data) || !data.length) throw new Error('empty');
+      renderPages(data);
+    })
+    .catch(function () {
+      renderPages(buildPagesFallback());
+    });
+})();
+</script>
+
+</body>
+</html>
