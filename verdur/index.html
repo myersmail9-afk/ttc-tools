@@ -90,22 +90,31 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
 
 <section>
   <h2>Price a tree</h2>
-  <p class="note">Diameter at breast height — about 4½ feet up. If you only have the distance around the trunk, put that in instead and this converts it.</p>
+  <p class="note">Diameter at four and a half feet up &mdash; not at the base. A tree with several trunks is sized by adding each one, so type them all in: <code>13.5, 15.5, 12.5</code>.</p>
   <div class="calc">
-    <div class="fld"><label for="n">Trees</label><input id="n" type="number" inputmode="numeric" value="1" min="1" step="1"></div>
-    <div class="fld"><label for="m">Measurement</label><select id="m"><option value="d">Diameter (in)</option><option value="c">Around the trunk (in)</option></select></div>
-    <div class="fld"><label for="v">Inches, each tree</label><input id="v" type="number" inputmode="decimal" value="22" min="1" step="0.5"></div>
+    <div class="fld" style="flex:2 1 220px"><label for="v">Diameters in inches, one per trunk</label><input id="v" type="text" inputmode="decimal" value="22" placeholder="22   or   13.5, 15.5, 12.5"></div>
     <div class="fld"><label for="r">Rate $/in</label><input id="r" type="number" inputmode="decimal" value="15" min="1" step="0.5"></div>
-    <div class="res"><b id="out">$330</b><span id="show">22″ × $15/in</span></div>
+    <div class="res"><b id="out">$330</b><span id="show">22&Prime; &times; $15/in</span></div>
   </div>
-  <p class="note">Quotes historically round to the nearest $5. Rate is <strong>unconfirmed for 2026</strong> — $15/in is the 2023–2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
+  <p class="note">Quotes round to the nearest $5. The rate is <strong>unconfirmed for 2026</strong> &mdash; $15/in is the 2023&ndash;2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
+  <p class="note">Only have the distance <em>around</em> the trunk? Divide it by 3.14 first. Measuring across at 4&frac12; feet is the real method; this is the fallback.</p>
 </section>
 
 <section>
   <h2>Getting the measurement without going out</h2>
-  <p>Roughly a third of the trees on this list have no diameter on file, and a client may well point at a different tree than the one we treated. A photo shows the foliage but has no scale in it, so it cannot set a price. A tape can.</p>
-  <div class="say"><b>the line to use</b>Wrap a tape measure or a piece of string around the trunk at about chest height and tell me the inches around. That is all I need to price it exactly — and send a photo of the leaves while you're out there.</div>
-  <p class="note">Around the trunk ÷ 3.14 = diameter. Anyone can read a tape; nobody can eyeball a diameter. It also means <em>any</em> tree in the yard becomes quotable, including ones we have never treated — which is upside. A yard with one chlorotic maple usually has two.</p>
+  <p>Roughly a third of the trees on this list have no diameter on file, and a client may well point at a different tree than the one we treated. A photo shows the foliage but has no scale in it, so it cannot set a price. One number can.</p>
+  <div class="say"><b>the line to use</b>Measure the trunk about four and a half feet up and tell me the inches across. If the tree splits into several trunks, measure each one and add them together. That number sets the dose and the price, so I can quote it the same day.</div>
+  <p class="note">Every clause of that is David's own method, not a workaround:</p>
+  <table>
+    <thead><tr><th>rule</th><th>why</th></tr></thead>
+    <tbody>
+      <tr><td><strong>4&frac12; feet up</strong>, not the base</td><td>A tree for trunk injection is measured at breast height; a stump is measured at ground level and reads wider for the same tree.</td></tr>
+      <tr><td><strong>Add the trunks</strong> on a multi-stem</td><td>David sizes a multi-stem by summing each leader's diameter rather than measuring the root flare &mdash; three leaders of 13.5, 15.5 and 12.5 make a 41-inch tree.</td></tr>
+      <tr><td><strong>That number is the price</strong></td><td>Dose is calculated from trunk size, so the diameter and the invoice are the same fact.</td></tr>
+    </tbody>
+  </table>
+  <div class="warn"><b>don't ask for a base measurement</b>It comes back wrong on every multi-stem maple in the book, and they are common here. Two on this list: one client's line is five stems totalling 44.5&Prime;, another is three birches totalling 45.5&Prime;. Both were priced on the summed number.</div>
+  <p class="note">The photo still earns its place &mdash; David has customers photograph a tree from the same spot over time and compares, so it is how we tell whether the tree needs treating at all. It just does not set the price. And the escape hatch stays open: if they want eyes on it, Trevor measures on a PHC day and can treat the same trip.</p>
 </section>
 
 <section>
@@ -115,7 +124,7 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
     <li><strong>Did it respond?</strong> Did it green up. Did it hold.</li>
     <li><strong>Are the symptoms back?</strong> Pale leaves with green veins, worst on the new growth up top. Any dieback in the upper canopy.</li>
     <li><strong>Quote it on the call.</strong> “No visit needed, we still have the diameter.” Say the number.</li>
-    <li><strong>No diameter on file?</strong> Use the tape line above and price it the same day.</li>
+    <li><strong>No diameter on file?</strong> &ldquo;Measure the trunk about four and a half feet up and tell me the inches across. If it splits into several trunks, measure each and add them.&rdquo; Price it the same day.</li>
     <li><strong>Different tree?</strong> Fine — measure that one. Two trees is a better job than one.</li>
     <li><strong>Should it be treated?</strong> Symptoms plus a healthy tree, yes. <strong>A hard-stressed tree does not get injected.</strong> Say so out loud.</li>
     <li><strong>Cambistat also due?</strong> “Growth regulator from that year is on the same cycle — one visit covers both.”</li>
@@ -164,19 +173,19 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
   document.getElementById('days').textContent = d > 0 ? d : 0;
   document.getElementById('lbl').textContent = d > 0 ? 'days of window left' : 'window closed';
 
-  var n=document.getElementById('n'), m=document.getElementById('m'),
-      v=document.getElementById('v'), r=document.getElementById('r'),
+  var v=document.getElementById('v'), r=document.getElementById('r'),
       out=document.getElementById('out'), show=document.getElementById('show');
   function calc(){
-    var trees=Math.max(1, parseInt(n.value,10)||1),
-        raw=parseFloat(v.value)||0, rate=parseFloat(r.value)||0,
-        dbh = m.value==='c' ? raw/Math.PI : raw,
-        total = Math.round(dbh*trees*rate/5)*5;
-    out.textContent = '$' + total.toLocaleString();
-    show.textContent = (trees>1 ? trees+' × ' : '') + (Math.round(dbh*10)/10) + '″ × $' + rate + '/in'
-      + (m.value==='c' ? '  (from ' + raw + '″ around)' : '');
+    var parts = (v.value || '').split(/[^0-9.]+/).map(parseFloat).filter(function(x){ return x > 0; });
+    var rate = parseFloat(r.value) || 0;
+    var total = parts.reduce(function(a, b){ return a + b; }, 0);
+    var price = Math.round(total * rate / 5) * 5;
+    out.textContent = '$' + price.toLocaleString();
+    show.textContent = parts.length > 1
+      ? parts.join('" + ') + '" = ' + (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in'
+      : (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in';
   }
-  [n,m,v,r].forEach(function(e){ e.addEventListener('input', calc); e.addEventListener('change', calc); });
+  [v, r].forEach(function(e){ e.addEventListener('input', calc); e.addEventListener('change', calc); });
   calc();
 })();
 </script>
