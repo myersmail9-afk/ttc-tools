@@ -73,7 +73,7 @@
     pointer-events: none;
     background-image:
       linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
-      url('assets/photos/ttc-0137.jpg');
+      var(--page-photo, url('assets/photos/ttc-0137.jpg'));
     background-size: cover;
     background-position: center 28%;
     background-repeat: no-repeat;
@@ -347,6 +347,18 @@
   var SVGNS = 'http://www.w3.org/2000/svg';
 
   // ---- Roles (?office=1 / ?office=0, localStorage ttc-crew-roles) ----
+  // Rotating background: a different crew photo each time the app is opened (never the same twice in a row).
+  var PAGE_PHOTOS = ['ttc-0137', 'ttc-9165', 'ttc-1589', 'ttc-9156', 'ttc-3099'];
+  (function pickPhoto() {
+    try {
+      var last = localStorage.getItem('ttc-crew-last-photo');
+      var pool = PAGE_PHOTOS.filter(function (n) { return n !== last; });
+      var pick = pool[Math.floor(Math.random() * pool.length)];
+      document.documentElement.style.setProperty('--page-photo', "url('assets/photos/" + pick + ".jpg')");
+      localStorage.setItem('ttc-crew-last-photo', pick);
+    } catch (e) {}
+  })();
+
   var ROLE_KEY = 'ttc-crew-roles';
   function loadRoles() {
     var q = new URLSearchParams(location.search);

@@ -151,6 +151,13 @@
     padding: 24px 8px;
   }
   .error-line { color: var(--danger-text); }
+  .retry-note {
+    text-align: center; font-size: 13px; color: var(--fg2);
+    margin: 0; padding: 0 8px 24px;
+  }
+  .gate-retry-line {
+    margin: 10px 0 0; font-size: 13px; color: var(--fg2); text-align: center;
+  }
 
   /* ---- Contact card ---- */
   .contact-card { padding: 18px; }
@@ -329,17 +336,25 @@
     btn.textContent = 'Open Contacts';
     card.appendChild(btn);
 
+    var retryLine = document.createElement('p');
+    retryLine.className = 'gate-retry-line';
+    retryLine.hidden = true;
+    retryLine.textContent = 'Still loading, Google is slow right now.';
+    card.appendChild(retryLine);
+
     main.appendChild(card);
 
     function submit() {
       var code = (input.value || '').trim();
       if (!code) return;
       errLine.hidden = true;
+      retryLine.hidden = true;
       btn.disabled = true;
       btn.textContent = 'Checking...';
       loadContacts(code, function (result) {
         btn.disabled = false;
         btn.textContent = 'Open Contacts';
+        retryLine.hidden = true;
         if (result.ok) {
           storeCode(code);
           renderContacts(result.data, false);
@@ -351,6 +366,8 @@
         } else {
           renderNetworkError(code);
         }
+      }, function onRetrying() {
+        retryLine.hidden = false;
       });
     }
 
@@ -367,6 +384,17 @@
     p.className = 'quiet-line';
     p.textContent = 'Loading the latest list.';
     main.appendChild(p);
+    var retryNote = document.createElement('p');
+    retryNote.className = 'retry-note';
+    retryNote.id = 'loading-retry-note';
+    retryNote.hidden = true;
+    retryNote.textContent = 'Still loading, Google is slow right now.';
+    main.appendChild(retryNote);
+  }
+
+  function showLoadingRetryNote() {
+    var el = document.getElementById('loading-retry-note');
+    if (el) el.hidden = false;
   }
 
   function renderSetupError() {
@@ -396,7 +424,7 @@
         else if (result.error === 'code') renderGate('code');
         else if (result.error === 'setup') renderSetupError();
         else renderNetworkError(code);
-      });
+      }, showLoadingRetryNote);
     });
     retry.appendChild(btn);
     main.appendChild(retry);
@@ -521,21 +549,54 @@
   }
 
   // ---- Network ----
-  function loadContacts(code, cb) {
+  // Google intermittently answers this endpoint with an HTML error page ("Sorry, unable to
+  // open the file at this time") instead of JSON, even for a correct request. Treat anything
+  // that doesn't parse as a well-formed JSON response as transient and retry with backoff,
+  // adding a cache-buster each time. A well-formed JSON answer (including a wrong-code answer)
+  // is never retried — it's a real answer from the server, not a Google hiccup.
+  var RETRY_DELAYS_MS = [1500, 3000, 6000, 10000];
+
+  function attemptFetch(code, attemptIndex, cb, onRetrying) {
     var url = BASE_URL + '?format=json&k=' + encodeURIComponent(code);
+    if (attemptIndex > 0) url += '&t=' + Date.now();
+
     fetch(url, { redirect: 'follow', credentials: 'omit' })
-      .then(function (res) { return res.json(); })
+      .then(function (res) {
+        return res.text().then(function (text) {
+          var data;
+          try { data = JSON.parse(text); } catch (e) { data = null; }
+          if (!data || typeof data !== 'object' || typeof data.ok !== 'boolean') {
+            // Not a real answer (e.g. Google's HTML error page) — treat as transient.
+            var err = new Error('bad-response');
+            throw err;
+          }
+          return data;
+        });
+      })
       .then(function (data) {
-        if (data && data.ok) {
+        if (data.ok) {
           setCache(data);
           cb({ ok: true, data: data });
+        } else if (data.error === 'code' || data.error === 'setup') {
+          cb({ ok: false, error: data.error });
         } else {
-          cb({ ok: false, error: (data && data.error) || 'unknown' });
+          cb({ ok: false, error: 'network' });
         }
       })
       .catch(function () {
-        cb({ ok: false, error: 'network' });
+        if (attemptIndex < RETRY_DELAYS_MS.length) {
+          if (onRetrying) onRetrying(attemptIndex);
+          setTimeout(function () {
+            attemptFetch(code, attemptIndex + 1, cb, onRetrying);
+          }, RETRY_DELAYS_MS[attemptIndex]);
+        } else {
+          cb({ ok: false, error: 'network' });
+        }
       });
+  }
+
+  function loadContacts(code, cb, onRetrying) {
+    attemptFetch(code, 0, cb, onRetrying);
   }
 
   // ================= Boot =================
@@ -573,7 +634,7 @@
       } else {
         renderNetworkError(storedCode);
       }
-    });
+    }, showLoadingRetryNote);
   }
 
 })();

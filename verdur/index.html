@@ -84,7 +84,7 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
 <div class="formula">
   <b>macro injection = $/inch × total DBH</b>
   <span><em>$13.00/in</em> on work quoted 2020–2022 &nbsp;·&nbsp; <em>$15.00/in</em> from 2023 on</span>
-  <span>No base fee. No minimum. No species adjustment. Multiple trees on one line: add the diameters.</span>
+  <span>No base fee. No minimum. No species adjustment. No rounding. Multiple trunks or trees on one line: add the diameters.</span>
   <span>Micro injection is separate and flat: <em>$7.50 per injection</em>.</span>
 </div>
 
@@ -96,7 +96,7 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
     <div class="fld"><label for="r">Rate $/in</label><input id="r" type="number" inputmode="decimal" value="15" min="1" step="0.5"></div>
     <div class="res"><b id="out">$330</b><span id="show">22&Prime; &times; $15/in</span></div>
   </div>
-  <p class="note">Quotes round to the nearest $5. The rate is <strong>unconfirmed for 2026</strong> &mdash; $15/in is the 2023&ndash;2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
+  <p class="note">Nothing is rounded &mdash; the invoice is the exact product, checked against 12 of 12 past lines. The rate is <strong>unconfirmed for 2026</strong> &mdash; $15/in is the 2023&ndash;2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
   <p class="note">Only have the distance <em>around</em> the trunk? Divide it by 3.14 first. Measuring across at 4&frac12; feet is the real method; this is the fallback.</p>
 </section>
 
@@ -179,8 +179,11 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
     var parts = (v.value || '').split(/[^0-9.]+/).map(parseFloat).filter(function(x){ return x > 0; });
     var rate = parseFloat(r.value) || 0;
     var total = parts.reduce(function(a, b){ return a + b; }, 0);
-    var price = Math.round(total * rate / 5) * 5;
-    out.textContent = '$' + price.toLocaleString();
+    // TTC does not round - every historical line is the exact product (12/12 verified)
+    var price = Math.round(total * rate * 100) / 100;
+    out.textContent = '$' + (Math.round(price * 100) % 100 === 0
+      ? Math.round(price).toLocaleString()
+      : price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
     show.textContent = parts.length > 1
       ? parts.join('" + ') + '" = ' + (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in'
       : (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in';
