@@ -95,7 +95,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: calc(14px + env(safe-area-inset-top)) 20px 34px;
+    padding: calc(14px + env(safe-area-inset-top)) 20px 22px;
     overflow: hidden;
     border-radius: 0;
   }
@@ -707,12 +707,6 @@
 
     app.appendChild(header);
 
-    var searchField = buildSearchField('Find a form, sheet, or page', currentQuery, function (val) {
-      currentQuery = val;
-      renderHomeBody(val);
-    });
-    searchField.wrap.classList.add('search-wrap--overlap');
-    app.appendChild(searchField.wrap);
 
     app.appendChild(buildEmergencyButton());
 
@@ -815,11 +809,6 @@
     topbar.appendChild(title);
     app.appendChild(topbar);
 
-    var searchField = buildSearchField('Find a form, sheet, or page', currentQuery, function (val) {
-      currentQuery = val;
-      renderCategoryBody(section, val);
-    });
-    app.appendChild(searchField.wrap);
 
     var main = document.createElement('main');
     main.id = 'main';
