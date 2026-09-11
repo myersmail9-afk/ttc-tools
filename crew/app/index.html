@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<!--
+  TTC Crew — the crew's phone-first menu app.
+  All tile content lives in content.js (window.TTC_CONTENT) — edit that file, not this one.
+  This file is the shell: header, emergency block, search, and the renderer.
+  If you change this file (markup, styles, or app logic), bump SHELL_CACHE in sw.js so
+  installed phones pick up the change (content.js edits do NOT need a bump).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TTC Crew</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TTC Crew">
+<meta name="theme-color" content="#2a3a25">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ---- Total Tree Care color tokens (the ONLY colors used anywhere below) ---- */
+  :root {
+    --ttc-orange:    #C9601A;
+    --ttc-orange-dk: #a14d14;
+    --ttc-green:     #4a6741;
+    --ttc-dark:      #2a3a25;
+    --ttc-gold:      #f0c080;
+    --ttc-sage:      #B7B681;
+
+    --bg:      #f9f6f2;
+    --bg-alt:  #f4f0ea;
+    --bg-dark: #2a3a25;
+    --card:    #ffffff;
+
+    --fg1:        #1a1a1a;
+    --fg2:        #555555;
+    --fg3:        #888888;
+    --fg-on-dark: #f9f6f2;
+
+    --border:         rgba(0,0,0,0.12);
+    --border-soft:    rgba(0,0,0,0.07);
+    --border-on-dark: rgba(255,255,255,0.18);
+
+    --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
+    --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+    --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+    --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .app { max-width: 640px; margin: 0 auto; }
+  a { text-decoration: none; }
+
+  /* Header */
+  .header {
+    position: relative;
+    background: var(--ttc-dark);
+    color: var(--fg-on-dark);
+    padding: calc(14px + env(safe-area-inset-top)) 20px 18px;
+  }
+  .version-pill {
+    position: absolute;
+    top: calc(14px + env(safe-area-inset-top));
+    right: 16px;
+    font-size: 11px;
+    background: var(--border-on-dark);
+    border: 1px solid var(--border-on-dark);
+    color: var(--fg-on-dark);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .logo-plate {
+    display: inline-block;
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  .logo-plate img { display: block; width: 150px; height: auto; }
+  .app-title { font-weight: 700; font-size: 22px; margin: 0 0 4px; }
+  .app-subtitle { font-size: 13px; margin: 0; opacity: .85; }
+
+  /* Emergency */
+  .emergency {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
+    border-radius: 14px;
+    margin: 14px 16px 0;
+    padding: 14px;
+  }
+  .emergency-label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    font-weight: 600; margin-bottom: 10px;
+  }
+  .emergency-buttons { display: flex; flex-direction: column; gap: 10px; }
+  .ebtn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 56px; border-radius: 12px; padding: 8px 12px;
+    background: var(--card); border: 1px solid var(--danger-border); color: var(--danger-text);
+    font-weight: 600; text-align: center;
+  }
+  .ebtn:active { transform: translateY(1px); }
+  .ebtn-primary {
+    background: var(--ttc-orange); border-color: var(--ttc-orange); color: var(--card);
+    font-size: 17px; font-weight: 700;
+  }
+  .ebtn-label { font-size: 16px; }
+  .ebtn-sub { font-size: 13px; margin-top: 2px; opacity: .85; }
+  .emergency-links { margin-top: 10px; text-align: center; }
+  .emergency-links a { color: var(--danger-text); font-size: 13px; text-decoration: underline; }
+
+  /* Search */
+  .search-wrap {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  #search {
+    width: 100%; height: 52px; border-radius: 12px;
+    border: 1px solid var(--border); padding: 0 14px;
+    font-size: 16px; background: var(--card); color: var(--fg1);
+    font-family: inherit;
+  }
+
+  /* Sections + tiles */
+  main { padding: 4px 16px 8px; min-height: 40px; }
+  .section { margin-top: 18px; }
+  .section-label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--fg2); margin-bottom: 8px; font-weight: 600;
+  }
+  .tile {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--card); border: 1px solid var(--border-soft);
+    border-left: 8px solid var(--ttc-orange); border-radius: 14px;
+    padding: 14px 16px; min-height: 64px; margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    color: inherit; transition: transform .05s ease;
+  }
+  .tile:active { transform: translateY(1px); }
+  .tile-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .tile-label { font-weight: 600; font-size: 17px; color: var(--fg1); }
+  .tile-desc { font-size: 14px; color: var(--fg2); }
+  .tile-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .tile-badge {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+    background: var(--bg-alt); color: var(--fg2); padding: 3px 8px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tile-chevron { font-size: 18px; color: var(--fg3); line-height: 1; }
+
+  .no-match, .load-error {
+    text-align: center; color: var(--fg2); font-size: 14px; padding: 28px 8px;
+  }
+  .hide-office-link {
+    display: block; text-align: center; font-size: 13px; color: var(--fg2);
+    margin-top: 6px; text-decoration: underline;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center; font-size: 14px; color: var(--fg3);
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+  .hint-box {
+    margin: 10px auto 0; max-width: 420px;
+    background: var(--bg-alt); border: 1px solid var(--border-soft);
+    border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--fg2);
+  }
+  .offline-line { margin-top: 8px; font-size: 13px; color: var(--warn-text); }
+
+  /* Update bar */
+  .update-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+    text-align: center; font-size: 14px; font-weight: 600;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile, .ebtn { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <span class="version-pill" id="version-pill" hidden></span>
+    <div class="logo-plate"><img src="ttc-logo-horizontal.png" alt="Total Tree Care" width="150"></div>
+    <h1 class="app-title">TTC Crew</h1>
+    <p class="app-subtitle">Everything the crew needs, one place.</p>
+  </header>
+
+  <section class="emergency" id="emergency" aria-label="Emergency">
+    <div class="emergency-label">Emergency</div>
+    <div class="emergency-buttons" id="emergency-buttons">
+      <a class="ebtn ebtn-primary" href="tel:911">Call 911</a>
+    </div>
+    <div class="emergency-links" id="emergency-links"></div>
+  </section>
+
+  <div class="search-wrap">
+    <input type="search" id="search" placeholder="Find a form, sheet, or page" aria-label="Search">
+  </div>
+
+  <main id="main"></main>
+
+  <footer class="footer">
+    <p id="footer-version"></p>
+    <div class="hint-box" id="install-hint" hidden></div>
+    <p class="offline-line" id="offline-indicator" hidden>You are offline. Showing the last saved version.</p>
+  </footer>
+
+</div>
+
+<div class="update-bar" id="update-bar" hidden>New version available. Tap to reload.</div>
+
+<script src="content.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var ROLE_KEY = 'ttc-crew-roles';
+  function loadRoles() {
+    var q = new URLSearchParams(location.search);
+    var roles = ['crew'];
+    try { roles = JSON.parse(localStorage.getItem(ROLE_KEY) || '["crew"]'); } catch (e) {}
+    if (q.get('office') === '1') roles = ['crew', 'office'];
+    if (q.get('office') === '0') roles = ['crew'];
+    try { localStorage.setItem(ROLE_KEY, JSON.stringify(roles)); } catch (e) {}
+    if (q.has('office')) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    return roles;
+  }
+  var can = function (item, fallbackRoles, roles) {
+    return (item.roles || fallbackRoles || ['crew']).some(function (r) { return roles.indexOf(r) !== -1; });
+  };
+
+  var roles = loadRoles();
+  var content = (typeof window.TTC_CONTENT !== 'undefined') ? window.TTC_CONTENT : null;
+
+  // ---- Version pill ----
+  try {
+    if (content && content.meta && content.meta.version) {
+      var vp = document.getElementById('version-pill');
+      vp.textContent = content.meta.version;
+      vp.hidden = false;
+    }
+  } catch (e) {}
+
+  // ---- Emergency block (911 is static HTML above; everything else comes from content.js) ----
+  function makeEmergencyButton(label, display, tel) {
+    var a = document.createElement('a');
+    a.className = 'ebtn';
+    a.href = 'tel:' + tel;
+    var l = document.createElement('span');
+    l.className = 'ebtn-label';
+    l.textContent = label;
+    var s = document.createElement('span');
+    s.className = 'ebtn-sub';
+    s.textContent = display;
+    a.appendChild(l);
+    a.appendChild(s);
+    return a;
+  }
+  try {
+    if (content && content.emergency) {
+      var em = content.emergency;
+      var btnWrap = document.getElementById('emergency-buttons');
+      var linksWrap = document.getElementById('emergency-links');
+      if (em.office) btnWrap.appendChild(makeEmergencyButton(em.office.label, em.office.display, em.office.tel));
+      if (em.poison) btnWrap.appendChild(makeEmergencyButton(em.poison.label, em.poison.display, em.poison.tel));
+      if (em.contacts) {
+        var c = document.createElement('a');
+        c.href = em.contacts.href;
+        c.target = '_blank';
+        c.rel = 'noopener';
+        c.textContent = em.contacts.label;
+        linksWrap.appendChild(c);
+      }
+    }
+  } catch (e) {}
+
+  // ---- Sections + search ----
+  var main = document.getElementById('main');
+  var searchInput = document.getElementById('search');
+
+  function normalize(s) { return (s || '').toString().toLowerCase(); }
+
+  var KIND_LABELS = { sheet: 'Sheet', form: 'Form', doc: 'Doc', pdf: 'PDF', app: 'App', link: 'Link', file: 'File' };
+
+  function buildTile(tile) {
+    var a = document.createElement('a');
+    a.className = 'tile';
+    a.href = tile.href;
+    if (tile.kind === 'file') {
+      // same window
+    } else {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+    var textWrap = document.createElement('div');
+    textWrap.className = 'tile-text';
+    var labelEl = document.createElement('div');
+    labelEl.className = 'tile-label';
+    labelEl.textContent = tile.label;
+    textWrap.appendChild(labelEl);
+    if (tile.desc) {
+      var descEl = document.createElement('div');
+      descEl.className = 'tile-desc';
+      descEl.textContent = tile.desc;
+      textWrap.appendChild(descEl);
+    }
+    a.appendChild(textWrap);
+
+    var right = document.createElement('div');
+    right.className = 'tile-right';
+    var badge = document.createElement('span');
+    badge.className = 'tile-badge';
+    badge.textContent = KIND_LABELS[tile.kind] || 'Link';
+    right.appendChild(badge);
+    var chev = document.createElement('span');
+    chev.className = 'tile-chevron';
+    chev.setAttribute('aria-hidden', 'true');
+    chev.textContent = '›';
+    right.appendChild(chev);
+    a.appendChild(right);
+
+    return a;
+  }
+
+  function showLoadError() {
+    while (main.firstChild) main.removeChild(main.firstChild);
+    var p = document.createElement('p');
+    p.className = 'load-error';
+    p.textContent = 'Could not load the list. Check your signal and reopen.';
+    main.appendChild(p);
+  }
+
+  function renderAll(query) {
+    while (main.firstChild) main.removeChild(main.firstChild);
+    var terms = normalize(query).trim().split(/\s+/).filter(function (t) { return t.length > 0; });
+    var anyVisible = false;
+    var lastOfficeSectionEl = null;
+
+    content.sections.forEach(function (section) {
+      if (!can(section, ['crew'], roles)) return;
+
+      var tiles = section.tiles.filter(function (tile) {
+        if (!can(tile, section.roles, roles)) return false;
+        if (terms.length === 0) return true;
+        var hay = normalize(tile.label) + ' ' + normalize(tile.desc) + ' ' + normalize(tile.search) + ' ' + normalize(section.title);
+        return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+      });
+      if (tiles.length === 0) return;
+
+      anyVisible = true;
+      var sectionEl = document.createElement('div');
+      sectionEl.className = 'section';
+      var label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = section.title;
+      sectionEl.appendChild(label);
+      tiles.forEach(function (tile) { sectionEl.appendChild(buildTile(tile)); });
+      main.appendChild(sectionEl);
+
+      if ((section.roles || []).indexOf('office') !== -1) lastOfficeSectionEl = sectionEl;
+    });
+
+    if (lastOfficeSectionEl) {
+      var hide = document.createElement('a');
+      hide.className = 'hide-office-link';
+      hide.href = '?office=0';
+      hide.textContent = 'Hide office tools on this phone';
+      lastOfficeSectionEl.appendChild(hide);
+    }
+
+    if (!anyVisible) {
+      var msg = document.createElement('p');
+      msg.className = 'no-match';
+      msg.textContent = 'Nothing matches. Try another word.';
+      main.appendChild(msg);
+    }
+  }
+
+  try {
+    if (content && content.sections) {
+      renderAll('');
+      searchInput.addEventListener('input', function () { renderAll(searchInput.value); });
+      searchInput.addEventListener('search', function () { renderAll(searchInput.value); });
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { searchInput.value = ''; renderAll(''); }
+      });
+    } else {
+      showLoadError();
+    }
+  } catch (e) {
+    showLoadError();
+  }
+
+  // ---- Footer ----
+  try {
+    if (content && content.meta) {
+      document.getElementById('footer-version').textContent =
+        'Version ' + content.meta.version + '. Updated ' + content.meta.updated + '.';
+    }
+  } catch (e) {}
+
+  try {
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (!standalone) {
+      var hint = document.getElementById('install-hint');
+      var isIOS = /iPhone|iPad/.test(navigator.userAgent);
+      hint.textContent = isIOS
+        ? 'To install: tap Share, then Add to Home Screen.'
+        : 'To install: open the browser menu, then Install app or Add to Home Screen.';
+      hint.hidden = false;
+    }
+  } catch (e) {}
+
+  function updateOfflineIndicator() {
+    try {
+      var el = document.getElementById('offline-indicator');
+      el.hidden = navigator.onLine !== false;
+    } catch (e) {}
+  }
+  try {
+    updateOfflineIndicator();
+    window.addEventListener('online', updateOfflineIndicator);
+    window.addEventListener('offline', updateOfflineIndicator);
+  } catch (e) {}
+
+  // ---- Service worker + update bar ----
+  try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then(function (reg) {
+        try { reg.update(); } catch (e) {}
+        reg.addEventListener('updatefound', function () {
+          try {
+            var newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', function () {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                var bar = document.getElementById('update-bar');
+                if (bar) {
+                  bar.hidden = false;
+                  bar.addEventListener('click', function () { location.reload(); });
+                }
+              }
+            });
+          } catch (e) {}
+        });
+      }).catch(function () {});
+    }
+  } catch (e) {}
+
+})();
+</script>
+</body>
+</html>
