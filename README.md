@@ -5,9 +5,9 @@ One **public** GitHub repo that hosts all of Joseph's **internal** dashboards as
 ## What's here (layout per `_ai-os/APP-PLATFORM-PLAN.md` in the main repo)
 - `index.html` — the hub. Office tiles, then Crew, then Customers (public).
 - Office: `chip-drop-qa/`, `phc-calendar/` (`data.js` rewritten daily by phc-scan), `bid-staging/` (retired 2026-06-29).
-- Crew: `crew/leaderboard/`, `crew/reviews-bonus/`, `crew/post-job-walkthrough/`.
+- Crew: `crew/chip-drop/` (installable PWA; backend = Apps Script, source in the main repo at `domains/chip-drop/apps/map-app/final/apps-script/`), `crew/leaderboard/`, `crew/reviews-bonus/`, `crew/post-job-walkthrough/`.
 - Customers (public): `tree-watering/` (+ `ttc-logo.png`), `chip-drop-calculator/`, `door-hanger/`.
-- Not here on purpose: the Chip Drop App (installed PWA with its own Apps Script backend — moving it would orphan installed copies), Rate Analysis and the Debtor Map (need a login-gated home first).
+- Not here yet: Rate Analysis (needs a login-gated home first). The Debtor Map was taken down 2026-09-11.
 - `.nojekyll` — tells GitHub Pages to serve files as-is.
 
 Migrated in 2026-09-11 (plan step 6). The old one-repo-per-app addresses stay live until Joseph archives those repos; each app's source of truth remains in the main repo under `domains/`.
