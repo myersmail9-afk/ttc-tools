@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<!--
+  TTC Crew — Policies and Procedures, read as text.
+  Second reading mode for the 2020 handbook: the book's exact words, laid out as web pages,
+  with the company's own photos in place of the printed page scans. Self-contained page:
+  inline CSS + vanilla JS, no libraries. Loads pages/handbook/read/book.json (fetched relative
+  to this file) for the section text. Every word is the 2020 book, unchanged — only the
+  photography is ours. The page-image reader (page by page, as printed) is one tap away at
+  "../".
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Policies and Procedures, as text — TTC Crew</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ---- Colors, from knowledge/brand-kit/design-system/colors.css — do not hand-pick new ones ---- */
+  :root {
+    --ttc-orange:    #C9601A;
+    --ttc-orange-dk: #a14d14;
+    --ttc-green:     #4a6741;
+    --ttc-dark:      #2a3a25;
+    --ttc-gold:      #f0c080;
+    --ttc-sage:      #B7B681;
+
+    --bg:      #f9f6f2;
+    --bg-alt:  #f4f0ea;
+    --bg-dark: #2a3a25;
+    --card:    #ffffff;
+
+    --fg1:        #1a1a1a;
+    --fg2:        #555555;
+    --fg3:        #888888;
+    --fg-on-dark: #f9f6f2;
+
+    --border:         rgba(0,0,0,0.12);
+    --border-soft:    rgba(0,0,0,0.07);
+    --border-on-dark: rgba(255,255,255,0.18);
+
+    --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
+    --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+    --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+    --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+    --content-size: 16px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  a { text-decoration: none; color: inherit; }
+  svg { display: block; }
+  button { font-family: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--ttc-orange); outline-offset: 2px; }
+
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+  }
+  .topbar-back {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 56px; color: var(--fg-on-dark);
+  }
+  .topbar-back svg { width: 22px; height: 22px; }
+  .topbar-title {
+    flex: 1 1 auto; min-width: 0;
+    font-weight: 600; font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar-actions {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 6px;
+    padding-right: 10px;
+  }
+  .topbar-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 28px; padding: 0 8px;
+    font-weight: 600; font-size: 11px; letter-spacing: .02em; white-space: nowrap;
+    color: var(--fg-on-dark); border: 1px solid var(--border-on-dark);
+    border-radius: 7px; background: rgba(255,255,255,0.08);
+  }
+  .topbar-btn:active { background: rgba(255,255,255,0.16); }
+  .font-btn { width: 26px; padding: 0; font-size: 12px; }
+
+  /* ---- Hero (cover) ---- */
+  .hero {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    background: var(--ttc-dark);
+  }
+  .hero img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(20,26,17,0.82) 100%);
+  }
+  .hero-text {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 16px 20px 18px;
+    color: var(--fg-on-dark);
+    z-index: 1;
+  }
+  .hero-title {
+    font-weight: 700; font-size: 22px; line-height: 1.2;
+    margin: 0 0 6px;
+  }
+  .hero-sub {
+    font-size: 13px; line-height: 1.4;
+    margin: 0;
+    color: rgba(249,246,242,0.88);
+  }
+
+  /* ---- Contents chips ---- */
+  .chips-wrap {
+    position: sticky; top: calc(56px + env(safe-area-inset-top));
+    z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 0;
+  }
+  .chips {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 0 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    height: 32px; padding: 0 13px;
+    border-radius: 16px; border: 1px solid var(--border);
+    background: var(--card); color: var(--fg1);
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    cursor: pointer;
+  }
+  .chip:active { background: var(--bg-alt); }
+  .chip.chip--current { background: var(--ttc-green); border-color: var(--ttc-green); color: var(--fg-on-dark); }
+
+  /* ---- Main content ---- */
+  main { padding: 20px 16px 8px; }
+
+  .intro-card {
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.08);
+    padding: 20px;
+    margin: 0 0 24px;
+  }
+
+  .section-block { margin: 0 0 32px; scroll-margin-top: 120px; }
+  .section-banner {
+    display: block; width: 100%; height: 180px; object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.08);
+    margin: 0 0 14px;
+    background: var(--bg-alt);
+  }
+  .section-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; padding: 0 4px; }
+  .section-number { font-weight: 700; font-size: 13px; color: var(--ttc-orange); letter-spacing: .04em; }
+  .section-title { font-weight: 700; font-size: 24px; line-height: 1.2; color: var(--fg1); }
+
+  .content-card {
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.08);
+    padding: 22px 20px;
+  }
+  .content-card > * + * { margin-top: 14px; }
+
+.blk-table-wrap { margin: 14px 0 6px; overflow-x: auto; }
+  .blk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .blk-table th { background: #2a3a25; color: #f9f6f2; text-align: left; padding: 10px 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .blk-table th:not(:first-child), .blk-table td.num { text-align: right; white-space: nowrap; }
+  .blk-table td { padding: 9px 10px; border-bottom: 1px solid rgba(0,0,0,.07); vertical-align: top; }
+  .blk-table tbody tr:nth-child(even) td { background: #f4f0ea; }
+  .blk-table tr.sub td:first-child { font-style: italic; color: #555; padding-left: 22px; }
+  .blk-small { font-size: 12.5px; color: #888; margin: 8px 0 0; line-height: 1.5; }
+  .blk-h2 {
+    font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ttc-orange);
+    margin-top: 26px !important;
+  }
+  .content-card > .blk-h2:first-child { margin-top: 0 !important; }
+  .blk-h3 {
+    font-size: 16px; font-weight: 600; color: var(--fg1);
+  }
+  .blk-p {
+    font-size: var(--content-size); line-height: 1.65; color: var(--fg1);
+    user-select: text;
+  }
+  .blk-ul {
+    margin: 0; padding-left: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .blk-ul li {
+    font-size: var(--content-size); line-height: 1.55; color: var(--fg1);
+  }
+  .blk-note {
+    background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border);
+    border-radius: 14px; padding: 12px 14px;
+    font-size: 13.5px; line-height: 1.5;
+  }
+
+  .error-card {
+    background: var(--card); border: 1px dashed var(--border);
+    border-radius: 20px; padding: 24px 20px; text-align: center;
+    color: var(--fg2);
+  }
+  .error-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+  .error-card a { color: var(--ttc-orange); font-weight: 600; font-size: 14px; }
+
+  /* ---- Footer ---- */
+  footer {
+    padding: 8px 20px calc(28px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  footer p { margin: 0 0 10px; font-size: 12px; color: var(--fg3); line-height: 1.5; }
+  footer .footer-links { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  footer a { font-size: 12px; font-weight: 600; color: var(--ttc-orange); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../" aria-label="Back to the printed pages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">Policies and Procedures</div>
+  <div class="topbar-actions">
+    <button class="topbar-btn font-btn" id="fontDown" type="button" aria-label="Smaller text">A-</button>
+    <button class="topbar-btn font-btn" id="fontUp" type="button" aria-label="Larger text">A+</button>
+    <a class="topbar-btn" href="../">Pages</a>
+    <a class="topbar-btn" href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">PDF</a>
+  </div>
+</div>
+
+<div class="hero">
+  <img src="../../../assets/photos/ttc-9966-2.jpg" alt="Climber high on a spar tree over the valley">
+  <div class="hero-text">
+    <p class="hero-title">Policies &amp; Procedures</p>
+    <p class="hero-sub">Koya Tree Care LLC, DBA Total Tree Care. 2020 edition, as written.</p>
+  </div>
+</div>
+
+<div class="chips-wrap">
+  <div class="chips" id="chips"></div>
+</div>
+
+<div class="wrap">
+  <main id="main">
+    <div class="intro-card" id="loadingCard">
+      <p style="margin:0; font-size:14px; color:var(--fg2);">Loading the book…</p>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <p>This is the 2020 book word for word. Only the photos are ours from 2026. Changes collect
+    in Notes until the next edition.</p>
+  <div class="footer-links">
+    <a href="../notes.html">Notes and proposed changes</a>
+    <a href="../">See the printed pages</a>
+    <a href="https://drive.google.com/file/d/1bXUEv6epzaC0IyIEe7Tiy2muqugoqmsw/view" target="_blank" rel="noopener">Original PDF</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var main = document.getElementById('main');
+  var chipsEl = document.getElementById('chips');
+  var FONT_STEPS = [15, 16, 18, 20];
+  var FONT_KEY = 'ttc-handbook-fontsize';
+
+  // ---- font size control ----
+  function applyFontSize(px) {
+    document.documentElement.style.setProperty('--content-size', px + 'px');
+  }
+  function currentFontIndex() {
+    var stored = null;
+    try { stored = parseInt(localStorage.getItem(FONT_KEY), 10); } catch (e) {}
+    var idx = FONT_STEPS.indexOf(stored);
+    return idx === -1 ? 1 : idx;
+  }
+  function setFontIndex(idx) {
+    idx = Math.max(0, Math.min(FONT_STEPS.length - 1, idx));
+    var px = FONT_STEPS[idx];
+    applyFontSize(px);
+    try { localStorage.setItem(FONT_KEY, String(px)); } catch (e) {}
+    return idx;
+  }
+  var fontIdx = setFontIndex(currentFontIndex());
+  document.getElementById('fontDown').addEventListener('click', function () {
+    fontIdx = setFontIndex(fontIdx - 1);
+  });
+  document.getElementById('fontUp').addEventListener('click', function () {
+    fontIdx = setFontIndex(fontIdx + 1);
+  });
+
+  // ---- block rendering ----
+  function renderBlock(block) {
+    if (block.type === 'h2') {
+      var h2 = document.createElement('div');
+      h2.className = 'blk-h2';
+      h2.textContent = block.text;
+      return h2;
+    }
+    if (block.type === 'h3') {
+      var h3 = document.createElement('div');
+      h3.className = 'blk-h3';
+      h3.textContent = block.text;
+      return h3;
+    }
+    if (block.type === 'p') {
+      var p = document.createElement('p');
+      p.className = block.small ? 'blk-small' : 'blk-p';
+      p.textContent = block.text;
+      return p;
+    }
+    if (block.type === 'ul') {
+      var ul = document.createElement('ul');
+      ul.className = 'blk-ul';
+      (block.items || []).forEach(function (item) {
+        var li = document.createElement('li');
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+      return ul;
+    }
+    if (block.type === 'table') {
+      var wrapT = document.createElement('div');
+      wrapT.className = 'blk-table-wrap';
+      if (block.caption) {
+        var cap = document.createElement('div'); cap.className = 'blk-h2'; cap.textContent = block.caption; wrapT.appendChild(cap);
+      }
+      var table = document.createElement('table'); table.className = 'blk-table';
+      var thead = document.createElement('thead'); var trh = document.createElement('tr');
+      (block.columns || []).forEach(function (c) { var th = document.createElement('th'); th.textContent = c; trh.appendChild(th); });
+      thead.appendChild(trh); table.appendChild(thead);
+      var tbody = document.createElement('tbody');
+      (block.rows || []).forEach(function (row) {
+        var tr = document.createElement('tr');
+        var cells = row.cells || row; if (row.sub) tr.className = 'sub';
+        cells.forEach(function (c, i) { var td = document.createElement('td'); td.textContent = c; if (i > 0) td.className = 'num'; tr.appendChild(td); });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); wrapT.appendChild(table);
+      return wrapT;
+    }
+    if (block.type === 'note') {
+      var note = document.createElement('div');
+      note.className = 'blk-note';
+      note.textContent = block.text;
+      return note;
+    }
+    return null;
+  }
+
+  function buildSectionEl(section) {
+    var wrap = document.createElement('div');
+    wrap.className = 'section-block';
+    wrap.id = 'section-' + section.id;
+
+    if (section.photo) {
+      var img = document.createElement('img');
+      img.className = 'section-banner';
+      img.src = '../../../' + section.photo;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.alt = section.title;
+      wrap.appendChild(img);
+    }
+
+    if (section.number || section.title) {
+      var head = document.createElement('div');
+      head.className = 'section-head';
+      if (section.number) {
+        var num = document.createElement('span');
+        num.className = 'section-number';
+        num.textContent = section.number;
+        head.appendChild(num);
+      }
+      var title = document.createElement('span');
+      title.className = 'section-title';
+      title.textContent = section.title;
+      head.appendChild(title);
+      wrap.appendChild(head);
+    }
+
+    var card = document.createElement('div');
+    card.className = 'content-card';
+    (section.blocks || []).forEach(function (block) {
+      var el = renderBlock(block);
+      if (el) card.appendChild(el);
+    });
+    wrap.appendChild(card);
+
+    return wrap;
+  }
+
+  function renderBook(sections) {
+    main.innerHTML = '';
+
+    // The Contents page (page 2) renders as a plain intro card, no banner or number.
+    var contents = sections.filter(function (s) { return s.id === 'contents'; })[0];
+    if (contents) {
+      var introCard = document.createElement('div');
+      introCard.className = 'intro-card content-card';
+      (contents.blocks || []).forEach(function (block) {
+        var el = renderBlock(block);
+        if (el) introCard.appendChild(el);
+      });
+      main.appendChild(introCard);
+    }
+
+    // The numbered sections (01-07) each get a banner photo and a chip.
+    var numbered = sections.filter(function (s) { return s.number; });
+    numbered.forEach(function (section) {
+      main.appendChild(buildSectionEl(section));
+    });
+
+    // ---- contents chips ----
+    chipsEl.innerHTML = '';
+    numbered.forEach(function (section) {
+      var chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.type = 'button';
+      chip.setAttribute('data-target', 'section-' + section.id);
+      chip.textContent = section.title;
+      chip.addEventListener('click', function () {
+        var target = document.getElementById('section-' + section.id);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      chipsEl.appendChild(chip);
+    });
+
+    // ---- current-section highlight via IntersectionObserver ----
+    // Sections here run many screens long (unlike a single page image), so ratio-based
+    // thresholds against the whole section never fire. Instead, watch a thin trigger band
+    // just below the sticky bars and track every section currently crossing it; the lowest
+    // (most recently entered) one in that set is "current," scrollspy-style.
+    var chipButtons = Array.prototype.slice.call(chipsEl.querySelectorAll('.chip'));
+    var sectionEls = numbered.map(function (s) { return document.getElementById('section-' + s.id); });
+    if ('IntersectionObserver' in window && sectionEls.length) {
+      var intersectingIds = {};
+      function setCurrent(id) {
+        chipButtons.forEach(function (chip) {
+          chip.classList.toggle('chip--current', chip.getAttribute('data-target') === id);
+        });
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          intersectingIds[entry.target.id] = entry.isIntersecting;
+        });
+        // Pick the lowest section (furthest down the page, in DOM order) that is currently
+        // crossing the trigger band; falls back to the first section if none are.
+        var current = null;
+        sectionEls.forEach(function (el) {
+          if (el && intersectingIds[el.id]) current = el.id;
+        });
+        setCurrent(current || (sectionEls[0] ? sectionEls[0].id : null));
+      }, { threshold: 0, rootMargin: '-140px 0px -75% 0px' });
+      sectionEls.forEach(function (el) { if (el) io.observe(el); });
+    }
+  }
+
+  function renderError() {
+    main.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'error-card';
+    var p = document.createElement('p');
+    p.textContent = 'Could not load the book.';
+    var a = document.createElement('a');
+    a.href = '../';
+    a.textContent = 'Open it from the app';
+    card.appendChild(p);
+    card.appendChild(a);
+    main.appendChild(card);
+  }
+
+  fetch('book.json')
+    .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
+    .then(function (data) {
+      if (!Array.isArray(data) || !data.length) throw new Error('empty');
+      renderBook(data);
+    })
+    .catch(function () {
+      renderError();
+    });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1108 @@
+[
+  {
+    "id": "cover",
+    "title": "Policies & Procedures",
+    "number": null,
+    "photo": "assets/photos/ttc-9966-2.jpg",
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Policies & Procedures"
+      }
+    ]
+  },
+  {
+    "id": "contents",
+    "title": "Contents",
+    "number": null,
+    "photo": null,
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Koya Tree Care LLC, DBA Total Tree Care (“Total Tree Care” or “TTC”) is a private company specializing in the planting, maintaining, pruning, plant diagnosis and healthcare, and removal of trees and shrubs in the northern Utah/southern Idaho area."
+      },
+      {
+        "type": "h2",
+        "text": "Table of Contents"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Job Description & Compensation",
+          "Training",
+          "Safety",
+          "Work Schedule",
+          "Company Uniform Policy",
+          "Required Knots",
+          "Signature"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "job-description-compensation",
+    "title": "Job Description & Compensation",
+    "number": "01",
+    "photo": "assets/photos/ttc-9156.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Mission Statement"
+      },
+      {
+        "type": "p",
+        "text": "Total Tree Care is committed to delivering the highest quality and most dependable tree care services for our clients by focusing on unmatched customer satisfaction, an unrivaled level of knowledge regarding arboriculture, and safely executing each job with precision."
+      },
+      {
+        "type": "h2",
+        "text": "Qualifications"
+      },
+      {
+        "type": "p",
+        "text": "Individuals qualified to work for Total Tree Care are those who"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Are physically able to perform 8-12 hours of manual labor daily.",
+          "Are consistently able to lift at least 75 pounds over their head.",
+          "Have a valid driver's license.",
+          "Are willing to learn and perform arboricultural-related tasks as instructed by a supervisor.",
+          "Are willing to work in extreme weather, such as extreme heat or cold, rain, snow, etc.",
+          "Are willing to work toward becoming an ISA Certified Tree Worker and ISA Certified Arborist."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Company Roles"
+      },
+      {
+        "type": "h3",
+        "text": "Ground Support"
+      },
+      {
+        "type": "p",
+        "text": "Employees that are designated as ground support are those whose primary responsibility it is to assist in the clean-up of a job site. Main duties of a ground support worker include dragging brush, chipping, raking, blowing off hardscapes, and other miscellaneous tasks. A ground support worker is often also requested to aid in the process of pruning or removing a tree by helping a climber do such things as tying various pieces of equipment onto a climber's line, performing on-rope rigging tasks, etc. Most employees begin as ground support workers."
+      },
+      {
+        "type": "h3",
+        "text": "Equipment Operator"
+      },
+      {
+        "type": "p",
+        "text": "Many of the tasks completed on a daily basis require the use of heavy machinery, such as chippers, skid steers, aerial lifts, and stump grinders. Equipment operators are those who have received adequate training in and demonstrated proficient use of these machines."
+      },
+      {
+        "type": "h3",
+        "text": "Tree Climber"
+      },
+      {
+        "type": "p",
+        "text": "All pruning and removal of trees done by Total Tree Care is completed by a tree climber who has been adequately trained and educated in current industry standards. Tree climbing is performed using ropes and harnesses and other miscellaneous industry-specific equipment. Climbers are also expected to assist ground support in the clean-up of a jobsite."
+      },
+      {
+        "type": "h3",
+        "text": "Crew Leader"
+      },
+      {
+        "type": "p",
+        "text": "It is the responsibility of the crew leader to oversee the completion of work on a job site. The crew leader will assign tasks to various members of the crew, ensure that all work done by crew members is completed in a timely manner, and will generally be the main point-of-contact for the client during a job. Designated crew leaders are those who have achieved a high level of proficiency in all of the basic services that Total Tree Care offers, as it is their responsibility to ensure that all tasks are completed up to company standards. A crew leader will often report to a foreman or manager."
+      },
+      {
+        "type": "h3",
+        "text": "Foreman"
+      },
+      {
+        "type": "p",
+        "text": "In general, a foreman functions much the same as a crew leader, with the key difference being that a foreman will generally be responsible for his or her own crew as well as ensuring that another crew leader completes all daily assigned tasks. At times, a foreman may also be assigned the task of scheduling and coordinating appointments with customers. At the request of the general manager, a foreman can also complete the semi-annual job review of employees that he or she supervises."
+      },
+      {
+        "type": "h3",
+        "text": "Manager"
+      },
+      {
+        "type": "p",
+        "text": "A manager is one who has been delegated the responsibility of overseeing a specific aspect of the company, such as sales, equipment maintenance, safety, etc. Managers are tasked with using a company credit card to purchase any supplies needed or keep the company compliant with all applicable regulations within their realm of responsibility, and to delegate tasks as needed to other employees to facilitate daily operations of the company."
+      },
+      {
+        "type": "p",
+        "text": "To meet our own expectation of high-quality tree care solutions, Total Tree Care continually emphasizes the training and certifying of its employees through the International Society of Arboriculture (ISA) and the Tree Care Industry Association (TCIA). It is the desire of TTC that each employee works toward becoming an ISA Certified Tree Worker and ISA Certified Arborist. TTC will aid each employee in this process by providing various ongoing on-the-job trainings, access to training modules through TCIA's Tree Care Academy, and exposure to industry conferences and education material."
+      },
+      {
+        "type": "h2",
+        "text": "General Information"
+      },
+      {
+        "type": "p",
+        "text": "Prior to employment, all potential hires must fill out and sign all legal documents provided to them by management. Additionally, each employee must provide management with the following:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "An official copy of their Motor Vehicle Record (MVR) from the state of its issue",
+          "A photocopy of their driver's license"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "All potential hires must also complete and pass a drug test as requested and scheduled by management. Drug testing will continue for all employees on a random basis. Crew members are required to be drug free for the duration of their employment; a failed drug test will lead to immediate termination of contract."
+      },
+      {
+        "type": "p",
+        "text": "No alcohol or tobacco products (including e-cigarettes) shall be consumed or used on any jobsite, on company premises, in company vehicles, or while the employee is otherwise on the clock for Total Tree Care."
+      },
+      {
+        "type": "p",
+        "text": "All employees that drive company vehicles will be required to obtain a driver's medical card by completing a Department of Transportation physical examination. These examinations will be scheduled and coordinated by management, and all related fees and expenses will be paid by Total Tree Care. Any individual that does not have a current medical card will not be allowed to drive company vehicles."
+      },
+      {
+        "type": "h2",
+        "text": "Job Description"
+      },
+      {
+        "type": "p",
+        "text": "All employees that have not yet attained the qualification of ISA Certified Arborist will be designated as an “Arborist Apprentice.” Unless otherwise directed by management, each employee, certified and apprentice alike, will be field production workers. This means that they are expected to join a crew to which they are assigned each day to assist in the completion of daily operations."
+      },
+      {
+        "type": "p",
+        "text": "The duty of every crew is to safely and efficiently complete all of the designated jobs according to written specifications on any given day, and all crew members share the responsibility to achieve this task. Specific roles and responsibilities will be delegated to each crew member by the crew leader or foreman. All employees are expected to follow instructions given to them, and to work to their best ability to contribute in a positive way to the completion of each job."
+      },
+      {
+        "type": "p",
+        "text": "Most jobs can be broken down into three main areas: Setup/Securing of the jobsite, Scope of Work Completion, and Cleanup/Breakdown"
+      },
+      {
+        "type": "h3",
+        "text": "Setup/Securing of the Jobsite"
+      },
+      {
+        "type": "p",
+        "text": "During this phase of the job, the crew leader will give the rest of the crew a safety briefing and outline the scope of work to be performed. Assignments will be given to all crew members, and those who don't have a specific responsibility to prune/remove a tree or grind a stump will be expected to secure the work zone by getting trucks into position, setting up appropriate safety signs/cones, and readying all equipment as requested by the crew leader."
+      },
+      {
+        "type": "h3",
+        "text": "Scope of Work Completion"
+      },
+      {
+        "type": "p",
+        "text": "Each job is outlined by a specific work order that will contain one or more individual line items. These line items will detail the scope of work of the specific tasks that need to be completed. Some examples include:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Pruning, Crown Clean - “Prune three honey locusts to the south of home to remove branches that are crossing, crowded, broken, or dead while reducing overall canopy density by approximately 15%.”",
+          "Removal - “Remove to low stump blue spruce at the SE corner of shed.”",
+          "Stump grinding - “Along the property line, grind four stumps and exposed surface roots within three feet of stump to a depth of 12” and remove all stump chips above ground.”",
+          "Plant healthcare - “Inject two autumn blaze maples in the park strip with iron/manganese for iron chlorosis.”"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "All work completed by Total Tree Care is to be completed according to the most recent applicable industry safety and management standards (ANSI Z133 and ANSI A300). Often, this will be specifically designated on a line item after the scope of work is detailed (i.e. “All pruning completed in accordance with ANSI A300 (Part 1 - Pruning) standards”). All instruction and training offered by TTC is given in strict adherence to such standards. This means that if an employee completes a task as they have been trained, they will be doing so according to industry standards, whether or not they know the specific written safety or management standard or where it can be found. (For more information on training or on ANSI standards for arboriculture, see section 2 of this manual.)"
+      },
+      {
+        "type": "h3",
+        "text": "Cleanup/Breakdown"
+      },
+      {
+        "type": "p",
+        "text": "Cleanup doesn't start when all other tasks are completed; it begins as soon as the first cut is made and is continued throughout the day as the job progresses. Some cleanup tasks include:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Dragging and chipping brush",
+          "Removing unchippable logs and placing them in the designated truck or trailer",
+          "Removal of stump chips",
+          "Raking",
+          "Blowing off hardscapes"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Each crew member is expected to contribute to the cleanup effort, and it is TTC policy that a client's property is to be restored to a state that looks at least as clean as it did prior to our arrival."
+      },
+      {
+        "type": "p",
+        "text": "Once all line items are complete and cleanup has been finished, the jobsite can be broken down by putting all gear back in its designated place in the work truck and by taking down all safety indicators."
+      },
+      {
+        "type": "p",
+        "text": "All employees are also expected to assist in the maintenance of all company equipment on a daily basis. Maintenance tasks will be assigned by crew leaders and by the Equipment Maintenance Manager, and can occur at the beginning or end of a workday."
+      },
+      {
+        "type": "p",
+        "text": "Other miscellaneous tasks can be designated to any employee at any time on a case-by-case basis."
+      },
+      {
+        "type": "p",
+        "text": "Though uncommon, tree emergencies can sometimes arise that require immediate attention. Total Tree Care reserves the right to call an employee in to work with short notice in the event of an emergency that occurs after hours, on a weekend, or on a holiday. A rotating on-call list will designate which employees would be called in to work for an emergency during a given period."
+      },
+      {
+        "type": "h2",
+        "text": "Compensation"
+      },
+      {
+        "type": "p",
+        "text": "All wages and salaries are determined on an individual basis, as agreed upon by the employee and the General Manager. These salaries are a private matter, and should only be discussed between the individual and their employer. Most employees will be compensated for their time on an hourly basis at a predetermined hourly rate."
+      },
+      {
+        "type": "p",
+        "text": "The following table outlines a list of possible skills to be learned and associated raises:"
+      },
+      {
+        "type": "table",
+        "caption": "Hourly Wage Raises",
+        "columns": [
+          "Objective/Skill",
+          "Raise",
+          "Total Wage"
+        ],
+        "rows": [
+          [
+            "Starting Wage",
+            "",
+            "$10.00"
+          ],
+          [
+            "Primary Safety Orientation:",
+            "$2.00",
+            "$12.00"
+          ],
+          {
+            "cells": [
+              "Tree Care Apprentice Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Chipper Operator Specialist Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Ground Operations Specialist Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Basic Knot Pass-Off*",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "Chainsaw Specialist:",
+            "$1.00",
+            "$13.00"
+          ],
+          {
+            "cells": [
+              "Chainsaw Specialist Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Demonstrate Chainsaw Proficiency",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "Proficiency in Pruning",
+            "$1.00",
+            "$14.00"
+          ],
+          [
+            "Climbing Proficiency:",
+            "$1.00",
+            "$15.00"
+          ],
+          {
+            "cells": [
+              "Tree Climber Specialist Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Crane Operations Specialist Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Aerial Rescue Training Program",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Climbing Knot Pass-Off*",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "SRT Climber Module",
+            "$0.50",
+            "$15.50"
+          ],
+          [
+            "Aerial Lift Specialist Module",
+            "$0.50",
+            "$16.00"
+          ],
+          [
+            "Demonstrate Stump Grinder Proficiency",
+            "$1.00",
+            "$17.00"
+          ],
+          [
+            "Plant Healthcare Technician:",
+            "$2.00",
+            "$19.00"
+          ],
+          {
+            "cells": [
+              "PHC Technician Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Commercial Pesticide Applicator License",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "Tree Care Safety Professional:",
+            "$1.00",
+            "$20.00"
+          ],
+          {
+            "cells": [
+              "Tree Care Safety Specialist",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "Certified Tree Care Safety Professional Course",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          {
+            "cells": [
+              "EMT Certification",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "Commercial Driver's License",
+            "$1.00",
+            "$21.00"
+          ],
+          [
+            "Tree Care Specialist Module",
+            "$1.00",
+            "$22.00"
+          ],
+          [
+            "ISA Certified Tree Worker",
+            "$1.00",
+            "$23.00"
+          ],
+          [
+            "ISA Certified Arborist",
+            "$2.00",
+            "$25.00"
+          ],
+          [
+            "ISA Tree Risk Assessment Qualification",
+            "$1.00",
+            "$26.00"
+          ],
+          [
+            "Designated Crew Leader:",
+            "$1.00",
+            "$27.00"
+          ],
+          {
+            "cells": [
+              "Crew Leader Module",
+              "",
+              ""
+            ],
+            "sub": true
+          },
+          [
+            "Foreman/Manager",
+            "$3.00",
+            "$30.00"
+          ],
+          [
+            "BS Degree in a related field",
+            "$2.00",
+            "$32.00"
+          ],
+          [
+            "ISA Board Certified Master Arborist",
+            "$3.00",
+            "$35.00"
+          ]
+        ]
+      },
+      {
+        "type": "p",
+        "small": true,
+        "text": "*See Annex A for more information regarding knots"
+      },
+      {
+        "type": "p",
+        "small": true,
+        "text": "TCIA Tree Care Academy training program manuals are indicated in italics. For more information on these modules, see section two of this handbook. Total Tree Care reserves the right to change or alter this format at any time."
+      },
+      {
+        "type": "p",
+        "text": "See Annex A for more information regarding knots."
+      },
+      {
+        "type": "p",
+        "text": "TCIA Tree Care Academy training program manuals are indicated in italics. For more information on these modules, see section two of this handbook. Total Tree Care reserves the right to change or alter this format at any time."
+      },
+      {
+        "type": "p",
+        "text": "It should be noted that this is simply an outline to follow, and not the only way raises can be attained. Raises are performance- and merit-based, and will be given after a quantifiable increase of relevant skills, proof of an ability to quickly and efficiently perform tasks related to those skills, and a demonstration of initiative beyond the minimum of what is expected."
+      },
+      {
+        "type": "p",
+        "text": "If you are asked by management to drive your personal vehicle to a job site to transport either equipment or personnel, mileage shall be counted and turned in with your hours at the end of the pay period. Mileage shall be reimbursed at $0.50/mile."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "If you choose to drive your personal vehicle to a jobsite for your own convenience (i.e. so that you can leave early or arrive late, transport your own gear, etc), mileage shall not be counted.",
+          "Miles driven as a part of an employee's daily commute between their home (or other destination) and the workplace shall not be counted."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Should an employee ever feel that they are deserving of and can justify a pay raise, they should request to meet with the General Manager to discuss the matter. All such requests are always welcome; it is the desire of Total Tree Care that all employees feel that they are being treated and compensated fairly for the time and skills that they provide for the company."
+      },
+      {
+        "type": "p",
+        "text": "Each year, all employees will have two performance reviews with management. One such review will be held with the general manager, and will occur during late winter/early spring. The second will be with a foreman, and will occur late summer/early fall. During these meetings, the most recent performance of the employee will be reviewed and goals will be made to further the employee's progression within the company using the above mentioned format."
+      },
+      {
+        "type": "p",
+        "text": "Total Tree Care has full-time, part-time, and seasonal employees. Employees that receive the designation of “full-time” are those who work a minimum of 2,080 hours each calendar year, and make themselves available to work each week from Monday through Friday (except scheduled time-off as coordinated with management). Those who do not meet these criteria will be designated as either part-time or seasonal employees. Full-time employees qualify for additional compensation in the form of the following benefits:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "10 paid vacation days (80 hours) annually, awarded as 3.08 hours per two-week pay period, accruing in a bank that is shown on each pay stub. (Total number of hours in bank cannot exceed 100 and cannot be a negative value)",
+          "10 paid holidays (refer to holidays listed in section 4 of this manual)",
+          "Health insurance alternative in the form of a monthly family membership to Sterling Urgent Care",
+          "Retirement plan- IRA contribution match of up to 3%",
+          "Company uniform incentive (see section 5 of this manual for more information)."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Total Tree Care pays employees once every two weeks, making 26 pay periods each year. TTC's work week closes on Fridays, and all team members are expected to review and update their hours as needed from the preceding two weeks by the close of the Friday that also aligns with the end of the pay period. Hours will be approved by management, and paystubs will be issued the following Monday. Employees are paid via direct deposit and will receive the money into their designated bank account the next banking day, which is generally Tuesday. Federal holidays can sometimes cause a delay in this format."
+      },
+      {
+        "type": "p",
+        "text": "Pay stubs are issued to all employees electronically using Intuit's Workforce software. Login information will be provided to each employee upon hire."
+      },
+      {
+        "type": "p",
+        "text": "Employees will be compensated at time-and-a-half pay for any overtime worked (all hours beyond 40 in a given week) and for emergency work when they are called in after-hours, on weekends, or on holidays."
+      }
+    ]
+  },
+  {
+    "id": "training",
+    "title": "Training",
+    "number": "02",
+    "photo": "assets/photos/ttc-9165.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Training"
+      },
+      {
+        "type": "p",
+        "text": "All employees shall receive continual training in the most current safety and management standards of the arboricultural industry."
+      },
+      {
+        "type": "p",
+        "text": "These standards are"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "ANSI Z133 - Safety Requirements for Arboricultural Operations",
+          "ANSI A300 - Tree, Shrub, and Other Woody Plant Management - Standard Practices (All Applicable Domains)"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Training in these standards shall come in the form of training program manuals from TCIA's Tree Care Academy (TCA), regular ongoing safety meetings, and on-the-job training."
+      },
+      {
+        "type": "p",
+        "text": "Each training program manual is comprised of classroom training (which involves the reading of the associated manual and taking an open-book multiple-choice test upon completion of the reading), and on-the-job training (which is continued instruction given on the jobsite as well as an Employee Competency Certification Checklist as outlined in each manual). The classroom training portion is to occur on the employee's own time, off the clock. On-the-job training will be facilitated by a trainer specifically assigned to each new hire. Total Tree Care trainers are those who have completed the training program manuals from which they will be instructing a new hire, have received the designation of ISA Certified Arborist, and have received the assignment from management to be a trainer."
+      },
+      {
+        "type": "p",
+        "text": "The TCA modules currently offered to Total Tree Care employees are"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Tree Care Apprentice",
+          "Ground Operations Specialist",
+          "Chipper Operator Specialist",
+          "Chainsaw Specialist",
+          "Tree Climber Specialist",
+          "Crane Operations Specialist",
+          "Aerial Rescue Training Program",
+          "SRT Climber",
+          "Aerial Lift Specialist",
+          "Plant Healthcare Technician",
+          "Tree Care Safety Specialist",
+          "Tree Care Specialist"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "TCA modules are mandatory safety training for all employees that will be involved in activities associated with the content of each separate manual. Employees shall not engage in activities relating to any module until that workbook has been read and a supervisor verifies that the post-reading test has been completed. Once this is accomplished, the employee may engage in related operations with direct supervision from their assigned trainer. The trainer will then begin assisting the employee in passing off the various “on-the-job employee competency certification checklist” items of the module. Once all checklist items are signed off, the module is complete and the employee shall be considered as “competent” in that area of practice."
+      },
+      {
+        "type": "p",
+        "text": "It should be noted that Total Tree Care desires all field employees to become proficient or expert in each area of practice rather than merely competent. Many pay raises are based on demonstration of proficiency in a given skill."
+      },
+      {
+        "type": "p",
+        "text": "Upon hire, each employee will be given the first three TCA modules listed above (Tree Care Apprentice, Ground Operations Specialist, and Chipper Operator Specialist), which comprise TTC's Primary Safety Orientation. Prior to their first day working in the field, each employee must complete the reading and tests from these three workbooks. On-the-job employee competency certification checklists will begin on the employee's first day. Each team member is required to complete the Primary Safety Orientation (including passing off “essential knots for ground support”, see Annex A) within their first month of hire so as to have a basic understanding of the safety concerns posed on normal job sites."
+      },
+      {
+        "type": "p",
+        "text": "The remaining TCA training program manuals are also required to be completed, but only insofar as the employee desires to acquire that particular skill (i.e. team members who don't have a desire to learn how to safely apply chemicals to trees for plant health care have no need to complete the Plant Health Care Technician training program manual). Many of the modules build upon each other, and may require being completed in a specific order. For example, skills discussed in the Aerial Rescue, Crane Operations, and SRT Climber manuals all require a level of competence in basic skills covered in the Tree Climber Specialist module."
+      },
+      {
+        "type": "p",
+        "text": "After completing the Primary Safety Orientation, employees can request new manuals from management as the need or desire arises. Manuals are to be completed on a one-at-a-time basis; the most recently requested manual needs to be completed before the next will be given to the employee."
+      },
+      {
+        "type": "p",
+        "text": "All Tree Care Academy training program manuals discuss various aspects of the ANSI Z133 safety standard and the ANSI A300 management standards. Other aspects of these standards will be discussed during company safety meetings that occur once every pay period. Topics of these meetings will be decided by management, but employees can make requests at any time to discuss topics about which they would like more information or additional training."
+      },
+      {
+        "type": "p",
+        "text": "Employees are required to abide by these industry safety and management standards at all times."
+      }
+    ]
+  },
+  {
+    "id": "safety",
+    "title": "Safety",
+    "number": "03",
+    "photo": "assets/photos/ttc-3099.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Safety"
+      },
+      {
+        "type": "p",
+        "text": "All employees are expected to know and abide by all safety and industry standards contained in ANSI Z133 regarding personal protective equipment (PPE). Copies of the Z133 shall be available in the Total Tree Care shop, as well as electronically on each company iPad."
+      },
+      {
+        "type": "h3",
+        "text": "ANSI Z133.1.4 - Responsibility of the Employee"
+      },
+      {
+        "type": "p",
+        "text": "Each person (employee or otherwise) shall be responsible for his/her own safety while at work and shall comply with the appropriate federal or state occupational safety and health standards and all rules, regulations and orders that are applicable to his/her own actions and conduct."
+      },
+      {
+        "type": "p",
+        "text": "Upon hire, each field employee shall be issued the following PPE"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Head protection in the form of one helmet conforming with ANSI Z89.1",
+          "Hearing protection in the form of helmet-mounted hearing protectors",
+          "Additionally, earplugs shall be provided should an employee wish to increase the level of protection offered by their hearing protectors.",
+          "Eye protection conforming with ANSI Z87.1",
+          "One high-visibility safety vest conforming with ANSI/ISEA 107"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "In addition to these items, each employee will be outfitted with a SENA bluetooth communication headset to be fit to the helmet in order to enable crew communication on the jobsite. It is the employee's responsibility to ensure that the headset is charged each night and brought to work each day."
+      },
+      {
+        "type": "p",
+        "text": "All equipment listed above will remain the property of Total Tree Care, and should be well-maintained and routinely inspected by the employee. Upon termination of contract, these items shall be returned to management. It will be the responsibility of the employee to replace or repair items that are lost or damaged beyond expected wear and tear consistent with appropriate usage."
+      },
+      {
+        "type": "h3",
+        "text": "ANSI Z133.3.3.1 and Z133.3.3.2"
+      },
+      {
+        "type": "p",
+        "text": "Personal protective equipment (PPE), as outlined in [section 3.3], shall be required when there is a reasonable probability of injury or illness that can be prevented by such protection. The employer shall assess the worksite to determine if hazards are present or are likely to be present and what type of personal protective equipment is required."
+      },
+      {
+        "type": "h3",
+        "text": "ANSI Z133.3.3.1 and Z133.3.3.4"
+      },
+      {
+        "type": "p",
+        "text": "Helmets and eye protection shall be worn as required in ANSI Z133.3.3.4, “[when] workers are engaged in arboricultural operations.” This is defined by Total Tree Care as any time an employee is clocked in at a jobsite."
+      },
+      {
+        "type": "p",
+        "text": "Hearing protection shall be worn by any employee operating or working near power equipment required to complete daily tasks including, but not limited to, chippers, stump grinders, skid steers, aerial lifts, cranes, chainsaws, blowers, gas-powered drills, and log splitters."
+      },
+      {
+        "type": "p",
+        "text": "UL listed chaps or chainsaw protective pants shall be worn at all times while operating a chainsaw during ground operations. UL listed chainsaw protective pants should be worn while operating a chainsaw aerially in a saddle."
+      },
+      {
+        "type": "p",
+        "text": "Sturdy work boots shall be worn on every job. Non-steel-toe boots are preferred, and laceable boots that cover the ankle and have good traction are required. If an employee is unsure regarding the suitability of a boot, any questions can be directed to a manager or supervisor. Additionally, insulated boots are required for cold-weather use."
+      },
+      {
+        "type": "p",
+        "text": "Though gloves are not required PPE, employees should wear gloves during work operations to prevent cuts, scrapes, abrasions, lacerations, burns, etc."
+      },
+      {
+        "type": "p",
+        "text": "Should an employee be injured on the job, even if it is a seemingly minor cut, he shall inform crew leader and management within the hour."
+      },
+      {
+        "type": "p",
+        "text": "Should customer property or company property be damaged during a job, the supervisor and management shall be informed within the hour."
+      },
+      {
+        "type": "p",
+        "text": "For safety, insurance, and liability purposes, company power equipment (trucks, chippers, trailers, chainsaws, etc.) shall not be available for use by employees outside of work for personal jobs or projects."
+      }
+    ]
+  },
+  {
+    "id": "work-schedule",
+    "title": "Work Schedule",
+    "number": "04",
+    "photo": "assets/photos/ttc-1589.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Work Schedule"
+      },
+      {
+        "type": "p",
+        "text": "Unless a different work schedule is agreed upon with management, all full-time employees are expected to work each week Monday through Friday, from the designated start time until all assigned jobs are finished and equipment is serviced for the following work day."
+      },
+      {
+        "type": "p",
+        "text": "Designated start times are as follows"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Jan 1-March 31: 8:00 AM",
+          "April 1-April 30: 7:30 AM",
+          "May 1-Sep 30: 7:00 AM",
+          "Oct 1-Oct 31: 7:30 AM",
+          "Nov 1-Dec 31: 8:00 AM"
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Management reserves the right to change start times on any day as needed, and will communicate these changes to all affected employees in a timely manner."
+      },
+      {
+        "type": "p",
+        "text": "There are ten major holidays each calendar year on which Total Tree Care will not work (excepting emergencies). They are: New Year's Day, Memorial Day, Independence Day, Pioneer Day, Labor Day, Thanksgiving, Black Friday, Christmas Eve, Christmas Day, and New Year's Eve. These are paid holidays for full-time employees; part-time and seasonal employees receive no additional compensation for these days (for the distinction between full-time and part-time or seasonal employees, refer to section 1 of this manual). All other weekdays will be considered as work days, and crews will be fielded."
+      },
+      {
+        "type": "p",
+        "text": "Weather can sometimes cause a delay in or cancellation of work production. If a severe weather alert is issued for any county in which work is to be performed, management will assess the ability to complete scheduled jobs during that time and advise employees about plans. Any cancellation or delay will be communicated to employees in a timely manner. Crew leaders are responsible to immediately coordinate with the office to advise clients and customers about the delay in scheduled work."
+      },
+      {
+        "type": "p",
+        "text": "Should an employee wish to take time off, he or she may do so by coordinating the desired day(s) off with management. This shall be done in the form of a written request (email is preferred) submitted to management no fewer than fourteen days prior to the desired day(s) off. Management will notify the employee of the approval status within two business days of the submitted request. Requests submitted fewer than 14 days prior to desired time off will not be granted. Sickness and family emergencies are the exception."
+      },
+      {
+        "type": "p",
+        "text": "If a part-time employee desires to work more hours, he or she can coordinate with management to work on specific Saturdays so long as this does not trigger overtime status."
+      },
+      {
+        "type": "p",
+        "text": "During the busy season (April through October), each Friday shall be designated as a “catch-up” day."
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Any jobs that were not completed during the week, or jobs that were delayed due to inclement weather, shall be scheduled for these days.",
+          "In the event that no catch-up work is required, this day shall be reserved for the servicing of equipment and the Monthly Check Up of each vehicle and chipper/stump grinder."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Each employee is responsible for bringing all food and water they require for each work day, and must arrive at the shop with everything needed in-hand. Most employees choose to pack a standard lunch and about one gallon of water. Employees have the option to clock out on their time card for a lunch break during each work day for up to 30 minutes. Lunch breaks, however, are not mandatory. If an employee chooses, they can opt to work through a lunch break, instead eating their lunch throughout the day while they are completing other tasks on the jobsite."
+      },
+      {
+        "type": "p",
+        "text": "Each employee is responsible for remaining hydrated while on the job by drinking water throughout the day as conditions allow. To prevent heat exhaustion and heat stroke when temperatures are in excess of 90 degrees, a 10-minute water break can be taken every two to four hours at the discretion of the crew leader. Such breaks can be taken by all crew members at once, or can be staggered to prevent a halt in operations."
+      },
+      {
+        "type": "p",
+        "text": "Total Tree Care uses Jobber, a field service software, to organize and execute all company operations and scheduling. All employees will be issued a username and password to log in to the Jobber app and website. Assignments are made by management through the software, and each crew member has the ability to view their schedule, receive information about clients and jobs, and track their time through the app. Any employee that does not have access to a smartphone has the ability to use a company iPad to look at calendar and job details during their work day. In these cases, said employee is responsible for tracking their time manually and entering the information into Jobber on their personal computer upon arriving home after the work day."
+      },
+      {
+        "type": "p",
+        "text": "Personal cell phones are not to be used while on a jobsite, unless being used to access the Jobber app or to communicate with other TTC employees."
+      },
+      {
+        "type": "p",
+        "text": "The following outlines the procedures during a typical work day."
+      },
+      {
+        "type": "h3",
+        "text": "Prior to arrival in the morning"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Management shall post to the Jobber Calendar all jobs for the day and assign crews to each job.",
+          "Crew leaders are expected to know their day's schedule and all required equipment, and make truck assignments to all crew members.",
+          "If it is determined that a scheduled job shall not occur that day due to weather or timing conflicts, or that the start of a job is going to be delayed by more than 45 minutes, the person making the decision (either crew leader or management) shall immediately contact the office and coordinate calling the customer to relay the information and reschedule the work."
+        ]
+      },
+      {
+        "type": "h3",
+        "text": "Upon arrival at the shop"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "All employees are expected to be at the shop and beginning their assigned tasks at the designated start time each morning.",
+          "Each crew member shall immediately load personal gear into the designated vehicle (as instructed on their schedule in Jobber).",
+          "Ground crew shall complete any remaining service on equipment to be used in the field that day and put all needed equipment, saws, and clean-up tools in the work trucks.",
+          "Crew leaders are responsible for ensuring that their truck and chipper have enough fuel for the day's work, and that adequate saw gas and oil is in the saw box.",
+          "Crew leaders or assigned drivers are responsible for completing the pre-trip inspection of truck and towed equipment, and filling out the Driver Vehicle Inspection Report.",
+          "Crew leaders shall make appropriate phone calls to home/property owners while ground crew is still servicing equipment.",
+          "The expectation is for crews to leave for the first job of the day within 15 minutes of arrival at the shop (or 15 minutes after the end of a safety meeting)."
+        ]
+      },
+      {
+        "type": "h3",
+        "text": "At the jobsite"
+      },
+      {
+        "type": "p",
+        "text": "The crew leader shall give a job and safety briefing to all crew members on site and fill out the Job Hazard Assessment (JHA) form attached to the work order."
+      },
+      {
+        "type": "p",
+        "text": "As climbers prepare to enter trees, ground support shall prepare the worksite by:"
+      },
+      {
+        "type": "h3",
+        "text": "Donning proper safety equipment"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Hard hat",
+          "Ear/eye protection",
+          "Chaps",
+          "Reflective vest (as appropriate)"
+        ]
+      },
+      {
+        "type": "h3",
+        "text": "Securing the work area"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Placing proper signage (as appropriate).",
+          "Placing a minimum of three traffic cones to indicate work vehicles parked on the street, and more cones as needed.",
+          "Identifying and marking the drop zone."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "Gathering appropriate climbing/rigging gear as requested by the crew leader during the job briefing."
+      },
+      {
+        "type": "p",
+        "text": "Fueling and adding bar oil to chainsaws that will be used during that job."
+      },
+      {
+        "type": "p",
+        "text": "A proper call-and-response system shall be followed for safety in maintaining the drop zone:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Prior to dropping any piece, the climber shall call for a “stand clear,” and not proceed until the “all clear” is sounded. When complete, the climber shall call “all clear.”",
+          "Prior to entering the “kill zone,” any crew member shall call “below” or “underneath,” and not proceed until they receive the “all clear” from the climber. Upon exiting the “kill zone,” ground support shall call “all clear.”",
+          "In the event that multiple crew members are below one tree, one shall be designated as the caller to sound the “all clear” for the climber.",
+          "If any pedestrian begins to approach the drop zone, ground support shall immediately notify the climber and shall inform the pedestrian of the hazard.",
+          "Under no circumstances is a home or property owner allowed to enter a work zone to “help” with the work."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "To mitigate the risk of leaving company property at a jobsite, all equipment shall be consolidated to one central location."
+      },
+      {
+        "type": "p",
+        "text": "A tarp will be spread out near the chip truck, and all gear is to be staged on this tarp while not in use."
+      },
+      {
+        "type": "p",
+        "text": "If a piece of equipment is forgotten and left at a jobsite, the crew leader from that job is responsible for retrieving it that same week on his own time. If such equipment is lost or stolen before it can be recovered by the crew leader, he shall be responsible for replacing that item at his own expense."
+      },
+      {
+        "type": "p",
+        "text": "It is the expectation that ground support shall keep pace, as often as situations permit, with the climber(s); the idea being that when the climber pulls his rope and stows his gear at job's-end, everything has been rough-chipped and final clean-up has ensued. It is similarly expected that the climber keeps pace with the ground crew, creating brush quickly and efficiently enough that ground support need not wait idly for the next piece."
+      },
+      {
+        "type": "p",
+        "text": "Climbers are expected to help with all clean-up once they return to the ground."
+      },
+      {
+        "type": "p",
+        "text": "Clean-up shall be completed in such a manner that the property shall look at least as clean as it did when the crew arrived."
+      },
+      {
+        "type": "p",
+        "text": "Upon completion of the job, the crew leader shall then speak with the home/property owner to ensure that all work performed was up to expectation."
+      },
+      {
+        "type": "p",
+        "text": "If the customer is satisfied with the work, the crew leader shall use the company iPad and credit card reader located in the work truck to accept payment (payment can also be accepted via check). If the customer is unsatisfied, the crew shall take necessary steps to bring work completed up to the customer's reasonable expectations, after which time payment will be required."
+      },
+      {
+        "type": "p",
+        "text": "Prior to leaving the jobsite, the crew leader shall complete all job information in Jobber. This can be done while the ground crew finalizes raking and blowing and take-down of jobsite"
+      },
+      {
+        "type": "p",
+        "text": "If another job is to be completed, the crew leader shall contact the property owner prior to the ground crew's completion of clean-up."
+      },
+      {
+        "type": "h3",
+        "text": "Upon returning to the shop"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Truck and chippers shall be backed in to their designated spots."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "If it is prior to 6:00 PM, all crew members will remain at the shop to complete equipment maintenance:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Daily Service Tasks will be completed on all chippers, stump grinders, and skid steers.",
+          "The crew leader will determine the chain saws that will be needed the following work day. These saws will be serviced and sharpened as needed and loaded into the appropriate work truck's saw box.",
+          "Skid steers that will be used the following work day will be equipped with the appropriate attachments and loaded onto trailers.",
+          "Other maintenance can occur as time allows at the discretion of the Equipment Maintenance Manager."
+        ]
+      },
+      {
+        "type": "ul",
+        "items": [
+          "After backing a truck in, if it is determined that nighttime temperature will fall below 32 degrees fahrenheit and the following day is a work day, the driver is responsible for plugging in both truck and chipper/stump grinder.",
+          "Crew leaders or assigned drivers are responsible for completing the post-trip inspection of truck and towed equipment, and filling out the Driver Vehicle Inspection Report.",
+          "Any wet ropes or other gear shall be pulled from the trucks and set to dry.",
+          "All personal gear, including climbing gear, shall be removed from the work truck and stored in the appropriate designated location.",
+          "Any trash and other personal items shall be removed from the cab and tool boxes of all trucks at the end of each day.",
+          "Prior to leaving the shop, all lights are to be turned off and all vehicles, tool boxes, and containers shall be shut and locked by the last crew leader to leave."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "company-uniform-policy",
+    "title": "Company Uniform Policy",
+    "number": "05",
+    "photo": "assets/photos/ttc-9161.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Company Uniform Policy"
+      },
+      {
+        "type": "p",
+        "text": "To create and maintain a high level of professional appearance, Total Tree Care shall supply each field employee with a Company Uniform Package upon hire. Each item in this package (quantity and MSRP detailed below) shall adhere to any industry safety standard (where applicable), will coincide with the company image and color scheme, and will be branded (in the case of jackets, shirts, and hats) with the company name and logo."
+      },
+      {
+        "type": "p",
+        "text": "Employees are expected to wear their uniform to work each day and to keep uniform pieces clean and in good repair. Pieces that are torn, overly-faded, or are in other disrepair shall be discarded at the discretion of company management. Any item not listed in the Company Uniform Package or not directly supplied by Total Tree Care shall be considered as inappropriate to wear on company time**; this includes any hats or jackets that do not bear the company logo. If an employee wears such an item to work, he or she will be asked to remove it, or will be invited to return home to change into something that has been approved for jobsite use."
+      },
+      {
+        "type": "p",
+        "text": "**see note at the end of section for pants exceptions"
+      },
+      {
+        "type": "p",
+        "text": "Due to the high cost of equipping every worker, each employee shall be responsible for approximately 25% of the cost of their own uniform package; $156.00 for part-time employees, $260.00 for full-time. Payment for employees' cost shall be collected in the form of a withholding each pay period, $6.00/paycheck for part-time, $10.00/paycheck for full-time. At any given time, an employee can elect to pay the remaining balance of his/her uniform package in full. If an employee's contract is terminated prior to the receipt of the full balance, the remainder shall be withheld from said employee's final paycheck. If an employee's contract is terminated in fewer than six months from initial hire, all items from the Company Uniform Package are to be returned to Total Tree Care, and any payment installments made by the employee will be forfeited and retained by TTC."
+      },
+      {
+        "type": "p",
+        "text": "Although part-time employees are not issued jackets or a vest as part of their uniform package, any jackets or vests worn on company time must still coincide with the designated company uniform. As such, if a part-time employee would like such items so that they can be worn on the jobsite, they must be purchased directly from Total Tree Care for the MSRP listed above."
+      },
+      {
+        "type": "p",
+        "text": "Each year on the anniversary of their hire date, field employees will be issued a new Company Uniform Package. If it is deemed that the jackets and vest are still in good physical condition and do not need to be replaced, a full-time employee may elect to receive the package issued for part-time employees instead, and thus have the lower uniform rate withheld from their paycheck that year. Some items may also be substituted for other items of a similar value, such as two pairs of Willow Flex Pants and one pair of Dickies instead of one pair of Ascender Pants**."
+      },
+      {
+        "type": "p",
+        "text": "At any point in time, an employee may purchase any piece listed on the Company Uniform Package (beyond that which they are allocated annually) directly from Total Tree Care for the original MSRP. Payment for such purchases will be deducted from the employee's following paycheck."
+      },
+      {
+        "type": "p",
+        "text": "Sturdy work boots shall be worn on every job. (For more information regarding suitable work boots, refer to the PPE section of this manual)."
+      },
+      {
+        "type": "p",
+        "text": "If a pair of chainsaw pants is ever cut in such a way that protective inner fibers are exposed, they shall no longer be considered as appropriate PPE, and must be immediately retired."
+      },
+      {
+        "type": "h3",
+        "text": "**Note"
+      },
+      {
+        "type": "p",
+        "text": "So that employees are not required to purchase expensive pants in order to have more than one pair for work purposes, the following are additional pants that are approved to be worn as a part of the company uniform:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Arborwear canopy pants, coal color. MSRP $140",
+          "Arborwear willow flex pants, coal color. MSRP $80",
+          "Arborwear ground pants, coal color. MSRP $50",
+          "Truewerk T2 WerkPant, deep grey color. MSRP $79",
+          "Dickies original 874 work pant, charcoal gray color. MSRP $22.99"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "required-knots",
+    "title": "Required Knots",
+    "number": "06",
+    "photo": "assets/photos/ttc-2051.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Annex A - Knots"
+      },
+      {
+        "type": "p",
+        "text": "To work in arboricultural requires the practical knowledge of a wide variety of knots. Prior to working for or advancing within Total Tree Care, a working knowledge of the following knots must be passed off to a supervisor."
+      },
+      {
+        "type": "h3",
+        "text": "Essential knots for ground support"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Marlin spike",
+          "Figure eight",
+          "Midline clove hitch",
+          "Slippery sheet bend or Quick hitch"
+        ]
+      },
+      {
+        "type": "h3",
+        "text": "Essential knots for climbers"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "End-of-line clove hitch",
+          "Cow hitch with a better half",
+          "Blake's hitch",
+          "Valdotain Tresse (VT)",
+          "Cow hitch/girth hitch",
+          "Timber hitch",
+          "Running bowline",
+          "Butterfly coil",
+          "English prusik",
+          "Anchor hitch",
+          "Alpine Butterfly",
+          "Bowline on a bite"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "signature",
+    "title": "Signature",
+    "number": "07",
+    "photo": "assets/photos/ttc-1658.jpg",
+    "blocks": [
+      {
+        "type": "h2",
+        "text": "Total Tree Care Company Policies and Procedures"
+      },
+      {
+        "type": "p",
+        "text": "I understand Total Tree Care's Policies and Procedures as they have been outlined in the Policies and Procedures Manual (updated 03/04/2020), and I agree to adhere to them."
+      },
+      {
+        "type": "h3",
+        "text": "Notes"
+      }
+    ]
+  }
+]

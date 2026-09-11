@@ -56,6 +56,7 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  html { scrollbar-gutter: auto; }
   body {
     background: var(--bg);
     color: var(--fg1);
@@ -70,9 +71,12 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background:
-      radial-gradient(560px 420px at 100% 0%, rgba(74,103,65,0.06), transparent 70%),
-      radial-gradient(560px 420px at 0% 100%, rgba(201,96,26,0.05), transparent 70%);
+    background-image:
+      linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
+      url('assets/photos/ttc-0137.jpg');
+    background-size: cover;
+    background-position: center 28%;
+    background-repeat: no-repeat;
   }
   .app { max-width: 640px; margin: 0 auto; position: relative; }
   a { text-decoration: none; color: inherit; }
@@ -82,16 +86,19 @@
     outline-offset: 2px;
   }
 
-  /* ---- Home header ---- */
+  /* ---- Home header (photo header — hero.jpg with a dark-green legibility wash) ---- */
   .header {
     position: relative;
-    background: var(--ttc-dark);
+    background: transparent;
     color: var(--fg-on-dark);
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     padding: calc(14px + env(safe-area-inset-top)) 20px 34px;
     overflow: hidden;
-    border-radius: 0 0 24px 24px;
+    border-radius: 0;
   }
-  .header-texture { position: absolute; inset: 0; opacity: .07; }
   .header-content { position: relative; z-index: 1; }
   .version-pill { display: none; }
   .logo-plate {
@@ -104,16 +111,6 @@
   .logo-plate img { display: block; width: 150px; height: auto; }
   .app-title { font-weight: 700; font-size: 24px; margin: 0 0 4px; }
   .app-subtitle { font-size: 13px; margin: 0; opacity: .85; }
-
-  /* ---- Hero slot (only if hero.jpg exists) ---- */
-  .hero { position: relative; width: 100%; height: 168px; overflow: hidden; background: var(--bg-alt); }
-  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: 68% 22%; display: block; }
-  .hero::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, transparent 45%, var(--ttc-dark) 100%);
-    opacity: .55;
-  }
 
   /* ---- Emergency (single wide button) ---- */
   .emergency { margin: 18px 20px 0; }
@@ -138,7 +135,7 @@
     display: flex; align-items: center;
     height: calc(56px + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
-    background: var(--ttc-dark); color: var(--fg-on-dark);
+    background: rgba(42,58,37,.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--fg-on-dark);
   }
   .topbar-back {
     display: flex; align-items: center; justify-content: center;
@@ -176,22 +173,44 @@
   }
 
   /* ---- Home category grid ---- */
-  main { padding: 4px 20px 8px; min-height: 40px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 8px 0 8px; }
+  /* position + z-index gives main its OWN stacking context, so the backdrop's z-index
+     never leaks out and layers against sibling elements (emergency button, footer). */
+  main { position: relative; z-index: 0; padding: 4px 20px 8px; min-height: 40px; }
+  /* Photo backdrop behind the home grid only (inserted by JS, home route, no active search) */
+  .grid-backdrop { display: none; }
+  .grid-backdrop-unused {
+    position: absolute;
+    top: 0; left: -20px; right: -20px; bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to bottom, rgba(249,246,242,.88) 0%, rgba(249,246,242,.55) 30%, rgba(249,246,242,.55) 70%, rgba(249,246,242,.95) 100%),
+      url('assets/photos/ttc-1658.jpg');
+    background-size: cover, cover;
+    background-position: center, center 40%;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: scroll, scroll;
+  }
+  .grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 8px 0 8px; }
   .card {
     position: relative;
     display: flex; flex-direction: column;
     min-height: 132px;
-    background: var(--card);
-    border: 1px solid var(--border-soft);
+    background: rgba(255,255,255,.66);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    backdrop-filter: blur(16px) saturate(1.25);
+    border: 1px solid rgba(255,255,255,.75);
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.08);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
     transition: box-shadow .16s ease-out, transform .16s ease-out;
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .card { background: rgba(255,255,255,.9); }
   }
   .card:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.12);
+    box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.12), inset 0 1px 0 rgba(255,255,255,.7);
   }
   .card-icon { margin-bottom: 12px; }
   .card-icon svg { width: 44px; height: 44px; }
@@ -214,7 +233,14 @@
   /* ---- Category head ---- */
   .cat-head {
     display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
-    padding: 20px 20px 6px;
+    margin: 6px 0 18px;
+    padding: 20px 18px 18px;
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,.75);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
   }
   .cat-head-plate {
     display: flex; align-items: center; justify-content: center;
@@ -241,13 +267,16 @@
 
   /* ---- Tiles ---- */
   .tile {
-    background: var(--card); border: 1px solid var(--border-soft);
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,.75);
     border-radius: 18px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.08);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
     overflow: hidden;
-    transition: box-shadow .16s ease-out, transform .16s ease-out;
   }
+  @supports not (backdrop-filter: blur(1px)) { .tile { background: rgba(255,255,255,.92); } }
   .tile-main {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 14px 16px; min-height: 56px;
@@ -656,17 +685,6 @@
     var header = document.createElement('header');
     header.className = 'header';
 
-    var texture = el('svg', { class: 'header-texture', viewBox: '0 0 200 100', preserveAspectRatio: 'xMidYMid slice', 'aria-hidden': 'true' });
-    var defs = el('defs');
-    var pattern = el('pattern', { id: 'chevPattern', width: '40', height: '34', patternUnits: 'userSpaceOnUse' });
-    ['M0 10 L10 0 L20 10', 'M0 20 L10 10 L20 20', 'M0 30 L10 20 L20 30'].forEach(function (d) {
-      pattern.appendChild(el('path', { d: d, stroke: 'var(--fg-on-dark)', 'stroke-width': '2', fill: 'none' }));
-    });
-    defs.appendChild(pattern);
-    texture.appendChild(defs);
-    texture.appendChild(el('rect', { width: '200', height: '100', fill: 'url(#chevPattern)' }));
-    header.appendChild(texture);
-
     var pill = document.createElement('span');
     pill.className = 'version-pill';
     pill.hidden = true;
@@ -705,21 +723,6 @@
     searchField.wrap.classList.add('search-wrap--overlap');
     app.appendChild(searchField.wrap);
 
-    // Hero (only if hero.jpg exists)
-    var heroWrap = document.createElement('div');
-    heroWrap.className = 'hero';
-    heroWrap.hidden = true;
-    var heroImg = document.createElement('img');
-    heroImg.alt = '';
-    heroImg.onload = function () { heroWrap.hidden = false; };
-    heroImg.onerror = function () {
-      heroWrap.hidden = true;
-      if (heroImg.parentNode) heroImg.parentNode.removeChild(heroImg);
-    };
-    heroWrap.appendChild(heroImg);
-    app.appendChild(heroWrap);
-    heroImg.src = 'hero.jpg';
-
     app.appendChild(buildEmergencyButton());
 
     var main = document.createElement('main');
@@ -740,6 +743,11 @@
     var sections = visibleSections();
 
     if (terms.length === 0) {
+      var backdrop = document.createElement('div');
+      backdrop.className = 'grid-backdrop';
+      backdrop.setAttribute('aria-hidden', 'true');
+      main.appendChild(backdrop);
+
       var grid = document.createElement('div');
       grid.className = 'grid';
       sections.forEach(function (section) {
