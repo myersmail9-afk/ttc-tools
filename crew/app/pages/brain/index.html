@@ -227,9 +227,28 @@
     display: flex; align-items: center; gap: 8px; justify-content: center;
     margin-top: 10px; padding: 8px 14px; border-radius: 999px;
     background: rgba(201,96,26,.12); color: var(--ttc-orange-dk);
-    font-size: 13.5px; font-weight: 600;
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
   }
   .listening-pill[hidden] { display: none; }
+  .level-meter {
+    display: inline-block; width: 46px; height: 6px; border-radius: 999px;
+    background: rgba(201,96,26,.2); overflow: hidden; margin-left: 2px; flex-shrink: 0;
+  }
+  .level-meter[hidden] { display: none; }
+  .level-meter-fill { display: block; height: 100%; width: 0%; background: var(--ttc-orange-dk); }
+
+  .dictation-hint {
+    display: block; text-align: center; margin-top: 10px; font-size: 13px;
+    color: var(--fg2); text-decoration: underline; cursor: pointer;
+  }
+  .dictation-hint[hidden] { display: none; }
+
+  .voice-status-line {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px; font-size: 11.5px; color: var(--fg3);
+  }
+  .voice-status-line[hidden] { display: none; }
+  .voice-settings-link { color: var(--fg3); text-decoration: underline; }
 
   /* ---- Thinking ---- */
   .summary-text--pending { color: var(--fg2); font-style: italic; }
@@ -387,7 +406,16 @@
         </button>
         <button type="button" id="ask-btn" class="btn-orange">Ask</button>
       </div>
-      <div class="listening-pill" id="listening-pill" hidden><span class="pulse">&#9679;</span> Listening&hellip;</div>
+      <div class="dictation-hint" id="dictation-hint" tabindex="0" role="button" hidden>Tap the box and use the keyboard mic next to Ask</div>
+      <div class="voice-status-line" id="voice-status-line" hidden>
+        <span id="voice-status-text"></span>
+        <a href="#" id="voice-settings-link" class="voice-settings-link">Voice settings</a>
+      </div>
+      <div class="listening-pill" id="listening-pill" hidden>
+        <span class="pulse" id="listening-pill-dot">&#9679;</span>
+        <span id="listening-pill-text">Listening&hellip;</span>
+        <span class="level-meter" id="level-meter" hidden><span class="level-meter-fill" id="level-meter-fill"></span></span>
+      </div>
       <a href="#" class="new-topic-link" id="new-topic-link" hidden>New topic (clear this conversation)</a>
     </div>
 
@@ -661,7 +689,25 @@
     el.style.height = h + 'px';
     el.style.overflowY = (el.scrollHeight > max) ? 'auto' : 'hidden';
   }
-  questionInput.addEventListener('input', function () { autoGrow(questionInput); });
+  questionInput.addEventListener('input', function () {
+    autoGrow(questionInput);
+    // Dictation path only: after the "Dictate" affordance armed the watch, auto-submit once the
+    // keyboard-mic-typed text stops changing for a beat. Normal typing never arms this, so it
+    // never auto-submits outside that flow.
+    if (listenMode === 'dictation' && dictationWatchArmed) {
+      if (dictationDebounceTimer) clearTimeout(dictationDebounceTimer);
+      dictationDebounceTimer = setTimeout(function () {
+        if (dictationWatchArmed && !waiting && wordCount(questionInput.value) >= 3) {
+          var q = questionInput.value;
+          disarmDictationWatch();
+          submitQuestion({ askedByVoice: true, overrideQuestion: q });
+        }
+      }, DICTATION_PAUSE_MS);
+    }
+  });
+  questionInput.addEventListener('blur', function () {
+    if (typeof disarmDictationWatch === 'function') disarmDictationWatch();
+  });
   questionInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -757,6 +803,7 @@
 
   function speakChunk(text) {
     if (!hasSynth) return;
+    if (typeof recordActive !== 'undefined' && recordActive) stopRecordCapture('cancel'); // speaking and recording never overlap
     var clean = sanitizeForSpeech(text);
     if (!clean) return;
     speechQueuedCount++;
@@ -797,23 +844,134 @@
     speechPendingBuf = '';
   }
 
-  // ================= Voice in (speech recognition) =================
-  // iOS Safari (especially the home-screen-installed standalone app) has historically shipped
-  // SpeechRecognition inconsistently or not at all; when the constructor is missing the mic
-  // button stays hidden and the iOS keyboard's own dictation key is the fallback.
+  // ================= Voice in: three listening paths, chosen automatically =================
+  // 2026-09-12: iOS blocks webkitSpeechRecognition inside the installed (standalone) home-screen
+  // app on some phones but not others — Joseph confirmed it DOES work in his installed app. So the
+  // rule is: try on-device recognition first wherever the constructor exists (standalone included),
+  // and only demote a given phone to the RECORD path (record audio here, send it to the brain's
+  // /transcribe endpoint) after recognition proves itself broken on THAT phone — two consecutive
+  // failures with a "real" error code, or start() never firing onstart within 2s. That demotion is
+  // remembered in localStorage so we don't re-probe a broken mic every single question. A phone with
+  // neither working recognition nor mic recording falls back to a DICTATION hint (use the keyboard's
+  // own mic key). "Voice settings" resets a demoted phone back to auto (try recognition again).
+  var LISTEN_MODE_KEY = 'ttc-brain-listen'; // 'record' = this phone was demoted; absent = auto
   var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var hasSpeechRec = !!SpeechRec;
+  var canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && (typeof window.MediaRecorder !== 'undefined');
+  var RECOG_START_TIMEOUT_MS = 2000;
+  var RECOG_FAIL_CODES = ['not-allowed', 'service-not-allowed', 'audio-capture', 'network'];
+  var RECORD_TIMESLICE_MS = 250;
+  var RECORD_SILENCE_RMS = 0.045;   // rough heuristic; tune once tested on a real phone mic
+  var RECORD_SPEECH_MIN_MS = 300;
+  var RECORD_SILENCE_MS = 1400;
+  var RECORD_MAX_MS = 15000;
+  var DICTATION_PAUSE_MS = 1800;
+
   var micBtn = $('mic-btn');
   var listeningPill = $('listening-pill');
+  var dictationHint = $('dictation-hint');
+  var voiceStatusLine = $('voice-status-line');
+  var voiceStatusText = $('voice-status-text');
+  var voiceSettingsLink = $('voice-settings-link');
+  var levelMeterEl = $('level-meter');
+  var levelMeterFill = $('level-meter-fill');
+  var listeningPillText = $('listening-pill-text');
+
   var recognition = null;
   var recognizing = false;
   var handsFreeActive = false;
   var lastAskedByVoice = false;
   var silenceTimer = null;
+  var recogConsecutiveFails = 0;
   var DETAIL_PHRASES = ['details', 'tell me more', 'yes'];
   var STOP_PHRASES = ['stop', 'thanks', "that's all", 'thats all'];
 
-  micBtn.hidden = !SpeechRec;
+  function queryFlag(name) {
+    try { return new URLSearchParams(window.location.search).get(name); } catch (e) { return null; }
+  }
+  function computeListenMode() {
+    var forced = queryFlag('listen');
+    if (forced === 'record') return canRecord ? 'record' : 'dictation';
+    if (forced === 'recognition') return hasSpeechRec ? 'recognition' : 'dictation';
+    if (forced === 'dictation') return 'dictation';
+    var stored = null;
+    try { stored = localStorage.getItem(LISTEN_MODE_KEY); } catch (e) {}
+    if (stored === 'record') {
+      if (canRecord) return 'record';
+      if (hasSpeechRec) return 'recognition';
+      return 'dictation';
+    }
+    if (hasSpeechRec) return 'recognition';
+    if (canRecord) return 'record';
+    return 'dictation';
+  }
+  var listenMode = computeListenMode();
 
+  function voiceStatusLabel() {
+    return listenMode === 'recognition' ? 'Voice: on-device'
+      : listenMode === 'record' ? 'Voice: via the brain'
+      : 'Voice: keyboard dictation';
+  }
+  function applyListenModeUI() {
+    micBtn.hidden = (listenMode === 'dictation');
+    if (dictationHint) dictationHint.hidden = (listenMode !== 'dictation');
+    if (voiceStatusText) voiceStatusText.textContent = voiceStatusLabel();
+    if (voiceStatusLine) voiceStatusLine.hidden = false;
+  }
+  applyListenModeUI();
+
+  function resetVoiceModeToAuto() {
+    try { localStorage.removeItem(LISTEN_MODE_KEY); } catch (e) {}
+    recogConsecutiveFails = 0;
+    listenMode = computeListenMode();
+    applyListenModeUI();
+  }
+  if (voiceSettingsLink) {
+    voiceSettingsLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      resetVoiceModeToAuto();
+    });
+  }
+
+  function demoteToRecordOrDictation() {
+    var newMode = canRecord ? 'record' : 'dictation';
+    if (listenMode === newMode) return;
+    listenMode = newMode;
+    try { localStorage.setItem(LISTEN_MODE_KEY, 'record'); } catch (e) {}
+    applyListenModeUI();
+  }
+  function recogSuccessDetected() { recogConsecutiveFails = 0; }
+  function recogFailureDetected(code) {
+    if (RECOG_FAIL_CODES.indexOf(code) === -1 && code !== 'start-timeout') return; // ignore no-speech/aborted/etc.
+    recogConsecutiveFails++;
+    if (recogConsecutiveFails >= 2) {
+      recogConsecutiveFails = 0;
+      demoteToRecordOrDictation();
+    }
+  }
+
+  function showListeningPill(text, showLevel) {
+    listeningPill.hidden = false;
+    if (listeningPillText) listeningPillText.textContent = text;
+    if (levelMeterEl) levelMeterEl.hidden = !showLevel;
+    if (!showLevel) resetLevelMeter();
+  }
+  function resetLevelMeter() {
+    if (levelMeterFill) levelMeterFill.style.width = '0%';
+  }
+  function updateLevelMeter(rms) {
+    if (!levelMeterFill) return;
+    var pct = Math.min(100, Math.round(rms * 350));
+    levelMeterFill.style.width = pct + '%';
+  }
+
+  function startVoiceListening(isHandsFree) {
+    if (listenMode === 'recognition') startListening(isHandsFree);
+    else if (listenMode === 'record') startRecordListening(isHandsFree);
+    // dictation mode has no programmatic listen — the hint tells the crew to use the keyboard mic.
+  }
+
+  // ---------------- Path 1: on-device SpeechRecognition ----------------
   function clearSilenceTimer() {
     if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
   }
@@ -823,7 +981,27 @@
     r.interimResults = true;
     r.continuous = false;
     r.maxAlternatives = 1;
+    var attemptDone = false;
+    var startTimer = null;
+    function resolveAttempt(ok, code) {
+      if (attemptDone) return;
+      attemptDone = true;
+      if (startTimer) { clearTimeout(startTimer); startTimer = null; }
+      if (ok) recogSuccessDetected(); else recogFailureDetected(code);
+    }
+    r._ttcArm = function () {
+      attemptDone = false;
+      startTimer = setTimeout(function () {
+        if (attemptDone) return;
+        resolveAttempt(false, 'start-timeout');
+        try { r.abort ? r.abort() : r.stop(); } catch (e) {}
+        recognizing = false;
+        micBtn.classList.remove('mic-btn--listening');
+        listeningPill.hidden = true;
+      }, RECOG_START_TIMEOUT_MS);
+    };
     r.onstart = function () {
+      resolveAttempt(true);
       recognizing = true;
       micBtn.classList.add('mic-btn--listening');
       micBtn.classList.remove('mic-btn--error');
@@ -839,7 +1017,8 @@
       autoGrow(questionInput);
       if (e.results[e.results.length - 1].isFinal) handleVoiceFinal(text.trim());
     };
-    r.onerror = function () {
+    r.onerror = function (e) {
+      resolveAttempt(false, e && e.error);
       recognizing = false;
       micBtn.classList.remove('mic-btn--listening');
       micBtn.classList.add('mic-btn--error');
@@ -874,7 +1053,8 @@
     try {
       recognition = createRecognition();
       handsFreeActive = !!isHandsFree;
-      listeningPill.hidden = !isHandsFree;
+      if (isHandsFree) showListeningPill('Listening…', false); else listeningPill.hidden = true;
+      recognition._ttcArm();
       recognition.start();
     } catch (e) {}
   }
@@ -883,23 +1063,257 @@
     listeningPill.hidden = true;
     if (recognition) { try { recognition.stop(); } catch (e) {} }
   }
+
+  // ---------------- Path 2: record + POST to {brain}/transcribe ----------------
+  // Contract (agreed with the server side 2026-09-12): POST {url}/transcribe
+  //   { code, audio_b64, mime }  (audio <= 2.5 MB, base64 of the recorded Blob)
+  //   -> 200 { ok:true, text, seconds, ms }  (text can be "" with a note when nothing was heard)
+  //   -> 401 bad crew code · 413 too big · 502 transcribe failure
+  // Until the server ships this route, any non-200/ok response degrades to a plain message and
+  // never leaves the user stuck — no crash, no infinite "Listening…".
+  var audioCtx = null;
+  var analyserNode = null;
+  var mediaStream = null;
+  var mediaRecorder = null;
+  var recordedChunks = [];
+  var recordChosenMime = '';
+  var recordAnalyserRAF = null;
+  var recordSpeechStarted = false;
+  var recordSpeechStartTime = 0;
+  var recordSilenceStartTime = 0;
+  var recordHardCapTimer = null;
+  var recordActive = false;
+  var recordHandsFreeSession = false;
+  var recordCancelPending = false;
+  var recordConsecutiveEmpty = 0;
+
+  function ensureAudioContext() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    } else if (audioCtx.state === 'suspended') {
+      try { audioCtx.resume(); } catch (e) {}
+    }
+    return audioCtx;
+  }
+  function pickRecordMime() {
+    var candidates = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'];
+    for (var i = 0; i < candidates.length; i++) {
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
+    }
+    return '';
+  }
+  function releaseRecordStream() {
+    if (mediaStream) {
+      try { mediaStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+      mediaStream = null;
+    }
+  }
+  function recordFail(msg) {
+    recordActive = false;
+    micBtn.classList.remove('mic-btn--listening');
+    micBtn.classList.add('mic-btn--error');
+    setTimeout(function () { micBtn.classList.remove('mic-btn--error'); }, 2000);
+    showListeningPill(msg, false);
+    setTimeout(function () { listeningPill.hidden = true; }, 2500);
+    handsFreeActive = false;
+    releaseRecordStream();
+  }
+  function setupAnalyser(stream) {
+    if (!ensureAudioContext()) return;
+    try {
+      var source = audioCtx.createMediaStreamSource(stream);
+      analyserNode = audioCtx.createAnalyser();
+      analyserNode.fftSize = 512;
+      source.connect(analyserNode);
+      var data = new Uint8Array(analyserNode.fftSize);
+      var tick = function () {
+        if (!recordActive) return;
+        analyserNode.getByteTimeDomainData(data);
+        var sumSquares = 0;
+        for (var i = 0; i < data.length; i++) { var v = (data[i] - 128) / 128; sumSquares += v * v; }
+        var rms = Math.sqrt(sumSquares / data.length);
+        updateLevelMeter(rms);
+        var now = Date.now();
+        if (rms > RECORD_SILENCE_RMS) {
+          if (!recordSpeechStarted) {
+            if (!recordSpeechStartTime) recordSpeechStartTime = now;
+            if (now - recordSpeechStartTime >= RECORD_SPEECH_MIN_MS) recordSpeechStarted = true;
+          }
+          recordSilenceStartTime = 0;
+        } else {
+          recordSpeechStartTime = 0;
+          if (recordSpeechStarted) {
+            if (!recordSilenceStartTime) recordSilenceStartTime = now;
+            else if (now - recordSilenceStartTime >= RECORD_SILENCE_MS) { stopRecordCapture('silence'); return; }
+          }
+        }
+        recordAnalyserRAF = requestAnimationFrame(tick);
+      };
+      recordAnalyserRAF = requestAnimationFrame(tick);
+    } catch (e) {}
+  }
+  function startRecordListening(isHandsFree) {
+    if (recordActive) return;
+    if (speaking) cancelSpeech();
+    primeSynthesis();
+    ensureAudioContext();
+    recordHandsFreeSession = !!isHandsFree;
+    handsFreeActive = !!isHandsFree;
+
+    function begin(stream) {
+      mediaStream = stream;
+      recordChosenMime = pickRecordMime();
+      recordedChunks = [];
+      try {
+        mediaRecorder = recordChosenMime ? new MediaRecorder(stream, { mimeType: recordChosenMime }) : new MediaRecorder(stream);
+      } catch (e) { recordFail("Listening isn't available yet."); return; }
+      mediaRecorder.ondataavailable = function (e) { if (e.data && e.data.size) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = onRecordStopped;
+      recordActive = true;
+      recordSpeechStarted = false;
+      recordSpeechStartTime = 0;
+      recordSilenceStartTime = 0;
+      micBtn.classList.add('mic-btn--listening');
+      micBtn.classList.remove('mic-btn--error');
+      showListeningPill('Listening…', true);
+      resetLevelMeter();
+      try { mediaRecorder.start(RECORD_TIMESLICE_MS); } catch (e) { recordFail("Listening isn't available yet."); return; }
+      setupAnalyser(stream);
+      recordHardCapTimer = setTimeout(function () { stopRecordCapture('hardcap'); }, RECORD_MAX_MS);
+    }
+
+    if (mediaStream && mediaStream.active) { begin(mediaStream); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { recordFail("Listening isn't available yet."); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(begin)
+      .catch(function () { recordFail("Couldn't reach the microphone."); });
+  }
+  function stopRecordCapture(reason) {
+    if (recordAnalyserRAF) { cancelAnimationFrame(recordAnalyserRAF); recordAnalyserRAF = null; }
+    if (recordHardCapTimer) { clearTimeout(recordHardCapTimer); recordHardCapTimer = null; }
+    recordActive = false;
+    micBtn.classList.remove('mic-btn--listening');
+    if (reason === 'cancel') recordCancelPending = true;
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      try { mediaRecorder.stop(); } catch (e) { onRecordStopped(); }
+    } else {
+      listeningPill.hidden = true;
+    }
+  }
+  function onRecordStopped() {
+    var wasCancelled = recordCancelPending;
+    recordCancelPending = false;
+    var blob = new Blob(recordedChunks, { type: recordChosenMime || 'audio/webm' });
+    recordedChunks = [];
+    listeningPill.hidden = true;
+    if (wasCancelled) { if (!recordHandsFreeSession) releaseRecordStream(); return; }
+    if (!blob.size) { handleRecordEmpty(); return; }
+    try {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var dataUrl = String(reader.result || '');
+        var b64 = dataUrl.split(',')[1] || '';
+        sendTranscribe(b64, recordChosenMime || 'audio/webm');
+      };
+      reader.onerror = function () { handleRecordEmpty(); };
+      reader.readAsDataURL(blob);
+    } catch (e) { handleRecordEmpty(); }
+  }
+  function sendTranscribe(b64, mime) {
+    resolveEndpoint(function (ep) {
+      var url = ep && ep.url;
+      if (!url) { handleTranscribeUnavailable(); return; }
+      fetch(url + '/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: getCode(), audio_b64: b64, mime: mime })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
+        .then(function (result) {
+          if (result.status === 200 && result.data && result.data.ok) {
+            var text = (result.data.text || '').trim();
+            if (!text) { handleRecordEmpty(); return; }
+            recordConsecutiveEmpty = 0;
+            questionInput.value = text;
+            autoGrow(questionInput);
+            submitQuestion({ askedByVoice: true, overrideQuestion: text });
+          } else {
+            handleTranscribeUnavailable();
+          }
+        })
+        .catch(function () { handleTranscribeUnavailable(); });
+    });
+  }
+  function handleTranscribeUnavailable() {
+    showListeningPill("Listening isn't available yet.", false);
+    setTimeout(function () { listeningPill.hidden = true; }, 2500);
+    handsFreeActive = false;
+    if (!recordHandsFreeSession) releaseRecordStream();
+  }
+  function handleRecordEmpty() {
+    showListeningPill("Didn't catch that", false);
+    setTimeout(function () { listeningPill.hidden = true; }, 1600);
+    if (handsFreeActive) {
+      recordConsecutiveEmpty++;
+      if (recordConsecutiveEmpty >= 2) {
+        recordConsecutiveEmpty = 0;
+        endHandsFree();
+      } else {
+        setTimeout(function () { if (handsFreeActive) startRecordListening(true); }, 1700);
+      }
+    } else {
+      handsFreeActive = false;
+      if (!recordHandsFreeSession) releaseRecordStream();
+    }
+  }
+
+  // ---------------- Path 3: dictation hint (keyboard's own mic key) ----------------
+  var dictationWatchArmed = false;
+  var dictationDebounceTimer = null;
+  function wordCount(s) { return (s || '').trim().split(/\s+/).filter(Boolean).length; }
+  function armDictationWatch() {
+    dictationWatchArmed = true;
+    questionInput.focus();
+  }
+  function disarmDictationWatch() {
+    dictationWatchArmed = false;
+    if (dictationDebounceTimer) { clearTimeout(dictationDebounceTimer); dictationDebounceTimer = null; }
+  }
+  if (dictationHint) {
+    dictationHint.addEventListener('click', function () { armDictationWatch(); });
+    dictationHint.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); armDictationWatch(); }
+    });
+  }
+
   function endHandsFree() {
     handsFreeActive = false;
     listeningPill.hidden = true;
     cancelSpeech();
     if (recognition && recognizing) { try { recognition.stop(); } catch (e) {} }
+    if (recordActive) { stopRecordCapture('cancel'); }
+    releaseRecordStream();
   }
 
   micBtn.addEventListener('click', function () {
-    primeSynthesis();
-    if (recognizing) { stopListening(); return; }
-    startListening(false);
-  });
-  // Any tap ends an active hands-free loop, except the mic button itself (which toggles it).
-  document.addEventListener('click', function (e) {
-    if (handsFreeActive && e.target !== micBtn && !(micBtn.contains && micBtn.contains(e.target))) {
-      endHandsFree();
+    if (listenMode === 'recognition') {
+      primeSynthesis();
+      if (recognizing) { stopListening(); return; }
+      startListening(false);
+    } else if (listenMode === 'record') {
+      if (recordActive) { stopRecordCapture('manual'); return; }
+      startRecordListening(false);
     }
+  });
+  listeningPill.addEventListener('click', function () {
+    if (recordActive) { stopRecordCapture('manual'); return; }
+    if (recognizing) { stopListening(); return; }
+  });
+  // Any tap ends an active hands-free loop, except the mic button / pill themselves.
+  document.addEventListener('click', function (e) {
+    var onMic = e.target === micBtn || (micBtn.contains && micBtn.contains(e.target));
+    var onPill = e.target === listeningPill || (listeningPill.contains && listeningPill.contains(e.target));
+    if (handsFreeActive && !onMic && !onPill) endHandsFree();
   }, true);
 
   // ================= Waiting / thinking state =================
@@ -1116,9 +1530,10 @@
     return wrap;
   }
 
-  // data.pending   -> facts known, summary not started (quick facts_only preview)
-  // data.streaming -> facts known, summary filling in live token by token
-  // neither        -> finished answer: summary first, facts collapsed, feedback control
+  // Summary always renders ABOVE the facts, in every state:
+  // data.pending   -> summary area shows "Writing the summary…", facts below it once known
+  // data.streaming -> summary fills in live token by token, facts below it
+  // neither        -> finished answer: summary (+ meta) first, facts collapsed below it, feedback control
   function buildAnswerBody(data, question) {
     var frag = document.createDocumentFragment();
     var sources = data.sources || [];
@@ -1203,24 +1618,10 @@
 
       frag.appendChild(buildFeedbackControl(question, data));
     } else {
-      var fHeading = document.createElement('div');
-      fHeading.className = 'facts-heading' + (data.abstain ? ' facts-heading--warn' : '');
-      fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : "From David's notes";
-      frag.appendChild(fHeading);
-
-      if (data.abstain) {
-        var sub = document.createElement('p');
-        sub.className = 'facts-sublabel';
-        sub.textContent = 'Closest facts (below the confidence bar)';
-        frag.appendChild(sub);
-      }
-
-      if (sources.length) frag.appendChild(buildFactsList(sources, cited));
-
-      var divider = document.createElement('div');
-      divider.className = 'facts-divider';
-      frag.appendChild(divider);
-
+      // Summary renders FIRST here too (2026-09-12 layout change): it fills token by token as
+      // soon as streaming starts, with the facts list appearing below it the moment the "facts"
+      // line arrives. Same elements/classes as before, just reordered — summary, then a divider,
+      // then the facts heading/sublabel/list.
       var sHeading = document.createElement('div');
       sHeading.className = 'summary-heading';
       sHeading.textContent = 'Summary';
@@ -1240,6 +1641,24 @@
         liveP.appendChild(dots);
       }
       frag.appendChild(liveP);
+
+      var divider = document.createElement('div');
+      divider.className = 'facts-divider';
+      frag.appendChild(divider);
+
+      var fHeading = document.createElement('div');
+      fHeading.className = 'facts-heading' + (data.abstain ? ' facts-heading--warn' : '');
+      fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : "From David's notes";
+      frag.appendChild(fHeading);
+
+      if (data.abstain) {
+        var sub = document.createElement('p');
+        sub.className = 'facts-sublabel';
+        sub.textContent = 'Closest facts (below the confidence bar)';
+        frag.appendChild(sub);
+      }
+
+      if (sources.length) frag.appendChild(buildFactsList(sources, cited));
     }
 
     return frag;
@@ -1627,7 +2046,7 @@
     var continueHandsFree = handsFreeActive && lastAskedByVoice && !data.abstain && willSpeak;
     var after = function () {
       if (endLoopOnFinish) endHandsFree();
-      else if (continueHandsFree) startListening(true);
+      else if (continueHandsFree) startVoiceListening(true);
     };
     if (!willSpeak || speechQueuedCount === 0 || speechEndedCount >= speechQueuedCount) after();
     else onAllSpeechDoneCb = after;
