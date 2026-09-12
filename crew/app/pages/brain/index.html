@@ -178,32 +178,36 @@
   @keyframes pulse-dots { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
   .pulse { animation: pulse-dots 1.2s ease-in-out infinite; }
 
-  /* ---- Answer card ---- */
-  .answer-banner {
-    display: block; font-weight: 700; font-size: 14.5px;
-    margin: 0 0 12px; padding: 8px 12px; border-radius: 10px;
-    background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border);
+  /* ---- Answer card: facts first, summary second ---- */
+  .facts-heading {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+    font-weight: 700; color: var(--ttc-orange); margin: 0 0 10px;
   }
-  .answer-text { font-size: 15.5px; line-height: 1.55; color: var(--fg1); margin: 0; white-space: pre-wrap; word-wrap: break-word; }
-  .answer-meta { font-size: 12.5px; color: var(--fg3); margin: 12px 0 0; }
-  .sources-label {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
-    color: var(--fg3); font-weight: 600; margin: 16px 0 8px;
+  .facts-heading--warn { color: var(--warn-text); }
+  .facts-sublabel { font-size: 12.5px; font-style: italic; color: var(--fg3); margin: -4px 0 12px; }
+  .fact-list { list-style: none; margin: 0 0 4px; padding: 0; }
+  .fact-item { position: relative; padding-left: 18px; margin-bottom: 12px; }
+  .fact-item::before {
+    content: ''; position: absolute; left: 0; top: 7px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--fg3);
   }
-  .source-row {
-    border-top: 1px solid var(--border-soft);
-    padding: 10px 0;
+  .fact-item--cited::before { background: var(--ttc-orange); }
+  .fact-text { font-size: 15px; line-height: 1.5; color: var(--fg1); }
+  .fact-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px; color: var(--fg3); margin-top: 3px;
   }
-  .source-row:first-child { border-top: none; padding-top: 0; }
-  .source-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 4px; }
-  .source-id { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--fg1); }
-  .source-bid { font-size: 12px; color: var(--fg3); }
-  .source-score { font-size: 12px; color: var(--fg3); }
-  .source-statement {
-    font-size: 13.5px; line-height: 1.4; color: var(--fg2); cursor: pointer;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  .show-more-link {
+    display: inline-block; margin: 2px 0 8px 18px;
+    font-size: 13px; color: var(--ttc-orange); text-decoration: underline; cursor: pointer;
   }
-  .source-statement.expanded { white-space: normal; overflow: visible; text-overflow: clip; }
+  .facts-divider { border-top: 1px solid var(--border-soft); margin: 16px 0; }
+  .summary-heading {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+    font-weight: 700; color: var(--fg3); margin: 0 0 8px;
+  }
+  .summary-text { font-size: 15px; line-height: 1.55; color: var(--fg2); margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+  .answer-meta { font-size: 12.5px; color: var(--fg3); margin: 10px 0 0; }
 
   /* ---- Error cards ---- */
   .error-card p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--fg2); }
@@ -478,28 +482,97 @@
     return (ms / 1000).toFixed(1);
   }
 
+  var FACTS_VISIBLE = 6;
+
+  // Cited facts (in cited order) first, then the remaining sources (already score-sorted).
+  function orderFacts(sources, cited) {
+    var citedSet = {};
+    cited.forEach(function (id) { citedSet[id] = true; });
+    var citedOrdered = [];
+    cited.forEach(function (id) {
+      for (var i = 0; i < sources.length; i++) {
+        if (sources[i].id === id) { citedOrdered.push(sources[i]); break; }
+      }
+    });
+    var rest = sources.filter(function (s) { return !citedSet[s.id]; });
+    return citedOrdered.concat(rest);
+  }
+
   function buildAnswerBody(data) {
     var frag = document.createDocumentFragment();
+    var sources = data.sources || [];
+    var cited = data.cited || [];
+    var citedSet = {};
+    cited.forEach(function (id) { citedSet[id] = true; });
+
+    var heading = document.createElement('div');
+    heading.className = 'facts-heading' + (data.abstain ? ' facts-heading--warn' : '');
+    heading.textContent = data.abstain ? 'Nothing in the brain matched well' : "From David's notes";
+    frag.appendChild(heading);
 
     if (data.abstain) {
-      var banner = document.createElement('div');
-      banner.className = 'answer-banner';
-      banner.textContent = 'Not in the brain yet';
-      frag.appendChild(banner);
+      var sub = document.createElement('p');
+      sub.className = 'facts-sublabel';
+      sub.textContent = 'Closest facts (below the confidence bar)';
+      frag.appendChild(sub);
     }
 
-    var text = document.createElement('p');
-    text.className = 'answer-text';
-    text.textContent = data.answer || '';
-    frag.appendChild(text);
+    if (sources.length) {
+      var ordered = orderFacts(sources, cited);
+      var list = document.createElement('ul');
+      list.className = 'fact-list';
+      var extraItems = [];
 
-    var secs = formatSeconds(data.ms);
-    if (secs && data.model) {
-      var meta = document.createElement('p');
-      meta.className = 'answer-meta';
-      meta.textContent = 'Answered in ' + secs + 's with ' + data.model + '.';
-      frag.appendChild(meta);
+      ordered.forEach(function (src, idx) {
+        var li = document.createElement('li');
+        li.className = 'fact-item' + (citedSet[src.id] ? ' fact-item--cited' : ' fact-item--uncited');
+        if (idx >= FACTS_VISIBLE) { li.hidden = true; extraItems.push(li); }
+
+        var text = document.createElement('div');
+        text.className = 'fact-text';
+        text.textContent = src.statement || '';
+        li.appendChild(text);
+
+        var idLine = document.createElement('div');
+        idLine.className = 'fact-id';
+        var idParts = [];
+        if (src.id) idParts.push(src.id);
+        if (src.score != null) idParts.push(formatScore(src.score));
+        idLine.textContent = idParts.join('  ·  ');
+        li.appendChild(idLine);
+
+        list.appendChild(li);
+      });
+
+      frag.appendChild(list);
+
+      if (extraItems.length) {
+        var moreLink = document.createElement('a');
+        moreLink.href = '#';
+        moreLink.className = 'show-more-link';
+        moreLink.textContent = 'Show ' + extraItems.length + ' more';
+        moreLink.addEventListener('click', function (e) {
+          e.preventDefault();
+          extraItems.forEach(function (li) { li.hidden = false; });
+          moreLink.parentNode.removeChild(moreLink);
+        });
+        frag.appendChild(moreLink);
+      }
     }
+
+    var divider = document.createElement('div');
+    divider.className = 'facts-divider';
+    frag.appendChild(divider);
+
+    var summaryHeading = document.createElement('div');
+    summaryHeading.className = 'summary-heading';
+    summaryHeading.textContent = 'Summary';
+    frag.appendChild(summaryHeading);
+
+    var summaryText = document.createElement('p');
+    summaryText.className = 'summary-text';
+    summaryText.textContent = data.answer || '';
+    frag.appendChild(summaryText);
 
     if (data.note) {
       var noteP = document.createElement('p');
@@ -508,46 +581,12 @@
       frag.appendChild(noteP);
     }
 
-    if (data.sources && data.sources.length) {
-      var label = document.createElement('div');
-      label.className = 'sources-label';
-      label.textContent = 'Sources';
-      frag.appendChild(label);
-
-      data.sources.forEach(function (src) {
-        var row = document.createElement('div');
-        row.className = 'source-row';
-
-        var meta2 = document.createElement('div');
-        meta2.className = 'source-meta';
-        var idSpan = document.createElement('span');
-        idSpan.className = 'source-id';
-        idSpan.textContent = src.id || '';
-        meta2.appendChild(idSpan);
-        if (src.bid_id) {
-          var bidSpan = document.createElement('span');
-          bidSpan.className = 'source-bid';
-          bidSpan.textContent = src.bid_id;
-          meta2.appendChild(bidSpan);
-        }
-        if (src.score != null) {
-          var scoreSpan = document.createElement('span');
-          scoreSpan.className = 'source-score';
-          scoreSpan.textContent = formatScore(src.score);
-          meta2.appendChild(scoreSpan);
-        }
-        row.appendChild(meta2);
-
-        var stmt = document.createElement('div');
-        stmt.className = 'source-statement';
-        stmt.textContent = src.statement || '';
-        stmt.addEventListener('click', function () {
-          stmt.classList.toggle('expanded');
-        });
-        row.appendChild(stmt);
-
-        frag.appendChild(row);
-      });
+    var secs = formatSeconds(data.ms);
+    if (secs && data.model) {
+      var meta = document.createElement('p');
+      meta.className = 'answer-meta';
+      meta.textContent = 'Answered in ' + secs + 's with ' + data.model + '.';
+      frag.appendChild(meta);
     }
 
     return frag;
@@ -570,15 +609,7 @@
   }
   function addToHistory(question, data) {
     var list = readHistory();
-    list.unshift({
-      q: question,
-      answer: data.answer || '',
-      abstain: !!data.abstain,
-      model: data.model,
-      ms: data.ms,
-      note: data.note || '',
-      sources: data.sources || []
-    });
+    list.unshift({ q: question, response: data });
     if (list.length > 20) list = list.slice(0, 20);
     writeHistory(list);
     renderHistory();
@@ -603,10 +634,9 @@
       det.appendChild(sum);
       var body = document.createElement('div');
       body.className = 'history-body';
-      body.appendChild(buildAnswerBody({
-        answer: item.answer, abstain: item.abstain, model: item.model,
-        ms: item.ms, note: item.note, sources: item.sources
-      }));
+      // Older cached history entries stored flat fields instead of the whole response; fall back gracefully.
+      var resp = item.response || item;
+      body.appendChild(buildAnswerBody(resp));
       det.appendChild(body);
       container.appendChild(det);
     });
