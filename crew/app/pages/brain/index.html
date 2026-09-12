@@ -309,6 +309,12 @@
     white-space: pre-wrap; word-wrap: break-word;
   }
   .summary-text--pending { color: var(--fg2); font-style: italic; }
+  .type-caret {
+    display: inline-block; width: 2px; height: 1em; margin-left: 1px;
+    background: currentColor; vertical-align: text-bottom;
+    animation: caret-blink .85s steps(1) infinite;
+  }
+  @keyframes caret-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
   .answer-meta { font-size: 12.5px; color: var(--fg3); margin: 8px 0 0; }
   .facts-sublabel { font-size: 12.5px; font-style: italic; color: var(--fg3); margin: 0 0 10px; }
 
@@ -491,7 +497,7 @@
   body.big .empty-title { font-size: 28px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .send-btn, .suggest-chip, .topic-chip, .facts-details summary::before, .pulse, .mic-btn--listening {
+    .send-btn, .suggest-chip, .topic-chip, .facts-details summary::before, .pulse, .mic-btn--listening, .type-caret {
       transition: none !important; animation: none !important;
     }
   }
@@ -1934,10 +1940,140 @@
       best: state.best, answer: state.answer, query_used: state.query_used
     }, question);
     liveSummaryEl = el.querySelector('#live-summary-text');
+    // The card was just rebuilt, so any previous caret node is gone with it.
+    typeCaretEl = null;
+    if (reduceMotion) {
+      typeShown = typeTarget.length;
+      if (liveSummaryEl) liveSummaryEl.textContent = typeTarget;
+    } else {
+      typeRenderFrame();
+    }
   }
-  function updateStreamingSummary(text) {
-    if (liveSummaryEl) liveSummaryEl.textContent = text;
+
+  // ================= Typewriter drain (smooth display regardless of arrival pattern) =================
+  // typeTarget = full text received so far; typeShown = chars currently displayed. A
+  // requestAnimationFrame loop (setInterval fallback) advances typeShown toward typeTarget each
+  // frame, closing whatever backlog exists — smooth when tokens trickle in, quick to catch up when
+  // a tunnel delivers a burst. Reduced-motion users get the text immediately, no drain.
+  var reduceMotion = false;
+  try { reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+
+  var typeTarget = '';
+  var typeShown = 0;
+  var typeFastMode = false;
+  var typeRunning = false;
+  var typeRafId = null;
+  var typeTimerId = null;
+  var typeCaretEl = null;
+  var typeOnDrain = null; // fired once when fully caught up while in fast (post-"done") mode
+
+  function typeCancelSchedule() {
+    if (typeRafId !== null) { cancelAnimationFrame(typeRafId); typeRafId = null; }
+    if (typeTimerId !== null) { clearTimeout(typeTimerId); typeTimerId = null; }
+  }
+  function typeShowCaret() {
+    if (!liveSummaryEl) return;
+    if (!typeCaretEl) {
+      typeCaretEl = document.createElement('span');
+      typeCaretEl.className = 'type-caret';
+    }
+    if (typeCaretEl.parentNode !== liveSummaryEl) liveSummaryEl.appendChild(typeCaretEl);
+  }
+  function typeHideCaret() {
+    if (typeCaretEl && typeCaretEl.parentNode) typeCaretEl.parentNode.removeChild(typeCaretEl);
+  }
+  function typeRenderFrame() {
+    if (!liveSummaryEl) return;
+    liveSummaryEl.textContent = typeTarget.slice(0, typeShown);
+    if (typeShown < typeTarget.length || !typeFastMode) typeShowCaret();
+    else typeHideCaret();
     scrollToBottomIfSticking();
+  }
+  function typeTick() {
+    var backlog = typeTarget.length - typeShown;
+    if (backlog > 0) {
+      var step = typeFastMode ? Math.max(4, Math.ceil(backlog / 6)) : Math.max(1, Math.ceil(backlog / 20));
+      typeShown = Math.min(typeTarget.length, typeShown + step);
+    }
+    typeRenderFrame();
+    if (typeShown >= typeTarget.length) {
+      typeRunning = false;
+      if (typeFastMode && typeOnDrain) {
+        var cb = typeOnDrain;
+        typeOnDrain = null;
+        cb();
+      }
+      return;
+    }
+    if (typeof requestAnimationFrame === 'function') typeRafId = requestAnimationFrame(typeTick);
+    else typeTimerId = setTimeout(typeTick, 30);
+  }
+  function typeStartLoop() {
+    if (typeRunning) return;
+    typeRunning = true;
+    if (typeof requestAnimationFrame === 'function') typeRafId = requestAnimationFrame(typeTick);
+    else typeTimerId = setTimeout(typeTick, 30);
+  }
+  function typeStopLoop() {
+    typeCancelSchedule();
+    typeRunning = false;
+  }
+  function typeReset() {
+    typeStopLoop();
+    typeTarget = '';
+    typeShown = 0;
+    typeFastMode = false;
+    typeOnDrain = null;
+    typeHideCaret();
+    typeCaretEl = null;
+  }
+  // Called on each {"type":"token"} — sets the new target and makes sure the drain loop is
+  // running; it does NOT write textContent directly (that's what caused the on-phone bursts).
+  function updateStreamingSummary(text) {
+    typeTarget = text;
+    if (!liveSummaryEl) return;
+    if (reduceMotion) {
+      typeShown = typeTarget.length;
+      liveSummaryEl.textContent = typeTarget;
+      scrollToBottomIfSticking();
+      return;
+    }
+    typeStartLoop();
+  }
+  // Called on {"type":"done"}: switches to the fast drain rate, finishes the visible text, then
+  // (only then) hands off to finishAnswer — capped at 1200ms so a stalled frame never hangs the UI.
+  function finishAfterDrain(question, state, mode) {
+    var finalText = state.answer || '';
+    if (reduceMotion || !liveSummaryEl) {
+      typeStopLoop();
+      typeTarget = finalText;
+      typeShown = finalText.length;
+      if (liveSummaryEl) liveSummaryEl.textContent = finalText;
+      typeHideCaret();
+      finishAnswer(question, state, mode, { mode: 'stream' });
+      return;
+    }
+    typeFastMode = true;
+    typeTarget = finalText;
+    var finished = false;
+    var deadline = setTimeout(function () {
+      if (finished) return;
+      finished = true;
+      typeOnDrain = null;
+      typeStopLoop();
+      typeShown = typeTarget.length;
+      typeRenderFrame();
+      typeHideCaret();
+      finishAnswer(question, state, mode, { mode: 'stream' });
+    }, 1200);
+    typeOnDrain = function () {
+      if (finished) return;
+      finished = true;
+      clearTimeout(deadline);
+      typeHideCaret();
+      finishAnswer(question, state, mode, { mode: 'stream' });
+    };
+    typeStartLoop();
   }
 
   // ================= History (header dialog: past questions, tap to re-insert) =================
@@ -2173,6 +2309,7 @@
     var gotDone = false;
     streamSpeechDone = false;
     speechPendingBuf = '';
+    typeReset();
 
     function shouldSpeak() { return hasSynth && voiceOnFor(lastAskedByVoice); }
 
@@ -2208,9 +2345,11 @@
         setWaiting(false);
         hideThinking();
         checkHealth();
-        finishAnswer(question, state, mode, { mode: 'stream' });
+        finishAfterDrain(question, state, mode);
       } else if (obj.type === 'error') {
         clearTimeout(hardTimer);
+        typeStopLoop();
+        typeHideCaret();
         setWaiting(false);
         hideThinking();
         checkHealth();
@@ -2223,10 +2362,13 @@
         if (chunk.done) {
           if (!gotDone) {
             clearTimeout(hardTimer);
+            typeStopLoop();
+            typeHideCaret();
             setWaiting(false);
             hideThinking();
             checkHealth();
             if (gotFacts) {
+              if (liveSummaryEl) liveSummaryEl.textContent = state.answer;
               finishAnswer(question, state, mode, { mode: 'stream' });
             } else {
               showError('generic', function () { submitQuestion({ overrideQuestion: question, askedByVoice: opts && opts.askedByVoice }); });
@@ -2242,6 +2384,8 @@
       }).catch(function (err) {
         if (gotDone) return;
         clearTimeout(hardTimer);
+        typeStopLoop();
+        typeHideCaret();
         setWaiting(false);
         hideThinking();
         checkHealth();
