@@ -171,6 +171,7 @@
   .btn-orange:disabled { opacity: .6; }
 
   /* ---- Thinking ---- */
+  .summary-text--pending { color: var(--fg2); font-style: italic; }
   .thinking-title { margin: 0; font-weight: 700; font-size: 16px; color: var(--fg1); }
   .thinking-elapsed { margin: 6px 0 0; font-size: 13.5px; color: var(--fg2); }
   .thinking-note { margin: 8px 0 0; font-size: 13.5px; color: var(--fg2); }
@@ -570,8 +571,16 @@
     frag.appendChild(summaryHeading);
 
     var summaryText = document.createElement('p');
-    summaryText.className = 'summary-text';
-    summaryText.textContent = data.answer || '';
+    summaryText.className = 'summary-text' + (data.pending ? ' summary-text--pending' : '');
+    if (data.pending) {
+      summaryText.textContent = 'Writing the summary';
+      var dots = document.createElement('span');
+      dots.className = 'pulse';
+      dots.innerHTML = '&hellip;';
+      summaryText.appendChild(dots);
+    } else {
+      summaryText.textContent = data.answer || '';
+    }
     frag.appendChild(summaryText);
 
     if (data.note) {
@@ -693,6 +702,25 @@
       body: JSON.stringify({ question: question, code: getCode() })
     };
     if (controller) opts.signal = controller.signal;
+
+    // Phase 1: the facts alone come back in under a second. Show them right away so nobody waits on
+    // the model to read; the summary fills in when phase 2 finishes.
+    var factsShown = false;
+    fetch(url + '/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question, code: getCode(), facts_only: true })
+    })
+      .then(function (res) { return res.status === 200 ? res.json() : null; })
+      .then(function (data) {
+        if (waiting && data && data.ok && data.sources && data.sources.length) {
+          factsShown = true;
+          hideThinking();
+          data.pending = true;
+          renderAnswer(data);
+        }
+      })
+      .catch(function () {});
 
     fetch(url + '/ask', opts)
       .then(function (res) {

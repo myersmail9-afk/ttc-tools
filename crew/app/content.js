@@ -36,7 +36,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-11.7",
+    version: "2026-09-11.8",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
