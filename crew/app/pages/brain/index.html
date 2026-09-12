@@ -1545,11 +1545,21 @@
   function scrollToBottomIfSticking() {
     if (stickToBottom) scrollEl.scrollTop = scrollEl.scrollHeight;
   }
+  // While the summary is typing, follow the END OF THE VISIBLE TEXT (the caret) rather than the
+  // page bottom — the sources block below it can be tall (even collapsed-but-growing-list-wise it
+  // isn't), so "stick to page bottom" was dragging the typing text out of view on a phone. Still a
+  // no-op the moment the user has scrolled away from the bottom.
+  function scrollCaretIntoView() {
+    if (!stickToBottom) return;
+    var target = typeCaretEl || liveSummaryEl;
+    if (target && target.scrollIntoView) target.scrollIntoView({ block: 'nearest' });
+  }
   function setMode(mode) {
     scrollEl.setAttribute('data-mode', mode);
   }
 
   var currentRespEl = null;
+  var currentTurnEl = null;
 
   function startTurn(question) {
     setMode('chat');
@@ -1567,6 +1577,7 @@
     turn.appendChild(resp);
     threadEl.appendChild(turn);
     currentRespEl = resp;
+    currentTurnEl = turn;
     stickToBottom = true;
     scrollToBottomIfSticking();
     return resp;
@@ -1898,24 +1909,39 @@
       }
       frag.appendChild(liveP);
 
-      var divider = document.createElement('div');
-      divider.className = 'facts-divider';
-      frag.appendChild(divider);
+      if (data.streaming) {
+        // Same collapsed "Sources · N facts" <details> the FINISHED card uses (see the `finished`
+        // branch above) so the swap on {"type":"done"} is visually a no-op — nothing that was
+        // expanded during streaming has to collapse out from under the caret.
+        if (sources.length) {
+          var streamDet = document.createElement('details');
+          streamDet.className = 'facts-details';
+          var streamSum = document.createElement('summary');
+          streamSum.textContent = 'Sources · ' + sources.length + (sources.length === 1 ? ' fact' : ' facts');
+          streamDet.appendChild(streamSum);
+          streamDet.appendChild(buildFactsList(sources, cited));
+          frag.appendChild(streamDet);
+        }
+      } else {
+        var divider = document.createElement('div');
+        divider.className = 'facts-divider';
+        frag.appendChild(divider);
 
-      var fHeading = document.createElement('div');
-      fHeading.className = 'answer-meta' + (data.abstain ? '' : '');
-      if (data.abstain) fHeading.className = 'abstain-heading';
-      fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : 'Sources';
-      frag.appendChild(fHeading);
+        var fHeading = document.createElement('div');
+        fHeading.className = 'answer-meta' + (data.abstain ? '' : '');
+        if (data.abstain) fHeading.className = 'abstain-heading';
+        fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : 'Sources';
+        frag.appendChild(fHeading);
 
-      if (data.abstain) {
-        var sub = document.createElement('p');
-        sub.className = 'facts-sublabel';
-        sub.textContent = 'Closest facts (below the confidence bar)';
-        frag.appendChild(sub);
+        if (data.abstain) {
+          var sub = document.createElement('p');
+          sub.className = 'facts-sublabel';
+          sub.textContent = 'Closest facts (below the confidence bar)';
+          frag.appendChild(sub);
+        }
+
+        if (sources.length) frag.appendChild(buildFactsList(sources, cited));
       }
-
-      if (sources.length) frag.appendChild(buildFactsList(sources, cited));
     }
 
     return frag;
@@ -1947,6 +1973,13 @@
       if (liveSummaryEl) liveSummaryEl.textContent = typeTarget;
     } else {
       typeRenderFrame();
+    }
+    // The card was just created (or replaced) — make sure its top (the question bubble) is
+    // visible once, rather than whatever "stick to bottom" left scrolled to (which, on a phone,
+    // can be past the summary once the collapsed sources line is present). Subsequent growth of
+    // the typed text is followed by scrollCaretIntoView(), not this.
+    if (stickToBottom && currentTurnEl && currentTurnEl.scrollIntoView) {
+      currentTurnEl.scrollIntoView({ block: 'start' });
     }
   }
 
@@ -1987,7 +2020,7 @@
     liveSummaryEl.textContent = typeTarget.slice(0, typeShown);
     if (typeShown < typeTarget.length || !typeFastMode) typeShowCaret();
     else typeHideCaret();
-    scrollToBottomIfSticking();
+    scrollCaretIntoView();
   }
   function typeTick() {
     var backlog = typeTarget.length - typeShown;
@@ -2035,7 +2068,7 @@
     if (reduceMotion) {
       typeShown = typeTarget.length;
       liveSummaryEl.textContent = typeTarget;
-      scrollToBottomIfSticking();
+      scrollCaretIntoView();
       return;
     }
     typeStartLoop();
