@@ -10,6 +10,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>Crew Emergency Contacts — TTC Crew</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,20 +30,82 @@
     --bg-alt:  #f4f0ea;
     --bg-dark: #2a3a25;
     --card:    #ffffff;
+    --raised:  #f4f0ea;
 
-    --fg1:        #1a1a1a;
-    --fg2:        #555555;
+    --fg1:        #1f2419;
+    --fg2:        #5a5f55;
     --fg3:        #888888;
     --fg-on-dark: #f9f6f2;
 
-    --border:         rgba(0,0,0,0.12);
-    --border-soft:    rgba(0,0,0,0.07);
+    --border:         rgba(42,58,37,.14);
+    --border-soft:    rgba(42,58,37,.08);
     --border-on-dark: rgba(255,255,255,0.18);
 
     --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
     --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
     --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
     --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+    --glass-bg:        rgba(255,255,255,.72);
+    --glass-bg-soft:   rgba(255,255,255,.55);
+    --glass-bg-strong: rgba(255,255,255,.90);
+    --glass-border:    rgba(255,255,255,.75);
+    --glass-highlight: rgba(255,255,255,.7);
+    --topbar-bg:       rgba(42,58,37,.86);
+    --overlay-grad: linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:      #141714;
+      --bg-alt:  #1a1f19;
+      --card:    #1e231d;
+      --raised:  #262c25;
+      --fg1:        #f1eee7;
+      --fg2:        #b9bcb2;
+      --fg3:        #8b9086;
+      --border:         rgba(249,246,242,.14);
+      --border-soft:    rgba(249,246,242,.08);
+      --ttc-orange:     #e0782f;
+      --ttc-orange-dk:  #b8621f;
+      --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+      --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+      --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+      --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+      --glass-bg:        rgba(38,44,37,.72);
+      --glass-bg-soft:   rgba(38,44,37,.55);
+      --glass-bg-strong: rgba(30,35,29,.92);
+      --glass-border:    rgba(249,246,242,.14);
+      --glass-highlight: rgba(255,255,255,.08);
+      --topbar-bg:       rgba(15,18,14,.90);
+      --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:      #141714;
+    --bg-alt:  #1a1f19;
+    --card:    #1e231d;
+    --raised:  #262c25;
+    --fg1:        #f1eee7;
+    --fg2:        #b9bcb2;
+    --fg3:        #8b9086;
+    --border:         rgba(249,246,242,.14);
+    --border-soft:    rgba(249,246,242,.08);
+    --ttc-orange:     #e0782f;
+    --ttc-orange-dk:  #b8621f;
+    --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+    --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+    --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+    --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+    --glass-bg:        rgba(38,44,37,.72);
+    --glass-bg-soft:   rgba(38,44,37,.55);
+    --glass-bg-strong: rgba(30,35,29,.92);
+    --glass-border:    rgba(249,246,242,.14);
+    --glass-highlight: rgba(255,255,255,.08);
+    --topbar-bg:       rgba(15,18,14,.90);
+    --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
   }
 
   * { box-sizing: border-box; }
@@ -62,7 +125,7 @@
     z-index: -1;
     pointer-events: none;
     background-image:
-      linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
+      var(--overlay-grad),
       url('../../assets/photos/ttc-0137.jpg');
     background-size: cover;
     background-position: center 28%;
@@ -84,7 +147,7 @@
     display: flex; align-items: center;
     height: calc(56px + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
-    background: rgba(42,58,37,.86);
+    background: var(--topbar-bg);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     color: var(--fg-on-dark);
   }
@@ -108,17 +171,17 @@
 
   /* ---- Glass card (shared look) ---- */
   .glass-card {
-    background: rgba(255,255,255,.72);
+    background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid rgba(255,255,255,.75);
+    border: 1px solid var(--glass-border);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 var(--glass-highlight);
   }
   @supports not (backdrop-filter: blur(1px)) {
-    .glass-card { background: rgba(255,255,255,.92); }
+    .glass-card { background: var(--glass-bg-strong); }
   }
 
   /* ---- Code gate ---- */
@@ -169,17 +232,17 @@
   .contact-list { margin: 0 0 4px; }
 
   .c-row {
-    background: rgba(255,255,255,.72);
+    background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid rgba(255,255,255,.75);
+    border: 1px solid var(--glass-border);
     border-radius: 14px;
     margin-bottom: 8px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 6px 16px rgba(42,58,37,.10), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 6px 16px rgba(42,58,37,.10), inset 0 1px 0 var(--glass-highlight);
     overflow: hidden;
   }
   @supports not (backdrop-filter: blur(1px)) {
-    .c-row { background: rgba(255,255,255,.92); }
+    .c-row { background: var(--glass-bg-strong); }
   }
 
   .c-row-head {
@@ -226,7 +289,7 @@
     display: flex; align-items: center; justify-content: center; gap: 6px;
     min-height: 44px; min-width: 110px; padding: 0 14px;
     border-radius: 12px; border: 1px solid var(--border);
-    background: rgba(255,255,255,.55); color: var(--fg1);
+    background: var(--glass-bg-soft); color: var(--fg1);
     font-weight: 600; font-size: 13.5px; font-family: inherit;
     transition: transform .16s ease-out;
   }

@@ -10,6 +10,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>TTC Crew</title>
 
 <link rel="manifest" href="manifest.json">
@@ -38,20 +39,82 @@
     --bg-alt:  #f4f0ea;
     --bg-dark: #2a3a25;
     --card:    #ffffff;
+    --raised:  #f4f0ea;
 
-    --fg1:        #1a1a1a;
-    --fg2:        #555555;
+    --fg1:        #1f2419;
+    --fg2:        #5a5f55;
     --fg3:        #888888;
     --fg-on-dark: #f9f6f2;
 
-    --border:         rgba(0,0,0,0.12);
-    --border-soft:    rgba(0,0,0,0.07);
+    --border:         rgba(42,58,37,.14);
+    --border-soft:    rgba(42,58,37,.08);
     --border-on-dark: rgba(255,255,255,0.18);
 
     --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
     --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
     --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
     --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+    --glass-bg:        rgba(255,255,255,.72);
+    --glass-bg-soft:   rgba(255,255,255,.55);
+    --glass-bg-strong: rgba(255,255,255,.90);
+    --glass-border:    rgba(255,255,255,.75);
+    --glass-highlight: rgba(255,255,255,.7);
+    --topbar-bg:       rgba(42,58,37,.86);
+    --overlay-grad: linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:      #141714;
+      --bg-alt:  #1a1f19;
+      --card:    #1e231d;
+      --raised:  #262c25;
+      --fg1:        #f1eee7;
+      --fg2:        #b9bcb2;
+      --fg3:        #8b9086;
+      --border:         rgba(249,246,242,.14);
+      --border-soft:    rgba(249,246,242,.08);
+      --ttc-orange:     #e0782f;
+      --ttc-orange-dk:  #b8621f;
+      --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+      --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+      --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+      --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+      --glass-bg:        rgba(38,44,37,.72);
+      --glass-bg-soft:   rgba(38,44,37,.55);
+      --glass-bg-strong: rgba(30,35,29,.92);
+      --glass-border:    rgba(249,246,242,.14);
+      --glass-highlight: rgba(255,255,255,.08);
+      --topbar-bg:       rgba(15,18,14,.90);
+      --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:      #141714;
+    --bg-alt:  #1a1f19;
+    --card:    #1e231d;
+    --raised:  #262c25;
+    --fg1:        #f1eee7;
+    --fg2:        #b9bcb2;
+    --fg3:        #8b9086;
+    --border:         rgba(249,246,242,.14);
+    --border-soft:    rgba(249,246,242,.08);
+    --ttc-orange:     #e0782f;
+    --ttc-orange-dk:  #b8621f;
+    --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+    --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+    --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+    --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+    --glass-bg:        rgba(38,44,37,.72);
+    --glass-bg-soft:   rgba(38,44,37,.55);
+    --glass-bg-strong: rgba(30,35,29,.92);
+    --glass-border:    rgba(249,246,242,.14);
+    --glass-highlight: rgba(255,255,255,.08);
+    --topbar-bg:       rgba(15,18,14,.90);
+    --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
   }
 
   * { box-sizing: border-box; }
@@ -72,7 +135,7 @@
     z-index: -1;
     pointer-events: none;
     background-image:
-      linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
+      var(--overlay-grad),
       var(--page-photo, url('assets/photos/ttc-0137.jpg'));
     background-size: cover;
     background-position: center 28%;
@@ -117,7 +180,7 @@
   .gate-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); text-align: center; color: var(--fg-on-dark); }
   .gate-badge { width: 96px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); margin-bottom: 10px; }
   .gate-title { font-weight: 700; font-size: 26px; margin: 0 0 22px; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
-  .gate-card { width: 100%; max-width: 420px; background: rgba(255,255,255,.78); -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; padding: 22px 18px; box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.16); color: var(--fg1); text-align: center; }
+  .gate-card { width: 100%; max-width: 420px; background: var(--glass-bg-strong); -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); border: 1px solid var(--glass-border); border-radius: 20px; padding: 22px 18px; box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.16); color: var(--fg1); text-align: center; }
   .gate-card h2 { font-size: 19px; margin: 0 0 6px; }
   .gate-card p { font-size: 14px; color: var(--fg2); margin: 0 0 16px; line-height: 1.5; }
   .gate-input { width: 100%; height: 56px; border-radius: 14px; border: 1px solid var(--border); font-size: 24px; letter-spacing: .06em; text-align: center; font-family: inherit; background: var(--card); color: var(--fg1); }
@@ -145,7 +208,7 @@
   .brain-btn {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     width: 100%; min-height: 56px; border-radius: 18px;
-    background: rgba(255,255,255,.55);
+    background: var(--glass-bg-soft);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
     border: 1px solid rgba(74,103,65,.45); color: var(--ttc-green);
@@ -154,7 +217,7 @@
     transition: box-shadow .16s ease-out, transform .16s ease-out;
   }
   @supports not (backdrop-filter: blur(1px)) {
-    .brain-btn { background: rgba(255,255,255,.92); }
+    .brain-btn { background: var(--glass-bg-strong); }
   }
   .brain-btn:active { transform: translateY(1px); box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.14); }
   .brain-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
@@ -165,7 +228,7 @@
     display: flex; align-items: center;
     height: calc(56px + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
-    background: rgba(42,58,37,.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--fg-on-dark);
+    background: var(--topbar-bg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--fg-on-dark);
   }
   .topbar-back {
     display: flex; align-items: center; justify-content: center;
@@ -226,21 +289,21 @@
     position: relative;
     display: flex; flex-direction: column; align-items: center; text-align: center;
     min-height: 132px;
-    background: rgba(255,255,255,.42);
+    background: var(--glass-bg-soft);
     -webkit-backdrop-filter: blur(18px) saturate(1.25);
     backdrop-filter: blur(16px) saturate(1.25);
-    border: 1px solid rgba(255,255,255,.75);
+    border: 1px solid var(--glass-border);
     border-radius: 20px;
     padding: 20px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 var(--glass-highlight);
     transition: box-shadow .16s ease-out, transform .16s ease-out;
   }
   @supports not (backdrop-filter: blur(1px)) {
-    .card { background: rgba(255,255,255,.86); }
+    .card { background: var(--glass-bg-strong); }
   }
   .card:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.12), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.12), inset 0 1px 0 var(--glass-highlight);
   }
   .card-icon { margin-bottom: 12px; }
   .card-icon svg { width: 44px; height: 44px; }
@@ -265,12 +328,12 @@
     display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
     margin: 6px 0 18px;
     padding: 20px 18px 18px;
-    background: rgba(255,255,255,.72);
+    background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid rgba(255,255,255,.75);
+    border: 1px solid var(--glass-border);
     border-radius: 20px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 var(--glass-highlight);
   }
   .cat-head-plate {
     display: flex; align-items: center; justify-content: center;
@@ -297,16 +360,16 @@
 
   /* ---- Tiles ---- */
   .tile {
-    background: rgba(255,255,255,.72);
+    background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid rgba(255,255,255,.75);
+    border: 1px solid var(--glass-border);
     border-radius: 18px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 var(--glass-highlight);
     overflow: hidden;
   }
-  @supports not (backdrop-filter: blur(1px)) { .tile { background: rgba(255,255,255,.92); } }
+  @supports not (backdrop-filter: blur(1px)) { .tile { background: var(--glass-bg-strong); } }
   .tile-main {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 14px 16px; min-height: 56px;
@@ -361,12 +424,58 @@
   @media (prefers-reduced-motion: reduce) {
     .tile-main, .card, .tile, .emergency-btn, .brain-btn { transition: none !important; }
   }
+
+  /* ---- Theme toggle (fixed, every screen: home, category, gate) ---- */
+  .theme-fab {
+    position: fixed; top: calc(10px + env(safe-area-inset-top)); right: 12px; z-index: 20;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(20,23,20,.4); border: 1px solid rgba(255,255,255,.22);
+    color: var(--fg-on-dark); cursor: pointer; padding: 0;
+  }
+  .theme-fab svg { width: 19px; height: 19px; display: block; }
+  @media (prefers-reduced-motion: reduce) { .theme-fab { transition: none !important; } }
 </style>
 </head>
 <body>
 <div class="app" id="app"></div>
 
 <div class="update-bar" id="update-bar" hidden>New version available. Tap to reload.</div>
+
+<button type="button" class="theme-fab" id="theme-fab" aria-label="Theme: system. Tap to change." title="Theme: system"></button>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'ttc-theme';
+  var ICONS = {
+    system: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 3.7a8.3 8.3 0 0 1 0 16.6z" fill="currentColor" stroke="none"/></svg>',
+    dark:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.3A8.4 8.4 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>',
+    light:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2 12h2.6M19.4 12H22M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>'
+  };
+  var LABEL = { system: 'system', dark: 'dark', light: 'light' };
+  var btn = document.getElementById('theme-fab');
+  function getStored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function apply(mode) {
+    if (mode === 'light' || mode === 'dark') document.documentElement.setAttribute('data-theme', mode);
+    else document.documentElement.removeAttribute('data-theme');
+    if (!btn) return;
+    btn.innerHTML = ICONS[mode || 'system'];
+    btn.title = 'Theme: ' + LABEL[mode || 'system'];
+    btn.setAttribute('aria-label', 'Theme: ' + LABEL[mode || 'system'] + '. Tap to change.');
+  }
+  var current = getStored();
+  apply(current);
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var order = [null, 'dark', 'light'];
+      var idx = order.indexOf(current);
+      current = order[(idx + 1) % order.length];
+      try { if (current) localStorage.setItem(KEY, current); else localStorage.removeItem(KEY); } catch (e) {}
+      apply(current);
+    });
+  }
+})();
+</script>
 
 <script src="content.js"></script>
 <script>

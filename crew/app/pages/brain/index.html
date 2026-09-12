@@ -12,11 +12,20 @@
   logging, topic chips, and readability controls (big text, collapsed facts). The server
   contract is documented inline near doAsk()/consumeStream(). If the server hasn't shipped the
   streaming endpoint yet, a plain application/json response is detected and handled the old way.
+
+  2026-09-12 (later): redesigned as a chat interface (ChatGPT/Claude/Gemini style) with a
+  light/dark theme system shared across the crew app. Empty state = centered greeting + composer
+  + suggestion chips; once a question is asked the view switches to a scrolling thread with a
+  bottom-docked composer. About + History moved into header dialogs. All prior JS mechanics
+  (streaming reader, two-phase facts, conversation memory, voice in/out + hands-free, feedback
+  POST, topic chips, big-text toggle, abstain call button, history storage) are preserved —
+  only where they render changed.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>David's Brain — TTC Crew</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,31 +45,99 @@
     --bg-alt:  #f4f0ea;
     --bg-dark: #2a3a25;
     --card:    #ffffff;
+    --raised:  #f4f0ea;
 
-    --fg1:        #1a1a1a;
-    --fg2:        #555555;
+    --fg1:        #1f2419;
+    --fg2:        #5a5f55;
     --fg3:        #888888;
     --fg-on-dark: #f9f6f2;
 
-    --border:         rgba(0,0,0,0.12);
-    --border-soft:    rgba(0,0,0,0.07);
+    --border:         rgba(42,58,37,.14);
+    --border-soft:    rgba(42,58,37,.08);
     --border-on-dark: rgba(255,255,255,0.18);
 
     --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
     --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
     --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
     --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+    --glass-bg:        rgba(255,255,255,.72);
+    --glass-bg-soft:   rgba(255,255,255,.55);
+    --glass-bg-strong: rgba(255,255,255,.90);
+    --glass-border:    rgba(255,255,255,.75);
+    --glass-highlight: rgba(255,255,255,.7);
+    --topbar-bg:       rgba(42,58,37,.86);
+    --overlay-grad: linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%);
+    --page-overlay-grad: linear-gradient(to bottom, rgba(249,246,242,.85) 0%, rgba(249,246,242,.65) 100%);
+    --answer-plate-bg: rgba(255,255,255,.82);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:      #141714;
+      --bg-alt:  #1a1f19;
+      --card:    #1e231d;
+      --raised:  #262c25;
+      --fg1:        #f1eee7;
+      --fg2:        #b9bcb2;
+      --fg3:        #8b9086;
+      --border:         rgba(249,246,242,.14);
+      --border-soft:    rgba(249,246,242,.08);
+      --ttc-orange:     #e0782f;
+      --ttc-orange-dk:  #b8621f;
+      --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+      --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+      --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+      --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+      --glass-bg:        rgba(38,44,37,.72);
+      --glass-bg-soft:   rgba(38,44,37,.55);
+      --glass-bg-strong: rgba(30,35,29,.92);
+      --glass-border:    rgba(249,246,242,.14);
+      --glass-highlight: rgba(255,255,255,.08);
+      --topbar-bg:       rgba(15,18,14,.90);
+      --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+      --page-overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+      --answer-plate-bg: rgba(30,35,29,.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:      #141714;
+    --bg-alt:  #1a1f19;
+    --card:    #1e231d;
+    --raised:  #262c25;
+    --fg1:        #f1eee7;
+    --fg2:        #b9bcb2;
+    --fg3:        #8b9086;
+    --border:         rgba(249,246,242,.14);
+    --border-soft:    rgba(249,246,242,.08);
+    --ttc-orange:     #e0782f;
+    --ttc-orange-dk:  #b8621f;
+    --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+    --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+    --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+    --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+    --glass-bg:        rgba(38,44,37,.72);
+    --glass-bg-soft:   rgba(38,44,37,.55);
+    --glass-bg-strong: rgba(30,35,29,.92);
+    --glass-border:    rgba(249,246,242,.14);
+    --glass-highlight: rgba(255,255,255,.08);
+    --topbar-bg:       rgba(15,18,14,.90);
+    --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+    --page-overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+    --answer-plate-bg: rgba(30,35,29,.55);
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; height: 100%; }
   body {
     background: var(--bg);
     color: var(--fg1);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-text-size-adjust: 100%;
     position: relative;
-    min-height: 100vh;
+    overflow: hidden;
   }
   body::before {
     content: '';
@@ -68,9 +145,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-image:
-      linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%),
-      url('../../assets/photos/ttc-0137.jpg');
+    background-image: var(--page-overlay-grad), url('../../assets/photos/ttc-0137.jpg');
     background-size: cover;
     background-position: center 28%;
     background-repeat: no-repeat;
@@ -83,195 +158,161 @@
     outline-offset: 2px;
   }
 
-  .wrap { max-width: 640px; margin: 0 auto; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .shell {
+    max-width: 640px; margin: 0 auto;
+    height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
 
   /* ---- Top bar ---- */
   .topbar {
-    position: sticky; top: 0; z-index: 10;
+    flex: 0 0 auto;
+    position: relative; z-index: 10;
     display: flex; align-items: center;
     height: calc(56px + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
-    background: rgba(42,58,37,.86);
+    background: var(--topbar-bg);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     color: var(--fg-on-dark);
   }
   .topbar-back {
     display: flex; align-items: center; justify-content: center;
-    width: 48px; height: 56px; flex-shrink: 0; color: var(--fg-on-dark);
+    width: 44px; height: 56px; flex-shrink: 0; color: var(--fg-on-dark);
   }
   .topbar-back svg { width: 22px; height: 22px; }
-  .topbar-brain { vertical-align: -5px; margin-right: 6px; }
+  .topbar-brain { vertical-align: -5px; margin-right: 6px; flex-shrink: 0; }
   .topbar-title {
-    flex: 1; font-weight: 600; font-size: 17px;
+    flex: 1; min-width: 0; font-weight: 600; font-size: 15.5px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: center;
   }
-  .topbar-actions { display: flex; align-items: center; gap: 2px; margin-right: 10px; flex-shrink: 0; }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: var(--warn-border); margin-left: 8px;
+  }
+  .status-dot--awake { background: var(--success-border); }
+  .topbar-actions { display: flex; align-items: center; gap: 0; flex-shrink: 0; padding-right: 6px; }
   .icon-btn {
     display: flex; align-items: center; justify-content: center;
     width: 36px; height: 36px; flex-shrink: 0;
     border: none; border-radius: 50%; background: transparent;
     color: var(--fg-on-dark); cursor: pointer;
   }
-  .icon-btn svg { width: 19px; height: 19px; }
+  .icon-btn svg { width: 18px; height: 18px; }
   .icon-btn[aria-pressed="true"] { background: rgba(255,255,255,.22); }
   .icon-btn[hidden] { display: none; }
-  .icon-btn--text { font-weight: 700; font-size: 13px; }
-  .status-pill {
-    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-    font-size: 12px; font-weight: 600;
-    background: rgba(255,255,255,.16); color: var(--fg-on-dark);
-    padding: 6px 10px 6px 8px; border-radius: 999px; margin-right: 14px;
-    white-space: nowrap;
-  }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--warn-border); }
-  .status-dot--awake { background: var(--success-border); }
+  .icon-btn--text { font-weight: 700; font-size: 12.5px; }
 
-  main { padding: 20px 20px 8px; }
+  /* ---- Scroll region (holds either the empty state or the thread) ---- */
+  #scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    padding: 0 18px;
+  }
+  #scroll[data-mode="empty"] {
+    justify-content: center;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  #scroll[data-mode="empty"] #empty-head   { order: 1; display: block; }
+  #scroll[data-mode="empty"] #composer-dock{ order: 2; position: static; background: transparent; box-shadow: none; padding: 0; }
+  #scroll[data-mode="empty"] #suggest-wrap { order: 3; display: block; }
+  #scroll[data-mode="empty"] #thread       { display: none; }
+  #scroll[data-mode="empty"] #new-topic-link { display: none; }
 
-  /* ---- Glass card (shared look) ---- */
-  .glass-card {
-    background: rgba(255,255,255,.72);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid rgba(255,255,255,.75);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.14), inset 0 1px 0 rgba(255,255,255,.7);
+  #scroll[data-mode="chat"] {
+    padding-top: 18px;
+    padding-bottom: 168px;
   }
-  @supports not (backdrop-filter: blur(1px)) {
-    .glass-card { background: rgba(255,255,255,.92); }
+  #scroll[data-mode="chat"] #empty-head,
+  #scroll[data-mode="chat"] #suggest-wrap { display: none; }
+  #scroll[data-mode="chat"] #thread { display: block; }
+  #scroll[data-mode="chat"] #composer-dock {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+    margin: 0 auto; max-width: 640px;
+    background: linear-gradient(to top, var(--bg) 65%, rgba(0,0,0,0));
+    padding: 14px 18px calc(12px + env(safe-area-inset-bottom));
   }
 
-  /* ---- Intro card ---- */
-  .intro-card summary {
-    cursor: pointer;
-    list-style: none;
-    display: flex; align-items: center;
-    min-height: 28px;
-    font-weight: 700; font-size: 16px; color: var(--fg1);
+  /* ---- Empty-state greeting ---- */
+  .empty-head {
+    text-align: center; padding: 16px 18px; margin-bottom: 6px;
+    background: var(--answer-plate-bg); border: 1px solid var(--border); border-radius: 16px;
   }
-  .intro-card summary::-webkit-details-marker { display: none; }
-  .intro-card summary::before {
-    content: '▸'; display: inline-block; margin-right: 8px; color: var(--ttc-orange);
-    transition: transform .16s ease-out;
-  }
-  .intro-card[open] summary::before { transform: rotate(90deg); }
-  .intro-text { font-size: 14px; line-height: 1.55; color: var(--fg2); margin: 12px 0 0; }
-  .chip-row { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-  .chip {
-    display: flex; align-items: center; text-align: left;
-    width: 100%; min-height: 52px; padding: 10px 14px; border-radius: 14px;
-    border: 1px solid var(--border); background: rgba(255,255,255,.55);
-    color: var(--fg1); font-size: 14px; line-height: 1.35; cursor: pointer;
-  }
-  .chip:active { background: rgba(255,255,255,.8); }
+  .empty-title { font-weight: 600; font-size: 26px; margin: 0 0 8px; color: var(--fg1); }
+  .empty-sub { font-size: 14.5px; line-height: 1.5; color: var(--fg2); margin: 0; }
 
-  /* ---- Topics card ---- */
-  .topics-card[hidden] { display: none; }
-  .topic-theme { margin-bottom: 16px; }
-  .topic-theme:last-child { margin-bottom: 0; }
-  .topic-theme-title {
-    font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em;
-    font-weight: 700; color: var(--ttc-orange); margin: 0 0 8px;
-  }
-  .topic-row {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .topic-row::-webkit-scrollbar { display: none; }
-  .topic-chip {
-    flex: 0 0 auto; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* ---- Suggestion chips (empty state, under composer) ---- */
+  .suggest-wrap { padding: 18px 0 6px; }
+  .suggest-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .suggest-chip {
     padding: 9px 14px; border-radius: 999px; border: 1px solid var(--border);
-    background: rgba(255,255,255,.6); color: var(--fg1); font-size: 13.5px; cursor: pointer;
+    background: var(--card); color: var(--fg1); font-size: 13.5px; cursor: pointer;
+    max-width: 100%;
   }
-  .topic-chip:active { background: rgba(255,255,255,.85); }
-  .show-topics-link, .new-topic-link {
-    display: block; text-align: center; margin: 4px 0 16px; font-size: 13px;
+  .suggest-chip:active { background: var(--raised); }
+  .more-topics-link {
+    display: block; text-align: center; margin: 10px 0 0; font-size: 13px;
     color: var(--fg2); text-decoration: underline; cursor: pointer;
   }
-  .show-topics-link[hidden], .new-topic-link[hidden] { display: none; }
+  .topics-expanded { margin-top: 14px; }
+  .topics-expanded[hidden] { display: none; }
+  .topic-theme { margin-bottom: 14px; }
+  .topic-theme-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+    font-weight: 700; color: var(--ttc-orange); margin: 0 0 8px; text-align: center;
+  }
+  .topic-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .topic-chip {
+    padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--card); color: var(--fg1); font-size: 13px; cursor: pointer;
+  }
+  .topic-chip:active { background: var(--raised); }
 
-  /* ---- Ask box ---- */
-  .ask-card { padding: 16px; }
-  .question-input {
-    width: 100%; resize: none; overflow-y: hidden;
-    min-height: 76px; max-height: 132px;
-    border-radius: 14px; border: 1px solid var(--border);
-    background: var(--card); color: var(--fg1);
-    font-size: 16px; line-height: 1.4; padding: 14px 14px;
+  /* ---- Thread (conversation state) ---- */
+  .thread { display: none; }
+  .turn { margin-bottom: 28px; }
+  .turn-user { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+  .bubble {
+    max-width: 82%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px 18px 4px 18px; padding: 10px 16px;
+    font-size: 15px; line-height: 1.45; color: var(--fg1); white-space: pre-wrap; word-wrap: break-word;
   }
-  .ask-row { display: flex; align-items: stretch; gap: 10px; margin-top: 12px; }
-  .btn-orange {
-    display: flex; align-items: center; justify-content: center;
-    width: 100%; min-height: 56px;
-    border: none; border-radius: 14px; cursor: pointer;
-    background: var(--ttc-orange); color: var(--fg-on-dark);
-    font-weight: 700; font-size: 16px; font-family: inherit;
-    transition: background-color .16s ease-out, transform .16s ease-out;
+  .turn-resp {
+    color: var(--fg1); background: var(--answer-plate-bg); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 18px;
   }
-  .ask-row .btn-orange { flex: 1; margin-top: 0; }
-  .btn-orange:active { background: var(--ttc-orange-dk); transform: translateY(1px); }
-  .btn-orange:disabled { opacity: .6; }
-  .mic-btn {
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--border);
-    background: var(--card); color: var(--fg2); cursor: pointer;
-  }
-  .mic-btn svg { width: 22px; height: 22px; }
-  .mic-btn[hidden] { display: none; }
-  .mic-btn--listening { background: var(--ttc-orange); color: #fff; border-color: var(--ttc-orange); animation: mic-pulse 1.1s ease-in-out infinite; }
-  .mic-btn--error { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
-  @keyframes mic-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,96,26,.35); } 50% { box-shadow: 0 0 0 8px rgba(201,96,26,0); } }
-  .listening-pill {
-    display: flex; align-items: center; gap: 8px; justify-content: center;
-    margin-top: 10px; padding: 8px 14px; border-radius: 999px;
-    background: rgba(201,96,26,.12); color: var(--ttc-orange-dk);
-    font-size: 13.5px; font-weight: 600; cursor: pointer;
-  }
-  .listening-pill[hidden] { display: none; }
-  .level-meter {
-    display: inline-block; width: 46px; height: 6px; border-radius: 999px;
-    background: rgba(201,96,26,.2); overflow: hidden; margin-left: 2px; flex-shrink: 0;
-  }
-  .level-meter[hidden] { display: none; }
-  .level-meter-fill { display: block; height: 100%; width: 0%; background: var(--ttc-orange-dk); }
 
-  .dictation-hint {
-    display: block; text-align: center; margin-top: 10px; font-size: 13px;
-    color: var(--fg2); text-decoration: underline; cursor: pointer;
-  }
-  .dictation-hint[hidden] { display: none; }
-
-  .voice-status-line {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    margin-top: 8px; font-size: 11.5px; color: var(--fg3);
-  }
-  .voice-status-line[hidden] { display: none; }
-  .voice-settings-link { color: var(--fg3); text-decoration: underline; }
-
-  /* ---- Thinking ---- */
-  .summary-text--pending { color: var(--fg2); font-style: italic; }
-  .thinking-title { margin: 0; font-weight: 700; font-size: 16px; color: var(--fg1); }
-  .thinking-elapsed { margin: 6px 0 0; font-size: 13.5px; color: var(--fg2); }
+  /* ---- Thinking (plain text, no card) ---- */
+  .thinking-title { margin: 0; font-weight: 600; font-size: 17px; color: var(--fg1); }
+  .thinking-elapsed { margin: 6px 0 0; font-size: 13px; color: var(--fg3); }
   .thinking-note { margin: 8px 0 0; font-size: 13.5px; color: var(--fg2); }
   .pulse { display: inline-block; }
   @keyframes pulse-dots { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
   .pulse { animation: pulse-dots 1.2s ease-in-out infinite; }
 
-  /* ---- Answer card ---- */
-  .facts-heading {
-    font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
-    font-weight: 700; color: var(--ttc-orange); margin: 0 0 10px;
-  }
-  .facts-heading--warn { color: var(--warn-text); }
-  .facts-sublabel { font-size: 12.5px; font-style: italic; color: var(--fg3); margin: -4px 0 12px; }
+  /* ---- Answer body ---- */
   .followup-badge {
     display: inline-block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
     color: var(--info-text); background: var(--info-bg); border: 1px solid var(--info-border);
     padding: 3px 8px; border-radius: 999px; margin: 0 0 10px;
   }
-  .fact-list { list-style: none; margin: 0 0 4px; padding: 0; }
+  .abstain-heading {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .05em;
+    font-weight: 700; color: var(--warn-text); margin: 0 0 10px;
+  }
+  .summary-text {
+    font-size: 17px; line-height: 1.6; color: var(--fg1); margin: 0 0 8px;
+    white-space: pre-wrap; word-wrap: break-word;
+  }
+  .summary-text--pending { color: var(--fg2); font-style: italic; }
+  .answer-meta { font-size: 12.5px; color: var(--fg3); margin: 8px 0 0; }
+  .facts-sublabel { font-size: 12.5px; font-style: italic; color: var(--fg3); margin: 0 0 10px; }
+
+  .fact-list { list-style: none; margin: 10px 0 4px; padding: 0; }
   .fact-item { position: relative; padding-left: 18px; margin-bottom: 12px; }
   .fact-item::before {
     content: ''; position: absolute; left: 0; top: 7px;
@@ -287,24 +328,17 @@
     display: inline-block; margin: 2px 0 8px 18px;
     font-size: 13px; color: var(--ttc-orange); text-decoration: underline; cursor: pointer;
   }
-  .facts-divider { border-top: 1px solid var(--border-soft); margin: 16px 0; }
-  .summary-heading {
-    font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
-    font-weight: 700; color: var(--fg3); margin: 0 0 8px;
-  }
-  .summary-text { font-size: 15px; line-height: 1.55; color: var(--fg2); margin: 0; white-space: pre-wrap; word-wrap: break-word; }
-  .answer-meta { font-size: 12.5px; color: var(--fg3); margin: 10px 0 0; }
+  .facts-divider { border-top: 1px solid var(--border-soft); margin: 14px 0; }
 
-  /* Finished answers: facts collapsed under the summary */
-  .facts-details { margin-top: 14px; }
+  /* Finished answers: facts collapsed in a disclosure */
+  .facts-details { margin-top: 12px; }
   .facts-details summary {
     cursor: pointer; list-style: none; display: flex; align-items: center;
-    font-size: 13px; font-weight: 700; color: var(--fg3);
+    font-size: 13px; font-weight: 600; color: var(--fg2);
   }
   .facts-details summary::-webkit-details-marker { display: none; }
-  .facts-details summary::before { content: '▸'; display: inline-block; margin-right: 6px; transition: transform .16s ease-out; }
+  .facts-details summary::before { content: '▸'; display: inline-block; margin-right: 6px; transition: transform .16s ease-out; color: var(--fg3); }
   .facts-details[open] summary::before { transform: rotate(90deg); }
-  .facts-details .fact-list { margin-top: 10px; }
 
   /* Feedback */
   .feedback-row { margin-top: 14px; }
@@ -312,12 +346,12 @@
   .feedback-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .feedback-chip {
     padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);
-    background: rgba(255,255,255,.6); color: var(--fg1); font-size: 13px; cursor: pointer;
+    background: var(--card); color: var(--fg1); font-size: 13px; cursor: pointer;
   }
   .feedback-done { font-size: 13px; color: var(--success-text); margin: 8px 0 0; }
 
   /* Abstain actions */
-  .abstain-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .abstain-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; max-width: 320px; }
   .abstain-call {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     min-height: 48px; border-radius: 12px; background: var(--ttc-orange); color: #fff;
@@ -325,58 +359,162 @@
   }
   .abstain-gap-link { text-align: center; font-size: 13px; color: var(--fg2); text-decoration: underline; cursor: pointer; }
 
-  /* ---- Error cards ---- */
-  .error-card p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--fg2); }
-  .error-card.error-card--tint { background: rgba(250,238,218,.75); border-color: var(--warn-border); }
-  .error-card.error-card--tint p { color: var(--warn-text); }
+  /* ---- Error block (plain box, no full card treatment) ---- */
+  .error-box {
+    background: var(--raised); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .error-box p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--fg2); }
   .error-link { display: inline-block; margin-top: 10px; font-size: 14px; color: var(--fg1); text-decoration: underline; font-weight: 600; }
   .retry-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    min-height: 48px; padding: 0 20px; margin-top: 12px;
+    min-height: 44px; padding: 0 18px; margin-top: 12px;
     border: 1px solid var(--border); border-radius: 12px;
     background: var(--card); color: var(--fg1);
     font-weight: 600; font-size: 14.5px; cursor: pointer;
   }
 
-  /* ---- History ---- */
-  .history-label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg3); font-weight: 600; margin: 22px 0 10px 4px; }
-  .history-item { padding: 0; overflow: hidden; }
-  .history-item summary {
-    cursor: pointer; list-style: none;
-    display: flex; align-items: center;
-    min-height: 56px; padding: 14px 18px;
-    font-weight: 600; font-size: 15px; color: var(--fg1);
+  /* ---- Composer ---- */
+  #composer-dock { position: relative; }
+  .composer-inner { max-width: 640px; margin: 0 auto; }
+  .listening-pill {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    margin-bottom: 8px; padding: 8px 14px; border-radius: 999px;
+    background: rgba(201,96,26,.12); color: var(--ttc-orange-dk);
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+  }
+  .listening-pill[hidden] { display: none; }
+  .level-meter {
+    display: inline-block; width: 46px; height: 6px; border-radius: 999px;
+    background: rgba(201,96,26,.2); overflow: hidden; margin-left: 2px; flex-shrink: 0;
+  }
+  .level-meter[hidden] { display: none; }
+  .level-meter-fill { display: block; height: 100%; width: 0%; background: var(--ttc-orange-dk); }
+
+  .composer-pill {
+    display: flex; align-items: flex-end; gap: 8px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 28px;
+    padding: 8px 8px 8px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .question-input {
+    flex: 1; resize: none; overflow-y: hidden; border: none; background: transparent;
+    min-height: 26px; max-height: 140px;
+    color: var(--fg1); font-size: 16px; line-height: 1.5; padding: 8px 0;
+  }
+  .question-input:focus { outline: none; }
+  .question-input::placeholder { color: var(--fg3); }
+  .mic-btn {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: transparent; color: var(--fg2); cursor: pointer;
+  }
+  .mic-btn svg { width: 20px; height: 20px; }
+  .mic-btn[hidden] { display: none; }
+  .mic-btn--listening { background: var(--ttc-orange); color: #fff; animation: mic-pulse 1.1s ease-in-out infinite; }
+  .mic-btn--error { background: var(--danger-bg); color: var(--danger-text); }
+  @keyframes mic-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,96,26,.35); } 50% { box-shadow: 0 0 0 8px rgba(201,96,26,0); } }
+  .send-btn {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--ttc-orange); color: #fff;
+    opacity: .55; transition: opacity .12s ease-out, transform .12s ease-out;
+  }
+  .send-btn svg { width: 19px; height: 19px; }
+  .send-btn.has-text { opacity: 1; }
+  .send-btn:active { transform: translateY(1px); }
+  .send-btn:disabled { opacity: .4; }
+
+  .dictation-hint {
+    display: block; text-align: center; margin-top: 10px; font-size: 13px;
+    color: var(--fg2); text-decoration: underline; cursor: pointer;
+  }
+  .dictation-hint[hidden] { display: none; }
+
+  .voice-status-line {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px; font-size: 11.5px; color: var(--fg3);
+  }
+  .voice-status-line[hidden] { display: none; }
+  .voice-settings-link { color: var(--fg3); text-decoration: underline; }
+
+  .new-topic-link {
+    display: block; text-align: center; margin-top: 10px; font-size: 12.5px;
+    color: var(--fg3); text-decoration: underline; cursor: pointer;
+  }
+  .new-topic-link[hidden] { display: none; }
+
+  /* ---- Dialogs (About / History) ---- */
+  dialog {
+    border: none; border-radius: 20px; padding: 0;
+    background: var(--card); color: var(--fg1);
+    width: min(92vw, 440px); max-height: 80vh;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  .dialog-inner { padding: 22px; max-height: 80vh; overflow-y: auto; }
+  .dialog-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; color: var(--fg1); }
+  .dialog-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: var(--raised); color: var(--fg2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  dialog { position: fixed; }
+  .about-text { font-size: 14px; line-height: 1.55; color: var(--fg2); margin: 0 0 16px; }
+  .about-status { font-size: 13px; color: var(--fg3); margin: 16px 0 0; }
+  .chip-row { display: flex; flex-direction: column; gap: 8px; }
+  .chip {
+    display: flex; align-items: center; text-align: left;
+    width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--raised);
+    color: var(--fg1); font-size: 14px; line-height: 1.35; cursor: pointer;
+  }
+  .chip:active { background: var(--border-soft); }
+
+  .history-empty { font-size: 14px; color: var(--fg2); margin: 0; }
+  .history-list { list-style: none; margin: 0; padding: 0; }
+  .history-row {
+    width: 100%; text-align: left; display: block;
+    padding: 12px 4px; border: none; border-bottom: 1px solid var(--border-soft);
+    background: transparent; color: var(--fg1); font-size: 14.5px; cursor: pointer;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .history-item summary::-webkit-details-marker { display: none; }
-  .history-item summary::before { content: '›'; display: inline-block; margin-right: 8px; color: var(--fg3); transition: transform .16s ease-out; flex-shrink: 0; }
-  .history-item[open] summary::before { transform: rotate(90deg); }
-  .history-body { padding: 0 18px 18px; }
-  .clear-history-link { display: block; text-align: center; margin-top: 8px; font-size: 13px; color: var(--fg2); text-decoration: underline; }
-
-  .footer { text-align: center; font-size: 13px; color: var(--fg3); padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .history-row:active { background: var(--raised); }
+  .clear-history-link { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--fg2); text-decoration: underline; cursor: pointer; }
 
   /* ---- Big text mode ---- */
-  body.big .summary-text { font-size: 19px; line-height: 1.6; }
+  body.big .summary-text { font-size: 19px; line-height: 1.65; }
   body.big .fact-text { font-size: 19px; line-height: 1.55; }
   body.big .question-input { font-size: 19px; }
-  body.big .topic-chip { font-size: 15px; }
-  body.big .facts-heading, body.big .summary-heading, body.big .facts-details summary { font-size: 14.5px; }
+  body.big .bubble { font-size: 17px; }
+  body.big .empty-title { font-size: 28px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn-orange, .chip, .topic-chip, .intro-card summary::before, .history-item summary::before,
-    .facts-details summary::before, .pulse, .mic-btn--listening { transition: none !important; animation: none !important; }
+    .send-btn, .suggest-chip, .topic-chip, .facts-details summary::before, .pulse, .mic-btn--listening {
+      transition: none !important; animation: none !important;
+    }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="shell" id="shell">
   <div class="topbar">
     <a class="topbar-back" href="../../" aria-label="Back">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
-    <div class="topbar-title"><svg class="topbar-brain" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5A3 3 0 0 0 6.6 6.2 3 3 0 0 0 4.4 9.6 3 3 0 0 0 4.9 14.2 3.2 3.2 0 0 0 7.2 19.5c1 .9 2.4 1 3.4.3L11 19V4.4a3 3 0 0 0-1.5-.9z"/><path d="M14.5 3.5a3 3 0 0 1 2.9 2.7 3 3 0 0 1 2.2 3.4 3 3 0 0 1-.5 4.6 3.2 3.2 0 0 1-2.3 5.3c-1 .9-2.4 1-3.4.3L13 19V4.4a3 3 0 0 1 1.5-.9z"/><path d="M11 9.5H8.5M13 9.5h2.5M11 13.5H8M13 13.5h3"/><circle cx="12" cy="11.5" r="1.2" fill="#C9601A" stroke="none"/></svg> David's Brain</div>
+    <div class="topbar-title">
+      <svg class="topbar-brain" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5A3 3 0 0 0 6.6 6.2 3 3 0 0 0 4.4 9.6 3 3 0 0 0 4.9 14.2 3.2 3.2 0 0 0 7.2 19.5c1 .9 2.4 1 3.4.3L11 19V4.4a3 3 0 0 0-1.5-.9z"/><path d="M14.5 3.5a3 3 0 0 1 2.9 2.7 3 3 0 0 1 2.2 3.4 3 3 0 0 1-.5 4.6 3.2 3.2 0 0 1-2.3 5.3c-1 .9-2.4 1-3.4.3L13 19V4.4a3 3 0 0 1 1.5-.9z"/><path d="M11 9.5H8.5M13 9.5h2.5M11 13.5H8M13 13.5h3"/><circle cx="12" cy="11.5" r="1.2" fill="#C9601A" stroke="none"/></svg>
+      <span>David's Brain</span>
+      <span class="status-dot" id="status-dot" title="Checking" aria-hidden="true"></span>
+    </div>
     <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="about-btn" aria-label="About this tool">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="history-btn" aria-label="History">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      </button>
       <button type="button" class="icon-btn" id="stop-btn" aria-label="Stop speaking" hidden>
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       </button>
@@ -384,56 +522,76 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.3 8.5a5 5 0 0 1 0 7"/><path d="M18.6 6.3a8.2 8.2 0 0 1 0 11.4"/></svg>
       </button>
       <button type="button" class="icon-btn icon-btn--text" id="bigtext-toggle-btn" aria-label="Bigger text" aria-pressed="false">Aa</button>
+      <button type="button" class="icon-btn" id="theme-toggle-btn" aria-label="Theme: system" title="Theme: system"></button>
     </div>
-    <div class="status-pill" id="status-pill"><span class="status-dot" id="status-dot"></span><span id="status-text">Checking</span></div>
   </div>
-  <main id="main">
-    <details class="glass-card intro-card" id="intro-card">
-      <summary>About this tool</summary>
-      <p class="intro-text">This answers from David's own notes and bids, and says so when it does not know. It runs on the office Mac, so it can take up to half a minute, and it sleeps when the Mac is off.</p>
-      <div class="chip-row" id="chip-row">
-        <button type="button" class="chip" data-q="How does David price stump grinding?">How does David price stump grinding?</button>
-        <button type="button" class="chip" data-q="What do we do about aphids on a linden?">What do we do about aphids on a linden?</button>
-        <button type="button" class="chip" data-q="When is the window for iron injections?">When is the window for iron injections?</button>
-      </div>
-    </details>
 
-    <div class="glass-card ask-card">
-      <textarea id="question-input" class="question-input" rows="1" placeholder="Ask about pricing, pests, or timing." aria-label="Your question"></textarea>
-      <div class="ask-row">
-        <button type="button" id="mic-btn" class="mic-btn" aria-label="Ask by voice" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M6 11a6 6 0 0 0 12 0M12 19v3"/></svg>
-        </button>
-        <button type="button" id="ask-btn" class="btn-orange">Ask</button>
-      </div>
-      <div class="dictation-hint" id="dictation-hint" tabindex="0" role="button" hidden>Tap the box and use the keyboard mic next to Ask</div>
-      <div class="voice-status-line" id="voice-status-line" hidden>
-        <span id="voice-status-text"></span>
-        <a href="#" id="voice-settings-link" class="voice-settings-link">Voice settings</a>
-      </div>
-      <div class="listening-pill" id="listening-pill" hidden>
-        <span class="pulse" id="listening-pill-dot">&#9679;</span>
-        <span id="listening-pill-text">Listening&hellip;</span>
-        <span class="level-meter" id="level-meter" hidden><span class="level-meter-fill" id="level-meter-fill"></span></span>
-      </div>
-      <a href="#" class="new-topic-link" id="new-topic-link" hidden>New topic (clear this conversation)</a>
+  <div id="scroll" data-mode="empty">
+    <div class="empty-head" id="empty-head">
+      <h1 class="empty-title">What do you need to know?</h1>
+      <p class="empty-sub">Answers come from David's own words. Ask like you'd ask him.</p>
     </div>
 
-    <div class="glass-card topics-card" id="topics-card"></div>
-    <a href="#" class="show-topics-link" id="show-topics-link" hidden>Show topics</a>
-
-    <div class="glass-card" id="thinking-card" hidden>
-      <p class="thinking-title">Thinking<span class="pulse">&hellip;</span></p>
-      <p class="thinking-elapsed" id="thinking-elapsed">0s</p>
-      <p class="thinking-note" id="thinking-note" hidden>Still working. Big questions take longer.</p>
+    <div class="composer-dock" id="composer-dock">
+      <div class="composer-inner">
+        <div class="listening-pill" id="listening-pill" hidden>
+          <span class="pulse" id="listening-pill-dot">&#9679;</span>
+          <span id="listening-pill-text">Listening&hellip;</span>
+          <span class="level-meter" id="level-meter" hidden><span class="level-meter-fill" id="level-meter-fill"></span></span>
+        </div>
+        <div class="composer-pill">
+          <textarea id="question-input" class="question-input" rows="1" placeholder="Ask David's Brain" aria-label="Your question"></textarea>
+          <button type="button" id="mic-btn" class="mic-btn" aria-label="Ask by voice" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M6 11a6 6 0 0 0 12 0M12 19v3"/></svg>
+          </button>
+          <button type="button" id="ask-btn" class="send-btn" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+          </button>
+        </div>
+        <div class="dictation-hint" id="dictation-hint" tabindex="0" role="button" hidden>Tap the box and use the keyboard mic next to Ask</div>
+        <div class="voice-status-line" id="voice-status-line" hidden>
+          <span id="voice-status-text"></span>
+          <a href="#" id="voice-settings-link" class="voice-settings-link">Voice settings</a>
+        </div>
+        <a href="#" class="new-topic-link" id="new-topic-link" hidden>New topic (clear this conversation)</a>
+      </div>
     </div>
 
-    <div id="error-container"></div>
-    <div id="answer-container"></div>
-    <div id="history-container"></div>
-  </main>
-  <div class="footer">Answers come from David's own bids and notes. Not a substitute for his sign-off on price or scope.</div>
+    <div class="suggest-wrap" id="suggest-wrap">
+      <div class="suggest-row" id="suggest-row"></div>
+      <a href="#" class="more-topics-link" id="more-topics-link">More topics</a>
+      <div class="topics-expanded" id="topics-expanded" hidden></div>
+    </div>
+
+    <div class="thread" id="thread"></div>
+  </div>
 </div>
+
+<dialog id="about-dialog">
+  <div class="dialog-inner">
+    <button type="button" class="dialog-close" id="about-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <div class="dialog-title">About this tool</div>
+    <p class="about-text">This answers from David's own notes and bids, and says so when it does not know. It runs on the office Mac, so it can take up to half a minute, and it sleeps when the Mac is off. Not a substitute for David's sign-off on price or scope.</p>
+    <div class="chip-row" id="chip-row">
+      <button type="button" class="chip" data-q="How does David price stump grinding?">How does David price stump grinding?</button>
+      <button type="button" class="chip" data-q="What do we do about aphids on a linden?">What do we do about aphids on a linden?</button>
+      <button type="button" class="chip" data-q="When is the window for iron injections?">When is the window for iron injections?</button>
+    </div>
+    <p class="about-status" id="about-status-text">Checking&hellip;</p>
+  </div>
+</dialog>
+
+<dialog id="history-dialog">
+  <div class="dialog-inner">
+    <button type="button" class="dialog-close" id="history-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <div class="dialog-title">Recent questions</div>
+    <div id="history-body"></div>
+  </div>
+</dialog>
 
 <script>
 (function () {
@@ -442,11 +600,10 @@
   var CODE_KEY = 'ttc-crew-code';
   var ENDPOINT_CACHE_KEY = 'ttc-brain-endpoint';
   var HISTORY_KEY = 'ttc-brain-history';
-  var INTRO_KEY = 'ttc-brain-intro-collapsed';
   var VOICE_KEY = 'ttc-brain-voice';
   var BIGTEXT_KEY = 'ttc-brain-bigtext';
   var TURNS_KEY = 'ttc-brain-turns';
-  var TOPICS_SEEN_KEY = 'ttc-brain-topics-seen';
+  var THEME_KEY = 'ttc-theme';
   var HARD_TIMEOUT_MS = 120000;
   var THINKING_NOTE_MS = 20000;
   var OFFICE_PHONE = '+14357521884';
@@ -459,6 +616,35 @@
     try { return localStorage.getItem(CODE_KEY) || ''; } catch (e) { return ''; }
   }
   function normalizeQ(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+
+  // ================= Theme toggle (system -> dark -> light -> system) =================
+  (function () {
+    var btn = $('theme-toggle-btn');
+    if (!btn) return;
+    var ICONS = {
+      system: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 3.7a8.3 8.3 0 0 1 0 16.6z" fill="currentColor" stroke="none"/></svg>',
+      dark:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.3A8.4 8.4 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>',
+      light:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2 12h2.6M19.4 12H22M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>'
+    };
+    var LABEL = { system: 'system', dark: 'dark', light: 'light' };
+    function getStored() { try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; } }
+    function apply(mode) {
+      if (mode === 'light' || mode === 'dark') document.documentElement.setAttribute('data-theme', mode);
+      else document.documentElement.removeAttribute('data-theme');
+      btn.innerHTML = ICONS[mode || 'system'];
+      btn.title = 'Theme: ' + LABEL[mode || 'system'];
+      btn.setAttribute('aria-label', 'Theme: ' + LABEL[mode || 'system'] + '. Tap to change.');
+    }
+    var current = getStored();
+    apply(current);
+    btn.addEventListener('click', function () {
+      var order = [null, 'dark', 'light'];
+      var idx = order.indexOf(current);
+      current = order[(idx + 1) % order.length];
+      try { if (current) localStorage.setItem(THEME_KEY, current); else localStorage.removeItem(THEME_KEY); } catch (e) {}
+      apply(current);
+    });
+  })();
 
   // ================= Topics ("What the crew can ask today") =================
   var TOPICS = [
@@ -553,13 +739,21 @@
     ] }
   ];
 
-  function buildTopicsCard() {
-    var card = $('topics-card');
+  function buildSuggestRow() {
+    var row = $('suggest-row');
+    clear(row);
+    TOPICS.slice(0, 6).forEach(function (group) {
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'suggest-chip';
+      chip.textContent = group.qs[0];
+      chip.setAttribute('data-q', group.qs[0]);
+      row.appendChild(chip);
+    });
+  }
+  function buildTopicsExpanded() {
+    var card = $('topics-expanded');
     clear(card);
-    var heading = document.createElement('div');
-    heading.className = 'facts-heading';
-    heading.textContent = 'What the crew can ask';
-    card.appendChild(heading);
     TOPICS.forEach(function (group) {
       var wrap = document.createElement('div');
       wrap.className = 'topic-theme';
@@ -581,28 +775,32 @@
       card.appendChild(wrap);
     });
   }
-  function topicsSeen() {
-    try { return sessionStorage.getItem(TOPICS_SEEN_KEY) === '1'; } catch (e) { return false; }
-  }
-  function markTopicsSeen() {
-    try { sessionStorage.setItem(TOPICS_SEEN_KEY, '1'); } catch (e) {}
-  }
-  function showTopicsCard(show) {
-    $('topics-card').hidden = !show;
-    $('show-topics-link').hidden = show;
-  }
+  buildSuggestRow();
+  // The grouped "More topics" list is built from the same TOPICS data as the 6 suggestion
+  // chips, but is only ever mounted into the DOM while expanded — otherwise it would sit
+  // alongside the suggestion row as hidden duplicate buttons with identical labels/text,
+  // which confuses assistive tech and any DOM-based test.
 
-  buildTopicsCard();
-  showTopicsCard(!topicsSeen());
-  $('topics-card').addEventListener('click', function (e) {
-    var btn = e.target.closest ? e.target.closest('.topic-chip') : null;
+  function onTopicClick(e) {
+    var btn = e.target.closest ? e.target.closest('.suggest-chip,.topic-chip') : null;
     if (!btn) return;
     questionInput.value = btn.getAttribute('data-q') || '';
     submitQuestion({ askedByVoice: false });
-  });
-  $('show-topics-link').addEventListener('click', function (e) {
+  }
+  $('suggest-row').addEventListener('click', onTopicClick);
+  $('topics-expanded').addEventListener('click', onTopicClick);
+  $('more-topics-link').addEventListener('click', function (e) {
     e.preventDefault();
-    showTopicsCard(true);
+    var panel = $('topics-expanded');
+    var expanding = panel.hidden;
+    if (expanding) {
+      buildTopicsExpanded();
+      panel.hidden = false;
+    } else {
+      panel.hidden = true;
+      clear(panel);
+    }
+    this.textContent = expanding ? 'Fewer topics' : 'More topics';
   });
 
   // ================= Endpoint resolution =================
@@ -625,20 +823,24 @@
       });
   }
 
-  // ================= Status pill =================
+  // ================= Status (dot in header + line in the About dialog) =================
   function setPill(state, facts) {
     var dot = $('status-dot');
-    var text = $('status-text');
+    var about = $('about-status-text');
     if (state === 'checking') {
       dot.className = 'status-dot';
-      text.textContent = 'Checking';
+      dot.title = 'Checking';
+      if (about) about.textContent = 'Checking…';
     } else if (state === 'awake') {
       dot.className = 'status-dot status-dot--awake';
       var count = (typeof facts === 'number') ? facts.toLocaleString() : facts;
-      text.textContent = count ? ('Awake, ' + count + ' facts') : 'Awake';
+      var text = count ? ('Awake, ' + count + ' facts') : 'Awake';
+      dot.title = text;
+      if (about) about.textContent = text;
     } else {
       dot.className = 'status-dot';
-      text.textContent = 'Asleep';
+      dot.title = 'Asleep';
+      if (about) about.textContent = "Asleep — the office Mac is off or offline.";
     }
   }
 
@@ -657,40 +859,48 @@
     });
   }
 
-  // ================= Intro card (collapses after first use) =================
-  var introCard = $('intro-card');
-  (function () {
-    var collapsed = false;
-    try { collapsed = localStorage.getItem(INTRO_KEY) === '1'; } catch (e) {}
-    introCard.open = !collapsed;
-  })();
-  function collapseIntro() {
-    introCard.open = false;
-    try { localStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+  // ================= About / History dialogs =================
+  function openDialog(dlg) {
+    if (dlg.showModal) { try { dlg.showModal(); return; } catch (e) {} }
+    dlg.setAttribute('open', '');
   }
+  function closeDialog(dlg) {
+    if (dlg.close) { try { dlg.close(); return; } catch (e) {} }
+    dlg.removeAttribute('open');
+  }
+  var aboutDialog = $('about-dialog');
+  var historyDialog = $('history-dialog');
+  $('about-btn').addEventListener('click', function () { openDialog(aboutDialog); });
+  $('about-close').addEventListener('click', function () { closeDialog(aboutDialog); });
+  $('history-btn').addEventListener('click', function () { renderHistory(); openDialog(historyDialog); });
+  $('history-close').addEventListener('click', function () { closeDialog(historyDialog); });
 
   $('chip-row').addEventListener('click', function (e) {
     var btn = e.target.closest ? e.target.closest('.chip') : null;
-    if (!btn && e.target.className === 'chip') btn = e.target;
     if (!btn) return;
     var q = btn.getAttribute('data-q') || '';
-    var input = $('question-input');
-    input.value = q;
-    autoGrow(input);
-    input.focus();
+    closeDialog(aboutDialog);
+    questionInput.value = q;
+    autoGrow(questionInput);
+    questionInput.focus();
   });
 
   // ================= Textarea auto-grow =================
   var questionInput = $('question-input');
+  var askBtn = $('ask-btn');
   function autoGrow(el) {
     el.style.height = 'auto';
-    var max = 132;
+    var max = 140;
     var h = Math.min(el.scrollHeight, max);
     el.style.height = h + 'px';
     el.style.overflowY = (el.scrollHeight > max) ? 'auto' : 'hidden';
   }
+  function updateSendState() {
+    askBtn.classList.toggle('has-text', !!(questionInput.value || '').trim());
+  }
   questionInput.addEventListener('input', function () {
     autoGrow(questionInput);
+    updateSendState();
     // Dictation path only: after the "Dictate" affordance armed the watch, auto-submit once the
     // keyboard-mic-typed text stops changing for a beat. Normal typing never arms this, so it
     // never auto-submits outside that flow.
@@ -714,6 +924,7 @@
       submitQuestion({ askedByVoice: false });
     }
   });
+  updateSendState();
 
   // ================= Big text toggle =================
   var bigBtn = $('bigtext-toggle-btn');
@@ -1015,6 +1226,7 @@
       for (var i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
       questionInput.value = text;
       autoGrow(questionInput);
+      updateSendState();
       if (e.results[e.results.length - 1].isFinal) handleVoiceFinal(text.trim());
     };
     r.onerror = function (e) {
@@ -1316,8 +1528,45 @@
     if (handsFreeActive && !onMic && !onPill) endHandsFree();
   }, true);
 
+  // ================= Scroll region + thread + turn slots =================
+  var scrollEl = $('scroll');
+  var threadEl = $('thread');
+  var stickToBottom = true;
+  scrollEl.addEventListener('scroll', function () {
+    var threshold = 64;
+    stickToBottom = (scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight) < threshold;
+  });
+  function scrollToBottomIfSticking() {
+    if (stickToBottom) scrollEl.scrollTop = scrollEl.scrollHeight;
+  }
+  function setMode(mode) {
+    scrollEl.setAttribute('data-mode', mode);
+  }
+
+  var currentRespEl = null;
+
+  function startTurn(question) {
+    setMode('chat');
+    var turn = document.createElement('div');
+    turn.className = 'turn';
+    var userWrap = document.createElement('div');
+    userWrap.className = 'turn-user';
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = question;
+    userWrap.appendChild(bubble);
+    turn.appendChild(userWrap);
+    var resp = document.createElement('div');
+    resp.className = 'turn-resp';
+    turn.appendChild(resp);
+    threadEl.appendChild(turn);
+    currentRespEl = resp;
+    stickToBottom = true;
+    scrollToBottomIfSticking();
+    return resp;
+  }
+
   // ================= Waiting / thinking state =================
-  var askBtn = $('ask-btn');
   var waiting = false;
   var thinkingInterval = null;
   var thinkingStart = 0;
@@ -1327,26 +1576,38 @@
     askBtn.disabled = on;
     questionInput.disabled = on;
     micBtn.disabled = on;
-    askBtn.textContent = on ? 'Asking' : 'Ask';
   }
 
   function showThinking() {
-    var card = $('thinking-card');
-    var note = $('thinking-note');
+    clear(currentRespEl);
+    var title = document.createElement('p');
+    title.className = 'thinking-title';
+    title.innerHTML = 'Thinking<span class="pulse">&hellip;</span>';
+    var elapsed = document.createElement('p');
+    elapsed.className = 'thinking-elapsed';
+    elapsed.id = 'thinking-elapsed';
+    elapsed.textContent = '0s';
+    var note = document.createElement('p');
+    note.className = 'thinking-note';
+    note.id = 'thinking-note';
     note.hidden = true;
-    $('thinking-elapsed').textContent = '0s';
-    card.hidden = false;
+    note.textContent = 'Still working. Big questions take longer.';
+    currentRespEl.appendChild(title);
+    currentRespEl.appendChild(elapsed);
+    currentRespEl.appendChild(note);
     thinkingStart = Date.now();
     if (thinkingInterval) clearInterval(thinkingInterval);
     thinkingInterval = setInterval(function () {
       var secs = Math.round((Date.now() - thinkingStart) / 1000);
-      $('thinking-elapsed').textContent = secs + 's';
-      if (Date.now() - thinkingStart >= THINKING_NOTE_MS) note.hidden = false;
+      var elEl = $('thinking-elapsed');
+      if (elEl) elEl.textContent = secs + 's';
+      var noteEl = $('thinking-note');
+      if (noteEl && Date.now() - thinkingStart >= THINKING_NOTE_MS) noteEl.hidden = false;
     }, 1000);
+    scrollToBottomIfSticking();
   }
   function hideThinking() {
     if (thinkingInterval) { clearInterval(thinkingInterval); thinkingInterval = null; }
-    $('thinking-card').hidden = true;
   }
 
   // ================= Errors =================
@@ -1359,18 +1620,17 @@
     generic: 'Could not reach David\'s brain. Check your signal and try again.'
   };
 
-  function hideError() { clear($('error-container')); }
+  function hideError() {}
 
   function showError(kind, retryFn) {
-    var container = $('error-container');
-    clear(container);
-    var card = document.createElement('div');
-    card.className = 'glass-card error-card';
+    clear(currentRespEl);
+    var box = document.createElement('div');
+    box.className = 'error-box';
 
     if (kind === 'code') {
       var p1 = document.createElement('p');
       p1.textContent = "That crew code did not work with the brain. It may need to be entered again.";
-      card.appendChild(p1);
+      box.appendChild(p1);
       var link = document.createElement('a');
       link.className = 'error-link';
       link.href = '../../';
@@ -1378,21 +1638,22 @@
       link.addEventListener('click', function () {
         try { localStorage.removeItem(CODE_KEY); } catch (e) {}
       });
-      card.appendChild(link);
+      box.appendChild(link);
     } else {
       var p = document.createElement('p');
       p.textContent = ERROR_COPY[kind] || ERROR_COPY.generic;
-      card.appendChild(p);
+      box.appendChild(p);
       if (kind === 'generic' && retryFn) {
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'retry-btn';
         btn.textContent = 'Retry';
         btn.addEventListener('click', retryFn);
-        card.appendChild(btn);
+        box.appendChild(btn);
       }
     }
-    container.appendChild(card);
+    currentRespEl.appendChild(box);
+    scrollToBottomIfSticking();
   }
 
   // ================= Answer + source rendering (shared by the answer card and history) =================
@@ -1533,7 +1794,8 @@
   // Summary always renders ABOVE the facts, in every state:
   // data.pending   -> summary area shows "Writing the summary…", facts below it once known
   // data.streaming -> summary fills in live token by token, facts below it
-  // neither        -> finished answer: summary (+ meta) first, facts collapsed below it, feedback control
+  // neither        -> finished answer: summary (+ meta) first, a collapsed "Sources · N" disclosure
+  //                    below it, feedback control last (ChatGPT/Claude-style plain text, no card)
   function buildAnswerBody(data, question) {
     var frag = document.createDocumentFragment();
     var sources = data.sources || [];
@@ -1550,15 +1812,10 @@
     if (finished) {
       if (data.abstain) {
         var warnHeading = document.createElement('div');
-        warnHeading.className = 'facts-heading facts-heading--warn';
+        warnHeading.className = 'abstain-heading';
         warnHeading.textContent = 'Nothing in the brain matched well';
         frag.appendChild(warnHeading);
       }
-
-      var summaryHeading = document.createElement('div');
-      summaryHeading.className = 'summary-heading';
-      summaryHeading.textContent = 'Summary';
-      frag.appendChild(summaryHeading);
 
       var summaryText = document.createElement('p');
       summaryText.className = 'summary-text';
@@ -1573,14 +1830,14 @@
       }
 
       var metaBits = [];
-      var secs = formatSeconds(data.ms);
-      if (secs) metaBits.push('Answered in ' + secs + 's');
       var firstSecs = formatSeconds(data.first_token_ms);
-      if (firstSecs) metaBits.push('first word in ' + firstSecs + 's');
+      if (firstSecs) metaBits.push('first word ' + firstSecs + ' s');
+      var secs = formatSeconds(data.ms);
+      if (secs) metaBits.push('answered ' + secs + ' s');
       if (metaBits.length || data.model) {
         var meta = document.createElement('p');
         meta.className = 'answer-meta';
-        meta.textContent = metaBits.join(', ') + (data.model ? (' with ' + data.model + '.') : '.');
+        meta.textContent = metaBits.join(' · ') + (data.model ? ('  ·  ' + data.model) : '');
         frag.appendChild(meta);
       }
 
@@ -1588,7 +1845,7 @@
         var det = document.createElement('details');
         det.className = 'facts-details';
         var sum = document.createElement('summary');
-        sum.textContent = "From David's notes (" + sources.length + ')';
+        sum.textContent = 'Sources · ' + sources.length + (sources.length === 1 ? ' fact' : ' facts');
         det.appendChild(sum);
         det.appendChild(buildFactsList(sources, cited));
         frag.appendChild(det);
@@ -1618,15 +1875,8 @@
 
       frag.appendChild(buildFeedbackControl(question, data));
     } else {
-      // Summary renders FIRST here too (2026-09-12 layout change): it fills token by token as
-      // soon as streaming starts, with the facts list appearing below it the moment the "facts"
-      // line arrives. Same elements/classes as before, just reordered — summary, then a divider,
-      // then the facts heading/sublabel/list.
-      var sHeading = document.createElement('div');
-      sHeading.className = 'summary-heading';
-      sHeading.textContent = 'Summary';
-      frag.appendChild(sHeading);
-
+      // Summary renders FIRST here too: it fills token by token as soon as streaming starts, with
+      // the facts list appearing below it the moment the "facts" line arrives.
       var liveP = document.createElement('p');
       liveP.id = 'live-summary-text';
       if (data.streaming) {
@@ -1647,8 +1897,9 @@
       frag.appendChild(divider);
 
       var fHeading = document.createElement('div');
-      fHeading.className = 'facts-heading' + (data.abstain ? ' facts-heading--warn' : '');
-      fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : "From David's notes";
+      fHeading.className = 'answer-meta' + (data.abstain ? '' : '');
+      if (data.abstain) fHeading.className = 'abstain-heading';
+      fHeading.textContent = data.abstain ? 'Nothing in the brain matched well' : 'Sources';
       frag.appendChild(fHeading);
 
       if (data.abstain) {
@@ -1667,13 +1918,10 @@
   var liveSummaryEl = null;
 
   function renderAnswer(data, question) {
-    clear($('answer-container'));
-    var card = document.createElement('div');
-    card.className = 'glass-card' + (data.abstain && !data.pending && !data.streaming ? ' error-card--tint' : '');
-    card.addEventListener('click', function () { if (speaking) cancelSpeech(); });
-    card.appendChild(buildAnswerBody(data, question));
-    $('answer-container').appendChild(card);
-    return card;
+    clear(currentRespEl);
+    currentRespEl.appendChild(buildAnswerBody(data, question));
+    scrollToBottomIfSticking();
+    return currentRespEl;
   }
 
   function renderPendingFacts(data, question) {
@@ -1681,17 +1929,18 @@
   }
 
   function renderStreamingCard(state, question) {
-    var card = renderAnswer({
+    var el = renderAnswer({
       ok: true, streaming: true, sources: state.sources, cited: [], abstain: state.abstain,
       best: state.best, answer: state.answer, query_used: state.query_used
     }, question);
-    liveSummaryEl = card.querySelector('#live-summary-text');
+    liveSummaryEl = el.querySelector('#live-summary-text');
   }
   function updateStreamingSummary(text) {
     if (liveSummaryEl) liveSummaryEl.textContent = text;
+    scrollToBottomIfSticking();
   }
 
-  // ================= History =================
+  // ================= History (header dialog: past questions, tap to re-insert) =================
   function readHistory() {
     try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { return []; }
   }
@@ -1703,34 +1952,39 @@
     list.unshift({ q: question, response: data });
     if (list.length > 20) list = list.slice(0, 20);
     writeHistory(list);
-    renderHistory();
   }
 
   function renderHistory() {
-    var container = $('history-container');
+    var container = $('history-body');
     clear(container);
     var list = readHistory();
-    if (!list.length) return;
+    if (!list.length) {
+      var empty = document.createElement('p');
+      empty.className = 'history-empty';
+      empty.textContent = "No questions yet — ask David's Brain something.";
+      container.appendChild(empty);
+      return;
+    }
 
-    var label = document.createElement('div');
-    label.className = 'history-label';
-    label.textContent = 'Recent questions';
-    container.appendChild(label);
-
+    var ul = document.createElement('ul');
+    ul.className = 'history-list';
     list.forEach(function (item) {
-      var det = document.createElement('details');
-      det.className = 'glass-card history-item';
-      var sum = document.createElement('summary');
-      sum.textContent = item.q;
-      det.appendChild(sum);
-      var body = document.createElement('div');
-      body.className = 'history-body';
-      // Older cached history entries stored flat fields instead of the whole response; fall back gracefully.
-      var resp = item.response || item;
-      body.appendChild(buildAnswerBody(resp, item.q));
-      det.appendChild(body);
-      container.appendChild(det);
+      var li = document.createElement('li');
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'history-row';
+      row.textContent = item.q;
+      row.addEventListener('click', function () {
+        closeDialog(historyDialog);
+        questionInput.value = item.q;
+        autoGrow(questionInput);
+        updateSendState();
+        questionInput.focus();
+      });
+      li.appendChild(row);
+      ul.appendChild(li);
     });
+    container.appendChild(ul);
 
     var clearLink = document.createElement('a');
     clearLink.className = 'clear-history-link';
@@ -1762,6 +2016,9 @@
     turns = [];
     writeTurns(turns);
     updateNewTopicLink();
+    clear(threadEl);
+    currentRespEl = null;
+    setMode('empty');
   }
   function updateNewTopicLink() {
     $('new-topic-link').hidden = turns.length === 0;
@@ -1783,10 +2040,10 @@
     updateVoiceBtn();
     cancelSpeech();
     hideError();
-    clear($('answer-container'));
-    collapseIntro();
-    markTopicsSeen();
-    showTopicsCard(false);
+    questionInput.value = '';
+    autoGrow(questionInput);
+    updateSendState();
+    startTurn(question);
     setWaiting(true);
     showThinking();
 
@@ -2060,7 +2317,7 @@
   updateNewTopicLink();
   updateVoiceBtn();
   checkHealth();
-  renderHistory();
+  setMode('empty');
 })();
 </script>
 </body>
