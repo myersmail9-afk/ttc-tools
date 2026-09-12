@@ -318,7 +318,7 @@
     var input = document.createElement('input');
     input.className = 'code-input';
     input.type = 'text';
-    input.inputMode = 'numeric';
+    input.autocomplete = 'off';
     input.autocomplete = 'off';
     input.setAttribute('aria-label', 'Crew code');
     card.appendChild(input);
@@ -557,7 +557,7 @@
   var RETRY_DELAYS_MS = [1500, 3000, 6000, 10000];
 
   function attemptFetch(code, attemptIndex, cb, onRetrying) {
-    var url = BASE_URL + '?format=json&k=' + encodeURIComponent(code);
+    var url = BASE_URL + '?format=json&k=' + encodeURIComponent(String(code).trim().toLowerCase());
     if (attemptIndex > 0) url += '&t=' + Date.now();
 
     fetch(url, { redirect: 'follow', credentials: 'omit' })

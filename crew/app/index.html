@@ -120,7 +120,7 @@
   .gate-card { width: 100%; max-width: 420px; background: rgba(255,255,255,.78); -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; padding: 22px 18px; box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 12px 32px rgba(42,58,37,.16); color: var(--fg1); text-align: center; }
   .gate-card h2 { font-size: 19px; margin: 0 0 6px; }
   .gate-card p { font-size: 14px; color: var(--fg2); margin: 0 0 16px; line-height: 1.5; }
-  .gate-input { width: 100%; height: 56px; border-radius: 14px; border: 1px solid var(--border); font-size: 24px; letter-spacing: .2em; text-align: center; font-family: inherit; background: var(--card); color: var(--fg1); }
+  .gate-input { width: 100%; height: 56px; border-radius: 14px; border: 1px solid var(--border); font-size: 24px; letter-spacing: .06em; text-align: center; font-family: inherit; background: var(--card); color: var(--fg1); }
   .gate-btn { width: 100%; height: 56px; margin-top: 12px; border: 0; border-radius: 14px; background: var(--ttc-orange); color: #fff; font-size: 17px; font-weight: 700; font-family: inherit; }
   .gate-btn[disabled] { opacity: .6; }
   .gate-msg { margin-top: 12px; font-size: 14px; color: var(--danger-text); background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 12px; padding: 10px 12px; }
@@ -934,7 +934,7 @@
     var h2 = document.createElement('h2'); h2.textContent = 'Enter the crew code';
     var p = document.createElement('p'); p.textContent = 'Ask Joseph or David for it. This phone remembers it after the first time.';
     var form = document.createElement('form');
-    var input = document.createElement('input'); input.className = 'gate-input'; input.type = 'text'; input.inputMode = 'numeric'; input.autocomplete = 'one-time-code'; input.maxLength = 8; input.setAttribute('aria-label', 'Crew code');
+    var input = document.createElement('input'); input.className = 'gate-input'; input.type = 'text'; input.autocomplete = 'off'; input.setAttribute('autocapitalize','none'); input.spellcheck = false; input.maxLength = 24; input.setAttribute('aria-label', 'Crew code');
     var btn = document.createElement('button'); btn.className = 'gate-btn'; btn.type = 'submit'; btn.textContent = 'Open the App';
     var msg = document.createElement('div'); msg.className = 'gate-msg quiet'; msg.hidden = true;
     form.appendChild(input); form.appendChild(btn);
@@ -944,7 +944,7 @@
     setTimeout(function () { try { input.focus(); } catch (e) {} }, 50);
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
-      var code = input.value.trim();
+      var code = input.value.trim().toLowerCase();
       if (!code) return;
       btn.disabled = true; btn.textContent = 'Checking';
       msg.className = 'gate-msg quiet'; msg.hidden = false; msg.textContent = 'One moment.';
