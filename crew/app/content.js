@@ -36,7 +36,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-11.6",
+    version: "2026-09-11.7",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
@@ -49,6 +49,12 @@ window.TTC_CONTENT = {
       sheetHref: "https://docs.google.com/spreadsheets/u/0/d/1soPoRlkpGhM4rb2Xb3E8e-Q_BiGhDhwpxGSAhSblgvw/edit",
       sheetLabel: "Open the sheet"
     }
+  },
+
+  brain: {
+    label: "David's Brain",
+    desc: "Answers from David's notes, with sources",
+    href: "pages/brain/"
   },
 
   sections: [

@@ -141,6 +141,23 @@
     display: block; text-align: center; margin-top: 8px;
     font-size: 13px; color: var(--danger-text); text-decoration: underline;
   }
+  /* ---- Ask the brain (single wide button, themed green) ---- */
+  .brain-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 56px; border-radius: 18px;
+    background: rgba(255,255,255,.55);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(74,103,65,.45); color: var(--ttc-green);
+    font-weight: 700; font-size: 17px; font-family: inherit;
+    box-shadow: 0 1px 2px rgba(42,58,37,.06), 0 8px 24px rgba(42,58,37,.10);
+    transition: box-shadow .16s ease-out, transform .16s ease-out;
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .brain-btn { background: rgba(255,255,255,.92); }
+  }
+  .brain-btn:active { transform: translateY(1px); box-shadow: 0 1px 1px rgba(42,58,37,.06), 0 4px 14px rgba(42,58,37,.14); }
+  .brain-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
 
   /* ---- Top bar (category view) ---- */
   .topbar {
@@ -342,7 +359,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile-main, .card, .tile, .emergency-btn { transition: none !important; }
+    .tile-main, .card, .tile, .emergency-btn, .brain-btn { transition: none !important; }
   }
 </style>
 </head>
@@ -479,6 +496,21 @@
       s.appendChild(strokePath('M11 4.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z'));
       s.appendChild(strokePath('M15.8 15.8l4.2 4.2'));
       return s;
+    },
+    brain: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M9.5 3.5A3 3 0 0 0 6.6 6.2 3 3 0 0 0 4.4 9.6 3 3 0 0 0 4.9 14.2 3.2 3.2 0 0 0 7.2 19.5c1 .9 2.4 1 3.4.3L11 19V4.4a3 3 0 0 0-1.5-.9z'));
+      s.appendChild(strokePath('M14.5 3.5a3 3 0 0 1 2.9 2.7 3 3 0 0 1 2.2 3.4 3 3 0 0 1-.5 4.6 3.2 3.2 0 0 1-2.3 5.3c-1 .9-2.4 1-3.4.3L13 19V4.4a3 3 0 0 1 1.5-.9z'));
+      s.appendChild(strokePath('M11 9.5H8.5M13 9.5h2.5M11 13.5H8M13 13.5h3'));
+      s.appendChild(fillShape('circle', { cx: '12', cy: '11.5', r: '1.2' }));
+      return s;
+    },
+    tree: function () {
+      var s = baseSvg();
+      s.appendChild(strokePath('M12 3L5.5 14h13z'));
+      s.appendChild(strokePath('M12 14V21'));
+      s.appendChild(fillShape('circle', { cx: '12', cy: '8.3', r: '1.3' }));
+      return s;
     }
   };
   function icon(name, extraClass) {
@@ -613,6 +645,30 @@
     return section;
   }
 
+  function buildBrainButton() {
+    var section = document.createElement('section');
+    section.setAttribute('aria-label', 'Ask the brain');
+    section.className = 'emergency';
+    if (content && content.brain) {
+      var b = content.brain;
+      var a = document.createElement('a');
+      a.className = 'brain-btn';
+      a.href = b.href;
+      if (!/^http/i.test(a.getAttribute('href') || '')) {
+        // In-app page: open in the same window (no target, no rel).
+      } else {
+        a.target = '_blank';
+        a.rel = 'noopener';
+      }
+      a.appendChild(icon('brain'));
+      var label = document.createElement('span');
+      label.textContent = b.label;
+      a.appendChild(label);
+      section.appendChild(a);
+    }
+    return section;
+  }
+
   function buildFooter(opts) {
     var footer = document.createElement('footer');
     footer.className = 'footer';
@@ -737,6 +793,7 @@
 
 
     app.appendChild(buildEmergencyButton());
+    app.appendChild(buildBrainButton());
 
     var main = document.createElement('main');
     main.id = 'main';
@@ -909,19 +966,21 @@
   // contacts script so a wrong code is refused, then remembered in localStorage.
   var CODE_KEY = 'ttc-crew-code';
   var CODE_CHECK_URL = 'https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec';
+  // The front-door check is LOCAL and instant (no network, works offline): the code is compared
+  // against a SHA-256 digest. This is a Level 1 gate for the app's own pages; the contacts data
+  // and the brain API check the real code server-side on every request.
+  var CODE_DIGEST = '311fe3feed16b9cd8df0f8b1517be5cb86048707df4889ba8dc37d4d68866d02';
+  function sha256Hex(str) {
+    var enc = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    });
+  }
   function checkCode(code, attempt, done) {
-    var delays = [1500, 3000, 6000];
-    fetch(CODE_CHECK_URL + '?format=json&k=' + encodeURIComponent(code) + '&t=' + Date.now(), { redirect: 'follow', credentials: 'omit' })
-      .then(function (r) { return r.text(); })
-      .then(function (txt) {
-        var d = null; try { d = JSON.parse(txt); } catch (e) {}
-        if (!d || typeof d.ok !== 'boolean') throw new Error('bad-response');
-        done(d.ok ? 'ok' : (d.error === 'code' ? 'wrong' : 'ok'));
-      })
-      .catch(function () {
-        if (attempt < delays.length) setTimeout(function () { checkCode(code, attempt + 1, done); }, delays[attempt]);
-        else done('offline');
-      });
+    try {
+      if (!(window.crypto && crypto.subtle)) { done(code === 'yolo' ? 'ok' : 'wrong'); return; }
+      sha256Hex(code).then(function (hex) { done(hex === CODE_DIGEST ? 'ok' : 'wrong'); }).catch(function () { done('offline'); });
+    } catch (e) { done('offline'); }
   }
   function ensureCrewCode(next) {
     var saved = null; try { saved = localStorage.getItem(CODE_KEY); } catch (e) {}
@@ -957,7 +1016,7 @@
           msg.className = 'gate-msg'; msg.textContent = 'That code did not match. Try again.';
         } else {
           btn.disabled = false; btn.textContent = 'Open the App';
-          msg.className = 'gate-msg'; msg.textContent = 'Could not check the code. Check your signal and try again.';
+          msg.className = 'gate-msg'; msg.textContent = 'Could not check the code on this phone. Try again.';
         }
       });
     });

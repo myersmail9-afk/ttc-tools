@@ -99,6 +99,12 @@
   }
 
   main { padding: 20px 20px 8px; }
+  main.contacts-main { padding: 10px 14px 8px; }
+
+  /* ---- Contacts hint line ---- */
+  .contacts-hint {
+    margin: 0 2px 10px; font-size: 12px; line-height: 1.4; color: var(--fg2);
+  }
 
   /* ---- Glass card (shared look) ---- */
   .glass-card {
@@ -140,8 +146,8 @@
 
   /* ---- Status line ---- */
   .status-line {
-    text-align: center; font-size: 13px; color: var(--fg2);
-    margin: 0 0 14px;
+    text-align: center; font-size: 11.5px; color: var(--fg2);
+    margin: 0 0 8px;
   }
   .status-line.status-warn { color: var(--warn-text); }
 
@@ -159,29 +165,75 @@
     margin: 10px 0 0; font-size: 13px; color: var(--fg2); text-align: center;
   }
 
-  /* ---- Contact card ---- */
-  .contact-card { padding: 18px; }
-  .contact-name { font-weight: 600; font-size: 18px; color: var(--fg1); margin: 0 0 12px; }
-  .call-row { margin-bottom: 14px; }
-  .call-row:last-child { margin-bottom: 0; }
-  .call-row-label { font-size: 12px; color: var(--fg3); margin: 0 0 6px; }
-  .call-row-name { font-size: 14.5px; color: var(--fg1); margin: 0 0 2px; font-weight: 600; }
-  .call-row-rel { font-size: 13px; color: var(--fg3); margin: 0 0 8px; }
-  .call-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; min-height: 56px; border-radius: 14px;
-    font-weight: 700; font-size: 16px; font-family: inherit;
+  /* ---- Contact list (compact rows) ---- */
+  .contact-list { margin: 0 0 4px; }
+
+  .c-row {
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,.75);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 2px rgba(42,58,37,.08), 0 6px 16px rgba(42,58,37,.10), inset 0 1px 0 rgba(255,255,255,.7);
+    overflow: hidden;
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .c-row { background: rgba(255,255,255,.92); }
+  }
+
+  .c-row-head {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 64px; padding: 8px 10px 8px 14px;
+  }
+  .c-row-info {
+    flex: 1; min-width: 0; padding: 4px 0; cursor: pointer;
+  }
+  .c-row-name {
+    margin: 0; font-weight: 600; font-size: 16px; line-height: 1.25; color: var(--fg1);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .c-row-sub {
+    margin: 2px 0 0; font-size: 12.5px; line-height: 1.25; color: var(--fg3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .c-row-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex-shrink: 0; height: 48px; min-width: 118px; padding: 0 14px;
+    border-radius: 12px; border: none;
+    background: var(--ttc-orange); color: var(--fg-on-dark);
+    font-weight: 700; font-size: 14.5px; font-family: inherit; text-align: center;
     transition: transform .16s ease-out;
   }
-  .call-btn:active { transform: translateY(1px); }
-  .call-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
-  .call-btn-primary {
-    background: var(--ttc-orange); color: var(--fg-on-dark); border: none;
+  .c-row-btn:active { transform: translateY(1px); }
+  .c-row-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .c-row-btn[aria-disabled="true"] { opacity: .5; }
+
+  .c-row-expand {
+    padding: 2px 14px 14px;
+    border-top: 1px solid var(--border-soft);
+    margin: 0 10px;
   }
-  .call-btn-outline {
-    background: rgba(255,255,255,.55); color: var(--fg1); border: 1px solid var(--border);
+  .c-exp-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border-soft);
   }
-  .call-number { text-align: center; font-size: 13px; color: var(--fg2); margin: 6px 0 0; }
+  .c-exp-item:last-child { border-bottom: none; }
+  .c-exp-info { flex: 1; min-width: 0; }
+  .c-exp-name { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--fg1); }
+  .c-exp-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .c-exp-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 44px; min-width: 110px; padding: 0 14px;
+    border-radius: 12px; border: 1px solid var(--border);
+    background: rgba(255,255,255,.55); color: var(--fg1);
+    font-weight: 600; font-size: 13.5px; font-family: inherit;
+    transition: transform .16s ease-out;
+  }
+  .c-exp-btn:active { transform: translateY(1px); }
+  .c-exp-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .c-exp-number { margin: 0; font-size: 12px; color: var(--fg2); }
+  .c-exp-plain { margin: 0; font-size: 13px; color: var(--fg2); }
 
   /* ---- Footer ---- */
   .footer {
@@ -201,7 +253,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn-orange, .call-btn { transition: none !important; }
+    .btn-orange, .c-row-btn, .c-exp-btn { transition: none !important; }
   }
 </style>
 </head>
@@ -225,7 +277,7 @@
   var CACHE_KEY = 'ttc-crew-contacts-cache';
 
   var main = document.getElementById('main');
-  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); node.className = ''; }
 
   // ---- ?k= convenience: read it, store it, then strip it from the URL bar ----
   (function pickUpQueryCode() {
@@ -430,80 +482,173 @@
     main.appendChild(retry);
   }
 
-  function buildContactCard(person) {
-    var card = document.createElement('div');
-    card.className = 'glass-card contact-card';
+  // Only one row's expansion open at a time. Reset per renderContacts() call.
+  var openRow = null;
+  function collapseOpenRow() {
+    if (openRow) {
+      openRow.expansion.hidden = true;
+      openRow.info.setAttribute('aria-expanded', 'false');
+      openRow.row.classList.remove('c-row-open');
+      openRow = null;
+    }
+  }
 
-    var name = document.createElement('p');
-    name.className = 'contact-name';
-    name.textContent = ((person.firstName || '') + ' ' + (person.lastName || '')).trim();
-    card.appendChild(name);
+  function buildExpansion(person) {
+    var wrap = document.createElement('div');
+    wrap.className = 'c-row-expand';
+    wrap.hidden = true;
 
+    // 1. the person's own number.
     if (person.phone) {
-      var row = document.createElement('div');
-      row.className = 'call-row';
+      var item = document.createElement('div');
+      item.className = 'c-exp-item';
+      var info = document.createElement('div');
+      info.className = 'c-exp-info';
+      var label = document.createElement('p');
+      label.className = 'c-exp-name';
+      label.textContent = (person.firstName || 'Their') + ' own number';
+      info.appendChild(label);
+      item.appendChild(info);
+      var col = document.createElement('div');
+      col.className = 'c-exp-col';
       var btn = document.createElement('a');
-      btn.className = 'call-btn call-btn-primary';
+      btn.className = 'c-exp-btn';
       btn.href = 'tel:' + digitsOnly(person.phone);
       btn.appendChild(phoneIcon());
       var lbl = document.createElement('span');
       lbl.textContent = 'Call ' + (person.firstName || 'them');
       btn.appendChild(lbl);
-      row.appendChild(btn);
+      col.appendChild(btn);
       var num = document.createElement('p');
-      num.className = 'call-number';
+      num.className = 'c-exp-number';
       num.textContent = person.phone;
-      row.appendChild(num);
-      card.appendChild(row);
+      col.appendChild(num);
+      item.appendChild(col);
+      wrap.appendChild(item);
     }
 
-    function emergencyRow(name2, rel, phone) {
-      if (!name2 && !phone) return;
-      var row = document.createElement('div');
-      row.className = 'call-row';
-      var label = document.createElement('p');
-      label.className = 'call-row-label';
-      label.textContent = 'Emergency contact';
-      row.appendChild(label);
-      if (name2) {
-        var n = document.createElement('p');
-        n.className = 'call-row-name';
-        n.textContent = name2;
-        row.appendChild(n);
-      }
-      if (rel) {
-        var r = document.createElement('p');
-        r.className = 'call-row-rel';
-        r.textContent = rel;
-        row.appendChild(r);
-      }
-      if (phone) {
-        var btn = document.createElement('a');
-        btn.className = 'call-btn call-btn-outline';
-        btn.href = 'tel:' + digitsOnly(phone);
-        btn.appendChild(phoneIcon());
-        var lbl = document.createElement('span');
-        lbl.textContent = 'Call';
-        btn.appendChild(lbl);
-        row.appendChild(btn);
-        var num = document.createElement('p');
-        num.className = 'call-number';
-        num.textContent = phone;
-        row.appendChild(num);
-      }
-      card.appendChild(row);
-    }
-
-    emergencyRow(person.emergencyContact, person.relationship, person.emergencyPhone);
+    // 2. the second emergency contact, if any.
     if (person.secondContact || person.secondPhone) {
-      emergencyRow(person.secondContact, person.secondRelationship, person.secondPhone);
+      var item2 = document.createElement('div');
+      item2.className = 'c-exp-item';
+      var info2 = document.createElement('div');
+      info2.className = 'c-exp-info';
+      if (person.secondContact) {
+        var n2 = document.createElement('p');
+        n2.className = 'c-exp-name';
+        n2.textContent = person.secondContact + (person.secondRelationship ? ', ' + person.secondRelationship : '');
+        info2.appendChild(n2);
+      }
+      item2.appendChild(info2);
+      if (person.secondPhone) {
+        var col2 = document.createElement('div');
+        col2.className = 'c-exp-col';
+        var btn2 = document.createElement('a');
+        btn2.className = 'c-exp-btn';
+        btn2.href = 'tel:' + digitsOnly(person.secondPhone);
+        btn2.appendChild(phoneIcon());
+        var lbl2 = document.createElement('span');
+        lbl2.textContent = 'Call';
+        btn2.appendChild(lbl2);
+        col2.appendChild(btn2);
+        var num2 = document.createElement('p');
+        num2.className = 'c-exp-number';
+        num2.textContent = person.secondPhone;
+        col2.appendChild(num2);
+        item2.appendChild(col2);
+      }
+      wrap.appendChild(item2);
     }
 
-    return card;
+    // 3. the (first) emergency contact's number, written out.
+    if (person.emergencyPhone) {
+      var item3 = document.createElement('div');
+      item3.className = 'c-exp-item';
+      var p3 = document.createElement('p');
+      p3.className = 'c-exp-plain';
+      p3.textContent = (person.emergencyContact || 'Emergency contact') + ': ' + person.emergencyPhone;
+      item3.appendChild(p3);
+      wrap.appendChild(item3);
+    }
+
+    return wrap;
+  }
+
+  function buildContactRow(person) {
+    var row = document.createElement('div');
+    row.className = 'c-row';
+
+    var head = document.createElement('div');
+    head.className = 'c-row-head';
+
+    var info = document.createElement('div');
+    info.className = 'c-row-info';
+    info.setAttribute('role', 'button');
+    info.setAttribute('tabindex', '0');
+    info.setAttribute('aria-expanded', 'false');
+
+    var name = document.createElement('p');
+    name.className = 'c-row-name';
+    name.textContent = ((person.firstName || '') + ' ' + (person.lastName || '')).trim();
+    info.appendChild(name);
+
+    var sub = document.createElement('p');
+    sub.className = 'c-row-sub';
+    var subText = person.emergencyContact || '';
+    if (person.relationship) subText += (subText ? ', ' : '') + person.relationship;
+    sub.textContent = subText || 'No emergency contact on file';
+    info.appendChild(sub);
+
+    head.appendChild(info);
+
+    var ephone = person.emergencyPhone || '';
+    var callFirst = person.emergencyContact ? person.emergencyContact.split(' ')[0] : '';
+    var btn = document.createElement(ephone ? 'a' : 'span');
+    btn.className = 'c-row-btn';
+    if (ephone) {
+      btn.href = 'tel:' + digitsOnly(ephone);
+    } else {
+      btn.setAttribute('aria-disabled', 'true');
+    }
+    btn.appendChild(phoneIcon());
+    var btnLbl = document.createElement('span');
+    btnLbl.textContent = 'Call ' + (callFirst || 'contact');
+    btn.appendChild(btnLbl);
+    head.appendChild(btn);
+
+    row.appendChild(head);
+
+    var expansion = buildExpansion(person);
+    row.appendChild(expansion);
+
+    function toggle() {
+      var isOpen = !expansion.hidden;
+      collapseOpenRow();
+      if (!isOpen) {
+        expansion.hidden = false;
+        info.setAttribute('aria-expanded', 'true');
+        row.classList.add('c-row-open');
+        openRow = { row: row, expansion: expansion, info: info };
+      }
+    }
+
+    info.addEventListener('click', toggle);
+    info.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+
+    return row;
   }
 
   function renderContacts(data, fromCacheOnly) {
     clear(main);
+    main.className = 'contacts-main';
+    openRow = null;
+
+    var hint = document.createElement('p');
+    hint.className = 'contacts-hint';
+    hint.textContent = "Tap the orange button to reach that person's emergency contact. Tap the name for more numbers.";
+    main.appendChild(hint);
 
     var status = document.createElement('p');
     status.className = 'status-line';
@@ -516,9 +661,12 @@
     main.appendChild(status);
 
     var list = data.contacts || [];
+    var listWrap = document.createElement('div');
+    listWrap.className = 'contact-list';
     list.forEach(function (person) {
-      main.appendChild(buildContactCard(person));
+      listWrap.appendChild(buildContactRow(person));
     });
+    main.appendChild(listWrap);
 
     var footer = document.createElement('div');
     footer.className = 'footer';
