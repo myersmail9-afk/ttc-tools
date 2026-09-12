@@ -1001,6 +1001,13 @@
     wrap.appendChild(badge); wrap.appendChild(title); wrap.appendChild(card);
     app.appendChild(wrap);
     setTimeout(function () { try { input.focus(); } catch (e) {} }, 50);
+    // Some phone keyboards send Enter without firing the form's submit; handle it explicitly.
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.keyCode === 13) {
+        ev.preventDefault();
+        if (form.requestSubmit) form.requestSubmit(); else btn.click();
+      }
+    });
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var code = input.value.trim().toLowerCase();
