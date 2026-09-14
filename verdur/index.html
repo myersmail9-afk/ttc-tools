@@ -90,24 +90,26 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
 
 <section>
   <h2>Price a tree</h2>
-  <p class="note">Diameter at four and a half feet up &mdash; not at the base. A tree with several trunks is sized by adding each one, so type them all in: <code>13.5, 15.5, 12.5</code>.</p>
+  <p class="note">A tree with several trunks is sized by adding each one, so type them all in: <code>13.5, 15.5, 12.5</code>. If a client gave you the distance <strong>around</strong> the trunk, switch the dropdown &mdash; this divides by 3.14 for you.</p>
   <div class="calc">
-    <div class="fld" style="flex:2 1 220px"><label for="v">Diameters in inches, one per trunk</label><input id="v" type="text" inputmode="decimal" value="22" placeholder="22   or   13.5, 15.5, 12.5"></div>
+    <div class="fld"><label for="m">What you were told</label><select id="m"><option value="d">Diameter across</option><option value="c">Inches AROUND the trunk</option></select></div>
+    <div class="fld" style="flex:2 1 200px"><label for="v">Inches, one per trunk</label><input id="v" type="text" inputmode="decimal" value="22" placeholder="22   or   13.5, 15.5, 12.5"></div>
     <div class="fld"><label for="r">Rate $/in</label><input id="r" type="number" inputmode="decimal" value="15" min="1" step="0.5"></div>
     <div class="res"><b id="out">$330</b><span id="show">22&Prime; &times; $15/in</span></div>
   </div>
   <p class="note">Nothing is rounded &mdash; the invoice is the exact product, checked against 12 of 12 past lines. The rate is <strong>unconfirmed for 2026</strong> &mdash; $15/in is the 2023&ndash;2025 figure and two 2026 lines ran $19/in. Ask David before quoting.</p>
-  <p class="note">Only have the distance <em>around</em> the trunk? Divide it by 3.14 first. Measuring across at 4&frac12; feet is the real method; this is the fallback.</p>
+  <p class="note"><strong>Always ask a client for the distance around the trunk, never the diameter.</strong> Wrapping a tape around has one obvious way to do it; measuring across by eye gives a chord, not a diameter, and reads small. Mixing the two up is a 3&times; error.</p>
 </section>
 
 <section>
   <h2>Getting the measurement without going out</h2>
   <p>Roughly a third of the trees on this list have no diameter on file, and a client may well point at a different tree than the one we treated. A photo shows the foliage but has no scale in it, so it cannot set a price. One number can.</p>
-  <div class="say"><b>the line to use</b>Measure the trunk about four and a half feet up and tell me the inches across. If the tree splits into several trunks, measure each one and add them together. That number sets the dose and the price, so I can quote it the same day.</div>
+  <div class="say"><b>the line to use</b>Wrap a tape measure around the trunk at about chest height and tell me the inches around &mdash; around, not across. If the tree splits into several trunks, do each one separately. I'll work the rest out from there.</div>
   <p class="note">Every clause of that is David's own method, not a workaround:</p>
   <table>
     <thead><tr><th>rule</th><th>why</th></tr></thead>
     <tbody>
+      <tr><td><strong>Ask for AROUND, never across</strong></td><td>David: people mix up radius, diameter and circumference. Wrapping a tape around is unambiguous. We divide by 3.14 ourselves.</td></tr>
       <tr><td><strong>4&frac12; feet up</strong>, not the base</td><td>A tree for trunk injection is measured at breast height; a stump is measured at ground level and reads wider for the same tree.</td></tr>
       <tr><td><strong>Add the trunks</strong> on a multi-stem</td><td>David sizes a multi-stem by summing each leader's diameter rather than measuring the root flare &mdash; three leaders of 13.5, 15.5 and 12.5 make a 41-inch tree.</td></tr>
       <tr><td><strong>That number is the price</strong></td><td>Dose is calculated from trunk size, so the diameter and the invoice are the same fact.</td></tr>
@@ -124,7 +126,7 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
     <li><strong>Did it respond?</strong> Did it green up. Did it hold.</li>
     <li><strong>Are the symptoms back?</strong> Pale leaves with green veins, worst on the new growth up top. Any dieback in the upper canopy.</li>
     <li><strong>Quote it on the call.</strong> “No visit needed, we still have the diameter.” Say the number.</li>
-    <li><strong>No diameter on file?</strong> &ldquo;Measure the trunk about four and a half feet up and tell me the inches across. If it splits into several trunks, measure each and add them.&rdquo; Price it the same day.</li>
+    <li><strong>No diameter on file?</strong> &ldquo;Wrap a tape <em>around</em> the trunk at chest height and tell me the inches around.&rdquo; Never ask for the diameter. Price it the same day.</li>
     <li><strong>Different tree?</strong> Fine — measure that one. Two trees is a better job than one.</li>
     <li><strong>Should it be treated?</strong> Symptoms plus a healthy tree, yes. <strong>A hard-stressed tree does not get injected.</strong> Say so out loud.</li>
     <li><strong>Cambistat also due?</strong> “Growth regulator from that year is on the same cycle — one visit covers both.”</li>
@@ -173,10 +175,11 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
   document.getElementById('days').textContent = d > 0 ? d : 0;
   document.getElementById('lbl').textContent = d > 0 ? 'days of window left' : 'window closed';
 
-  var v=document.getElementById('v'), r=document.getElementById('r'),
+  var v=document.getElementById('v'), r=document.getElementById('r'), m=document.getElementById('m'),
       out=document.getElementById('out'), show=document.getElementById('show');
   function calc(){
     var parts = (v.value || '').split(/[^0-9.]+/).map(parseFloat).filter(function(x){ return x > 0; });
+    if (m.value === 'c') parts = parts.map(function(x){ return x / Math.PI; });
     var rate = parseFloat(r.value) || 0;
     var total = parts.reduce(function(a, b){ return a + b; }, 0);
     // TTC does not round - every historical line is the exact product (12/12 verified)
@@ -188,7 +191,7 @@ footer{border-top:1px solid var(--hair);padding-top:12px;font-size:12px;color:va
       ? parts.join('" + ') + '" = ' + (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in'
       : (Math.round(total * 10) / 10) + '\u2033 \u00d7 $' + rate + '/in';
   }
-  [v, r].forEach(function(e){ e.addEventListener('input', calc); e.addEventListener('change', calc); });
+  [v, r, m].forEach(function(e){ e.addEventListener('input', calc); e.addEventListener('change', calc); });
   calc();
 })();
 </script>
