@@ -1,0 +1,270 @@
+/* Total Tree Care — hand-written stylesheet. No frameworks, no copied theme code. */
+
+:root{
+  --olive:#6a7045;
+  --orange:#d16720;
+  --ink:#1f1f1f;
+  --text:#333;
+  --muted:#555;
+  --band:#f5f5f5;
+  --footer:#1f1f1f;
+  --border:#e2e2e2;
+  --max:1170px;
+}
+
+*, *::before, *::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:14px;
+  line-height:1.7;
+  color:var(--text);
+  background:#fff;
+}
+img{ max-width:100%; display:block; }
+a{ color:var(--orange); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+ul{ margin:0; padding:0; list-style:none; }
+h1,h2,h3,h4{
+  font-family:"Roboto Slab", Georgia, serif;
+  font-weight:700;
+  color:var(--ink);
+  line-height:1.3;
+  margin:0 0 16px;
+}
+h1{ font-size:34px; }
+h2{ font-size:26px; }
+h3{ font-size:18px; }
+p{ margin:0 0 16px; color:var(--muted); }
+
+.wrap{ max-width:var(--max); margin:0 auto; padding:0 20px; }
+
+/* ---------- top bar ---------- */
+.top-bar{ background:var(--olive); color:#fff; font-size:13px; }
+.top-bar__inner{ display:flex; align-items:center; justify-content:space-between; height:36px; }
+.top-bar__phone a{ color:#fff; text-decoration:none; }
+.top-bar__phone a:hover{ text-decoration:underline; }
+.top-bar__fb{ color:#fff; display:inline-flex; align-items:center; }
+
+/* ---------- header / nav ---------- */
+.site-header{ background:#fff; border-bottom:1px solid var(--border); position:relative; z-index:50; }
+.site-header__inner{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; }
+.logo img{ width:180px; height:auto; }
+
+.hamburger{
+  display:flex; flex-direction:column; justify-content:center; gap:5px;
+  width:34px; height:30px; background:none; border:0; cursor:pointer; padding:0;
+}
+.hamburger span{ display:block; height:3px; background:var(--ink); border-radius:2px; }
+
+.nav > ul{ display:flex; align-items:center; gap:26px; }
+.nav > ul > li{ position:relative; }
+.nav > ul > li > a{
+  display:block; padding:10px 0; font-size:18px; color:#777;
+  text-transform:none; white-space:nowrap;
+}
+.nav > ul > li > a:hover{ color:var(--orange); text-decoration:none; }
+
+.has-dropdown > .dropdown-toggle::after{ content:" \25BE"; font-size:12px; }
+.dropdown{
+  position:absolute; top:100%; left:0; min-width:250px; background:#fff;
+  border:1px solid var(--border); box-shadow:0 8px 20px rgba(0,0,0,.08);
+  display:none; flex-direction:column; gap:0; padding:8px 0; z-index:60;
+}
+.dropdown li a{
+  display:block; padding:8px 18px; font-size:15px; color:var(--text);
+}
+.dropdown li a:hover{ background:var(--band); color:var(--orange); text-decoration:none; }
+.has-dropdown:hover > .dropdown,
+.has-dropdown.is-open > .dropdown{ display:flex; }
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-block; background:var(--orange); color:#fff !important;
+  font-family:"Lato", Arial, sans-serif; font-weight:700; font-size:14px;
+  text-transform:uppercase; letter-spacing:.03em; padding:12px 26px;
+  border:2px solid var(--orange); border-radius:0; text-decoration:none;
+  cursor:pointer;
+}
+.btn:hover{ background:#b5590f; border-color:#b5590f; text-decoration:none; }
+.btn--outline{ background:transparent; color:var(--orange) !important; }
+.btn--outline:hover{ background:var(--orange); color:#fff !important; }
+
+/* ---------- sections ---------- */
+.section{ padding:60px 0; }
+.section--band{ background:var(--band); }
+.label{
+  display:block; color:var(--orange); font-family:"Lato", Arial, sans-serif;
+  font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.12em;
+  margin-bottom:8px;
+}
+
+/* ---------- hero (home) ---------- */
+.hero{
+  position:relative; background:#1f1f1f url("/ttc-tools/website-preview/img/Front1.jpg") center/cover no-repeat;
+  padding:80px 0;
+}
+.hero__grid{ display:grid; gap:30px; grid-template-columns:1fr; align-items:start; }
+.hero__panel{
+  background:rgba(245,245,245,.94); padding:34px 30px; max-width:560px;
+}
+.hero__panel h1{ font-size:32px; margin-bottom:14px; }
+.hero__panel p{ color:var(--text); margin-bottom:22px; }
+.hero__actions{ display:flex; gap:14px; flex-wrap:wrap; }
+.hero__estimate{
+  background:#fff; padding:28px; max-width:420px; text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+.hero__estimate h2{ font-size:20px; margin-bottom:16px; }
+
+/* ---------- page banner (inner pages) ---------- */
+.page-banner{
+  position:relative; background:linear-gradient(rgba(20,20,15,.55),rgba(20,20,15,.55)), url("/ttc-tools/website-preview/img/leaves-1.jpg") center/cover no-repeat;
+  padding:70px 20px; display:flex; align-items:center; justify-content:center; text-align:center;
+}
+.page-banner__inner{
+  border:2px solid #fff; padding:18px 46px; display:inline-block;
+}
+.page-banner__title{ color:#fff; margin:0; font-size:30px; }
+.crumbs{ background:var(--band); border-bottom:1px solid var(--border); font-size:13px; padding:12px 0; color:#888; }
+.crumbs a{ color:#888; }
+.crumbs a:hover{ color:var(--orange); }
+.crumbs span{ margin:0 6px; }
+
+/* ---------- tiles / three-up ---------- */
+.tiles{ display:grid; grid-template-columns:1fr; gap:26px; }
+.tile{ background:#fff; padding:6px 0; }
+.tile h3{ font-size:18px; margin-bottom:10px; }
+
+/* ---------- counters ---------- */
+.counters{ display:grid; grid-template-columns:repeat(1,1fr); gap:34px; text-align:center; }
+.counter strong{
+  display:block; font-family:"Roboto Slab", serif; font-size:44px; color:var(--orange); line-height:1;
+  margin-bottom:8px;
+}
+.counter p{ margin:0; text-transform:uppercase; font-size:13px; letter-spacing:.05em; color:var(--text); }
+
+/* ---------- testimonials ---------- */
+.testimonial{ margin:0 0 22px; padding:0 0 22px; border-bottom:1px solid var(--border); }
+.testimonial:last-of-type{ border-bottom:0; }
+.testimonial p{ font-style:italic; color:var(--text); }
+.testimonial cite{ display:block; font-style:normal; font-weight:700; color:var(--ink); }
+
+/* ---------- with-sidebar (service pages) ---------- */
+.with-sidebar{ display:grid; grid-template-columns:1fr; gap:36px; }
+.side-nav ul{ display:flex; flex-direction:column; gap:6px; }
+.side-nav ul li a{
+  display:block; background:var(--band); color:var(--text); padding:14px 18px;
+  font-weight:700; border-left:4px solid transparent;
+}
+.side-nav ul li a:hover, .side-nav ul li a.is-active{
+  background:var(--orange); color:#fff; border-left-color:var(--ink); text-decoration:none;
+}
+
+/* ---------- team ---------- */
+
+/* ---------- FAQ ---------- */
+.faq details{ border-bottom:1px solid var(--border); padding:14px 0; }
+.faq summary{
+  cursor:pointer; font-family:"Roboto Slab", serif; font-weight:700; color:var(--ink);
+  font-size:16px; list-style:none;
+}
+.faq summary::-webkit-details-marker{ display:none; }
+.faq summary::before{ content:"+ "; color:var(--orange); font-weight:700; }
+.faq details[open] summary::before{ content:"\2212 "; }
+.faq details p{ margin:12px 0 0; }
+
+/* ---------- gallery ---------- */
+.gallery-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.gallery-grid a{ display:block; aspect-ratio:1/1; overflow:hidden; }
+.gallery-grid img{ width:100%; height:100%; object-fit:cover; }
+
+/* ---------- contact form ---------- */
+.contact-form{ display:flex; flex-direction:column; gap:18px; }
+.contact-form .row{ display:flex; flex-wrap:wrap; gap:18px; }
+.field{ display:flex; flex-direction:column; gap:6px; flex:1 1 100%; }
+.field--half{ flex:1 1 calc(50% - 9px); }
+.field label{ font-weight:700; font-size:13px; color:var(--ink); }
+.field .req{ color:var(--orange); }
+.field input, .field textarea{
+  border:1px solid var(--border); padding:12px 14px; font:inherit; color:var(--text);
+  background:#fff;
+}
+.field textarea{ min-height:140px; resize:vertical; }
+.field input:focus, .field textarea:focus{ outline:2px solid var(--orange); outline-offset:1px; }
+
+/* ---------- blog post ---------- */
+.post{ max-width:800px; }
+.post-meta{ color:#999; font-size:13px; margin-bottom:20px; text-transform:uppercase; letter-spacing:.04em; }
+.prose img{ max-width:100%; height:auto; margin:20px 0; }
+
+/* ---------- footer ---------- */
+.site-footer{ background:var(--footer); color:#bbb; }
+.footer__inner{ display:grid; grid-template-columns:1fr; gap:40px; padding:50px 20px; }
+.footer__inner h3{ color:#fff; font-size:24px; margin-bottom:18px; }
+.footer__inner ul{ display:flex; flex-direction:column; gap:10px; }
+.footer__inner a{ color:#bbb; }
+.footer__inner a:hover{ color:var(--orange); }
+.contact-list li{ color:#bbb; }
+.footer-bottom{ border-top:1px solid #383838; padding:18px 0; }
+.footer-bottom p{ margin:0; color:#999; font-size:13px; }
+
+/* ================= responsive ================= */
+@media (min-width:600px){
+  .field--half{ flex:1 1 calc(50% - 9px); }
+  .counters{ grid-template-columns:repeat(3,1fr); }
+  .gallery-grid{ grid-template-columns:repeat(3,1fr); }
+}
+
+@media (min-width:900px){
+  .nav{ display:block !important; }
+  .hamburger{ display:none; }
+  .nav > ul{ flex-direction:row; }
+  .dropdown{ position:absolute; }
+
+  .hero__grid{ grid-template-columns:1.4fr 1fr; }
+  .tiles{ grid-template-columns:repeat(3,1fr); }
+  .gallery-grid{ grid-template-columns:repeat(4,1fr); }
+  .with-sidebar{ grid-template-columns:1fr 3fr; }
+}
+
+@media (max-width:899px){
+  .nav{
+    display:none; position:absolute; top:100%; left:0; right:0; background:#fff;
+    border-top:1px solid var(--border); box-shadow:0 12px 20px rgba(0,0,0,.08);
+  }
+  .nav.is-open{ display:block; }
+  .nav > ul{ flex-direction:column; align-items:stretch; gap:0; padding:10px 20px 20px; }
+  .nav > ul > li{ border-bottom:1px solid var(--border); }
+  .nav > ul > li > a{ padding:14px 0; }
+  .dropdown{ position:static; box-shadow:none; border:0; border-top:1px solid var(--border); display:none; }
+  .has-dropdown.is-open > .dropdown{ display:flex; }
+}
+
+.group-label{font-weight:700;margin:14px 0 6px;color:var(--ink)}
+
+
+
+/* ---------- team (content/team → About page) ---------- */
+.team-grid{ display:grid; grid-template-columns:1fr; gap:26px; align-items:stretch; }
+.team-card{ display:flex; flex-direction:column; background:#fff; border:1px solid var(--border); border-radius:4px; overflow:hidden; text-align:left; }
+.team-card > img, .team-card__placeholder{ width:100%; aspect-ratio:1/1; object-fit:cover; object-position:center 18%; display:block; margin:0; background:var(--band); border-radius:0; flex:0 0 auto; }
+.team-card__placeholder{ background:var(--olive); overflow:hidden; }
+.team-card__placeholder svg{ width:100%; height:100%; display:block; }
+.team-card__text{ padding:18px 20px 16px; display:flex; flex-direction:column; flex:1 1 auto; }
+.team-card h3{ margin:0 0 2px; font-size:19px; }
+.team-card .role{ color:var(--orange); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; margin:0 0 8px; min-height:15px; }
+.team-card__bio{ color:var(--muted); font-size:14px; line-height:1.6; }
+.team-card__bio p{ margin:0 0 8px; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
+.team-card.is-open .team-card__bio p{ -webkit-line-clamp:unset; display:block; }
+.team-card__more p{ color:var(--muted); font-size:14px; line-height:1.6; margin:8px 0; }
+.team-card .creds{ list-style:none; padding:0; margin:10px 0 0; display:flex; flex-wrap:wrap; gap:6px 8px; }
+.team-card .creds li{ font-size:12.5px; color:var(--ink); background:var(--band); border:1px solid var(--border); padding:3px 9px; border-radius:3px; }
+.team-card .creds li::before{ content:none; }
+.team-card__toggle{ margin-top:auto; align-self:flex-start; background:none; border:0; padding:12px 0 0; cursor:pointer; color:var(--orange); font:700 13px/1 var(--font-body,'Lato',sans-serif); letter-spacing:.04em; text-transform:uppercase; border-top:1px solid var(--border-soft, rgba(0,0,0,.07)); width:100%; text-align:left; }
+.team-card__toggle::after{ content:" \25BE"; font-size:11px; }
+.team-card__toggle[aria-expanded="true"]::after{ content:" \25B4"; }
+.team-card__toggle--none{ border-top:0; padding:0; }
+@media (min-width:640px){ .team-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (min-width:900px){ .team-grid{ grid-template-columns:repeat(3,1fr); } }

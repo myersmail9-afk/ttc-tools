@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Totaltreecareutah.com Takeover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Lato:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<style>
+:root{
+  --paper:#f7f4ee; --paper-2:#efeae0; --ink:#1f1f1c; --ink-2:#4a4a44; --ink-3:#7a7a70;
+  --olive:#6a7045; --olive-ink:#4d5232; --orange:#d16720; --orange-ink:#a84f14;
+  --line:rgba(31,31,28,.14); --line-soft:rgba(31,31,28,.07);
+  --ok-bg:#e9efd9; --ok-ink:#3f5a1a; --warn-bg:#fbead3; --warn-ink:#8a4a0a; --bad-bg:#f9dfda; --bad-ink:#8c2a1c;
+  --display:'Roboto Slab',Georgia,serif; --body:'Lato','Helvetica Neue',Arial,sans-serif; --mono:'IBM Plex Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#1b1d16; --paper-2:#242720; --ink:#ece8dd; --ink-2:#c9c4b6; --ink-3:#8f8b7f;
+  --olive:#9ba36a; --olive-ink:#c3ca94; --orange:#e8813a; --orange-ink:#f0a06a;
+  --line:rgba(236,232,221,.16); --line-soft:rgba(236,232,221,.08);
+  --ok-bg:#2b3a1c; --ok-ink:#c5da97; --warn-bg:#443014; --warn-ink:#f2c27f; --bad-bg:#46221c; --bad-ink:#f2a596;
+}}
+:root[data-theme="dark"]{
+  --paper:#1b1d16; --paper-2:#242720; --ink:#ece8dd; --ink-2:#c9c4b6; --ink-3:#8f8b7f;
+  --olive:#9ba36a; --olive-ink:#c3ca94; --orange:#e8813a; --orange-ink:#f0a06a;
+  --line:rgba(236,232,221,.16); --line-soft:rgba(236,232,221,.08);
+  --ok-bg:#2b3a1c; --ok-ink:#c5da97; --warn-bg:#443014; --warn-ink:#f2c27f; --bad-bg:#46221c; --bad-ink:#f2a596;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 80px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,4.5vw,44px)}
+h2{font-size:24px;margin:56px 0 16px;padding-top:18px;border-top:2px solid var(--olive)}
+h3{font-size:17px;margin:22px 0 8px}
+p{max-width:68ch;margin:0 0 14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--olive-ink);margin-bottom:12px}
+.lede{font-size:18px;color:var(--ink-2);max-width:62ch}
+.verdict{margin:30px 0 8px;padding:22px 24px;background:var(--paper-2);border-left:5px solid var(--orange);display:grid;gap:14px}
+.verdict p{margin:0}
+.verdict strong{font-family:var(--display)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:28px 0 8px}
+.stat{background:var(--paper);padding:14px 16px}
+.stat b{display:block;font-family:var(--display);font-size:26px;color:var(--orange);font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--ink-3)}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0 18px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:1px solid var(--line)}
+.tbl{overflow-x:auto}
+code,.mono{font-family:var(--mono);font-size:13.5px}
+code{background:var(--paper-2);padding:1px 6px;border-radius:3px}
+.chip{display:inline-block;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;padding:2px 8px;border-radius:2px;white-space:nowrap}
+.ok{background:var(--ok-bg);color:var(--ok-ink)} .warn{background:var(--warn-bg);color:var(--warn-ink)} .bad{background:var(--bad-bg);color:var(--bad-ink)}
+ul.findings{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+ul.findings li{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+ul.findings li p{margin:0;max-width:none}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:12px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
+ol.steps li::before{content:counter(s);font-family:var(--display);font-size:22px;color:var(--olive);line-height:1;padding-top:2px}
+ol.steps p{margin:0;max-width:none}
+.check{display:grid;gap:8px;margin:12px 0 18px}
+.check label{display:grid;grid-template-columns:22px 1fr;gap:12px;align-items:start;padding:10px 12px;background:var(--paper-2);border-left:3px solid var(--olive)}
+.check input{margin-top:3px;accent-color:var(--orange)}
+.check span b{font-family:var(--display);font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:700px){.two{grid-template-columns:1fr} ul.findings li{grid-template-columns:1fr;gap:6px}}
+.note{font-size:14px;color:var(--ink-3)}
+a{color:var(--orange-ink)} a:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.foot{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+</style>
+
+<div class="page">
+<div class="eyebrow">Total Tree Care · website · brief for Joseph · 2026-09-13</div>
+<h1>Taking totaltreecareutah.com in-house</h1>
+<p class="lede">What the outsourced site actually is, what it takes to run it yourself, what it costs, where the risk is, and what you're not seeing yet. Everything marked verified was observed from outside; nothing required a login.</p>
+
+<div class="verdict">
+  <p><strong>You're right.</strong> It is a brochure site with two forms. The estimate form is already Jobber's own hosted widget, so it keeps working unchanged. The only thing the server ever did for you was email the contact form. A static site on GitHub reproduces the rest one-to-one.</p>
+  <p><strong>The clone is built.</strong> 22 pages, same addresses, same words, same photos, same menu. Not hosted yet, not cut over, and the contact form needs its email endpoint plugged in.</p>
+  <p><strong>Difficulty low, cost near zero, risk reversible.</strong> A DNS change points the domain at the new site; a second DNS change points it back if anything goes wrong.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>22</b><span>pages rebuilt, same URLs</span></div>
+  <div class="stat"><b>127</b><span>TTC photos carried over</span></div>
+  <div class="stat"><b>2</b><span>forms: Jobber + contact</span></div>
+  <div class="stat"><b>0</b><span>lines of theme code copied</span></div>
+  <div class="stat"><b>$0</b><span>hosting</span></div>
+</div>
+<p class="note">Fidelity is checked mechanically: a script compares every sentence of the live copy against the rebuilt page and flags anything missing or invented. It ran clean on all 22 pages, after catching one worker that had paraphrased the FAQ questions.</p>
+
+<h2>What the live site actually is</h2>
+<div class="tbl"><table>
+<tr><th>Layer</th><th>Verified</th><th>What it means</th></tr>
+<tr><td>CMS</td><td>WordPress 7.1 (current)</td><td>Patched. The one thing the contractor is doing right.</td></tr>
+<tr><td>Theme</td><td>Landshaper v1.1, ThemeForest, 2016, "copyright commercial"</td><td>Licensed code. The look was rebuilt by hand; none of it was copied.</td></tr>
+<tr><td>Page builder + slider</td><td>Visual Composer, Slider Revolution 6.7</td><td>Why the pages were hard to edit. Gone.</td></tr>
+<tr><td>Estimate form</td><td>Jobber work-request embed (client hub 5a7fcc26…)</td><td>Lands in Jobber as a Request. Kept verbatim.</td></tr>
+<tr><td>Contact form</td><td>Gravity Forms + Zero Spam + reCAPTCHA</td><td>Emails the office. Rebuilt with identical fields; needs an email endpoint.</td></tr>
+<tr><td>Store</td><td>WooCommerce 11.0 with zero products, /shop/ live</td><td>Attack surface with no purpose. Gone.</td></tr>
+<tr><td>Analytics</td><td>Universal Analytics tag UA-13232248-1, no GA4</td><td>UA was shut down in 2024. No working analytics for two years.</td></tr>
+<tr><td>Hosting</td><td>nginx, managed-WordPress style headers, bot-blocking 403 page</td><td>Provider and who pays: not visible from outside.</td></tr>
+<tr><td>Freshness</td><td>© 2017 footer, sitemap last touched 2022-10</td><td>Nobody has edited content in years.</td></tr>
+<tr><td>Junk</td><td>37 "garden brick pathway" demo pages, "water fountain specialists" tiles, in the public sitemap</td><td>Theme demo leftovers Google can index. Dropped.</td></tr>
+</table></div>
+
+<h2>Security of the current site</h2>
+<ul class="findings">
+  <li><span class="chip bad">exposed</span><p>The admin username is literally <code>admin</code>, listed by the REST endpoint <code>/wp-json/wp/v2/users</code> and confirmed by <code>/?author=1</code>. The login page is open. That is half a brute-force attack handed over. Whether a rate limiter or two-factor exists is not visible from outside.</p></li>
+  <li><span class="chip warn">missing</span><p>No security headers at all: no HSTS, no Content-Security-Policy, no X-Frame-Options, no X-Content-Type-Options.</p></li>
+  <li><span class="chip warn">surface</span><p>WooCommerce installed and reachable with nothing to sell. More code, more future vulnerabilities, zero benefit.</p></li>
+  <li><span class="chip warn">check</span><p>A Google Maps browser key sits in the page source. Normal for Maps, safe only if the key is restricted to this domain in Google Cloud. Unverified.</p></li>
+  <li><span class="chip ok">fine</span><p>HTTP redirects to HTTPS correctly. XML-RPC appears blocked. Core version is current.</p></li>
+</ul>
+<p>None of this says the site has been hacked. It says it is a typical unattended WordPress install, and you would be the last to know if it were.</p>
+
+<h2>Static site: what changes</h2>
+<div class="two">
+  <div>
+    <h3>You gain</h3>
+    <p>No PHP, no database, no plugins, no login page, no admin panel, nothing to patch. GitHub serves flat files over HTTPS. Every change lives in Git history and can be undone. Hosting is free. Most of the security story is simply that there is nothing left to attack.</p>
+  </div>
+  <div>
+    <h3>You lose</h3>
+    <p>Anything a server did. Only two things did: emailing the contact form, and the WordPress editor. Editing becomes changing an HTML file, which with Claude is "change the phone hours" and done. Site search and blog comments also go; neither was used.</p>
+  </div>
+</div>
+
+<h3>The contact form's email, honestly compared</h3>
+<div class="tbl"><table>
+<tr><th>Option</th><th>Cost</th><th>How it works</th><th>Trade-off</th></tr>
+<tr><td>Web3Forms <span class="chip ok">recommended</span></td><td>free</td><td>Public access key in the form; mail lands in the Gmail you choose; hCaptcha available</td><td>Thin dashboard</td></tr>
+<tr><td>Formspree</td><td>free to 50/mo, then $10/mo</td><td>Same model, nicer dashboard and spam filtering</td><td>Paid past 50 submissions</td></tr>
+<tr><td>Netlify / Cloudflare forms</td><td>free</td><td>Built into those hosts</td><td>Only if the site is hosted there instead of GitHub Pages</td></tr>
+<tr><td>Google Apps Script</td><td>free</td><td>A small script you own posts straight into Gmail</td><td>You debug it</td></tr>
+<tr><td>Second Jobber widget</td><td>free</td><td>"Contact us" becomes a Jobber Request too; zero backend</td><td>Messages go to Jobber, not Gmail</td></tr>
+</table></div>
+<p>The form is already built with the live form's exact fields and a spam honeypot. The endpoint is a one-line swap.</p>
+
+<h3>The hosting fine print you're not seeing</h3>
+<p>GitHub Pages' terms say it is not meant as free hosting for running an online business. Thousands of small-business brochure sites live there and GitHub has not enforced it against sites with no store, but it is a grey zone. Two free alternatives run the exact same folder, allow commercial use explicitly, and add what Pages cannot: custom security headers, a firewall, real redirects, and form handling. Keep the source on GitHub, deploy through <strong>Cloudflare Pages</strong> when ready. Starting on GitHub Pages to see it live today is fine; switching later is a DNS change, not a rebuild.</p>
+
+<h2>What you need to get your hands on</h2>
+<div class="check">
+  <label><input type="checkbox"><span><b>Domain registrar login.</b> The cutover is a DNS change; without this login the site cannot move. Ask David or Ryan. <code class="mono">whois totaltreecareutah.com</code> names the registrar.</span></label>
+  <label><input type="checkbox"><span><b>Whether email runs on the domain.</b> If any @totaltreecareutah.com address exists, the DNS change must leave the MX records alone or the office loses mail. If everyone uses gmail.com, no risk.</span></label>
+  <label><input type="checkbox"><span><b>Which Gmail the contact form emails today.</b> Ask Ryan, or send a test through the live form and see where it lands.</span></label>
+  <label><input type="checkbox"><span><b>A full WordPress export from Ryan.</b> Everything public was captured. A draft page or an unpublished photo would only exist inside WordPress. Ask before cancelling anything.</span></label>
+  <label><input type="checkbox"><span><b>Google Search Console and Business Profile ownership.</b> So Google's view of the site follows you.</span></label>
+  <label><input type="checkbox"><span><b>A new GA4 property.</b> There is no working analytics to inherit. One tag in the shared layout file.</span></label>
+  <label><input type="checkbox"><span><b>The hosting contract.</b> To cancel it after cutover, and to learn what it has cost.</span></label>
+</div>
+
+<h2>The cutover, in order</h2>
+<ol class="steps">
+  <li><p>David reviews the clone. It is 2017-era copy on purpose; edits come after the swap so the swap itself is invisible to Google and to the printed QR code on the door hanger.</p></li>
+  <li><p>Wire the contact form endpoint and send a test. Add sitemap, robots, a 404 page, and the GA4 tag.</p></li>
+  <li><p>Push the site to its own public repo and turn on Pages. Confirm it renders at the github.io address.</p></li>
+  <li><p>Add the domain in the Pages settings and a CNAME file containing <code>www.totaltreecareutah.com</code>.</p></li>
+  <li><p>At the registrar: <code>www</code> as a CNAME to <code>myersmail9-afk.github.io</code>; the bare domain to GitHub's four A records. Touch nothing else, especially MX. Wait for "HTTPS enforced" to go green, up to a day.</p></li>
+  <li><p>Test both forms on the live domain. Scan the door-hanger QR code; it must open the homepage.</p></li>
+  <li><p>Keep the old hosting for 30 days as a fallback, then cancel it and let the WordPress login die with it.</p></li>
+</ol>
+
+<h2>Security of the new setup, the whole list</h2>
+<ul class="findings">
+  <li><span class="chip ok">do this</span><p><strong>Your GitHub account is the admin panel now.</strong> Turn on two-factor authentication and keep the recovery codes in the vault. Nobody else needs a login. This one control replaces every WordPress hardening plugin.</p></li>
+  <li><span class="chip ok">rule</span><p><strong>No secrets in the repo, ever.</strong> The form service's public key and a GA4 measurement ID are designed to be public. Nothing else belongs in the HTML. The existing secret guard already blocks tokens and .env files.</p></li>
+  <li><span class="chip ok">one click</span><p><strong>HTTPS enforced</strong> at the host.</p></li>
+  <li><span class="chip warn">ongoing</span><p><strong>Spam</strong> is the only real nuisance. The honeypot is in; add the form service's captcha if it gets bad.</p></li>
+  <li><span class="chip ok">theirs</span><p><strong>The Jobber widget runs on Jobber's servers</strong>, loaded exactly as the current site loads it.</p></li>
+  <li><span class="chip ok">built in</span><p><strong>Backups are Git history.</strong> Every version of every page, forever.</p></li>
+  <li><span class="chip warn">watch</span><p><strong>What could still go wrong:</strong> losing the GitHub login (recovery codes), the domain lapsing (auto-renew on, date in the calendar), the form vendor changing its free tier (swap one line).</p></li>
+</ul>
+
+<h2>Cost, honestly</h2>
+<div class="tbl"><table>
+<tr><th></th><th>Today, outsourced</th><th>In-house</th></tr>
+<tr><td>Hosting</td><td>unknown; typical managed WordPress $15–40/month</td><td>$0</td></tr>
+<tr><td>Contractor</td><td>unknown, ask</td><td>$0</td></tr>
+<tr><td>Domain</td><td>~$15–20/year</td><td>same</td></tr>
+<tr><td>Form email</td><td>included</td><td>$0, or $10/month on Formspree</td></tr>
+<tr><td>Analytics</td><td>none working</td><td>$0 (GA4)</td></tr>
+<tr><td>Your time</td><td>zero, and it shows</td><td>an hour a month, mostly through Claude</td></tr>
+</table></div>
+
+<h2>Where everything is</h2>
+<p><code>domains/website/apps/ttc-new-website/</code> in the brain repo. <code>working/src/</code> is what you edit (one layout, one body per page, one stylesheet). <code>python3 build.py</code> stitches it into <code>working/site/</code>, the folder that gets published. <code>audit.py</code> proves the copy is one-to-one. <code>source-crawl/</code> is the raw crawl, kept as the audit trail. The full write-up is <code>working/TAKEOVER-ANALYSIS.md</code>; the operating manual is <code>_SOP.md</code>.</p>
+<p class="foot">Facts verified from outside the site on 2026-09-13. Not verified: hosting provider, registrar, MX records, the contact form's recipient, API-key restrictions, and whether login protection exists.</p>
+</div>
+
+</body>
+</html>
