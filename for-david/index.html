@@ -33,6 +33,13 @@ button:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
 button.act{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--muted)}
 .msg{font-family:var(--mono);font-size:11.5px;text-align:center;min-height:17px;color:var(--alert-edge)}
 .msg.ok{color:var(--pine)}
+#open{display:flex;flex-direction:column;gap:9px}
+a.go{display:block;text-decoration:none;background:var(--ink);color:var(--ground);padding:13px 15px;
+ font-size:14px;font-weight:600;border:1px solid var(--ink)}
+a.go em{display:block;font-style:normal;font-size:11px;font-weight:400;opacity:.72;margin-top:3px}
+a.go:hover{background:var(--pine);border-color:var(--pine)}
+a.go.alt{background:transparent;color:var(--ink);border-color:var(--hair)}
+a.go.alt:hover{background:var(--sunk);border-color:var(--muted);color:var(--ink)}
 a.back{font-size:12px;color:var(--muted);text-align:center;text-decoration:none}
 a.back:hover{color:var(--ink)}
 </style>
@@ -44,6 +51,7 @@ a.back:hover{color:var(--ink)}
     <h1>For David</h1>
   </div>
   <p>Pricing history &mdash; every service we price on a repeatable basis, what it has cost, and how long each price has stood.</p>
+  <div id="gate">
   <div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
   <div class="msg" id="msg"></div>
   <div class="pad" id="pad">
@@ -53,6 +61,12 @@ a.back:hover{color:var(--ink)}
     <button class="act" data-k="clear">Clear</button><button data-k="0">0</button>
     <button class="act" data-k="del">&larr;</button>
   </div>
+  </div>
+
+  <div id="open" hidden>
+    <a class="go" id="lnkDrive" target="_blank" rel="noopener">Open the PDF in Drive<em>Pricing folder &middot; share it with whoever needs it</em></a>
+    <a class="go alt" id="lnkLive" target="_blank" rel="noopener">Open the live version<em>Always current &middot; has its own Save-as-PDF</em></a>
+  </div>
   <a class="back" href="../crew/app/">&larr; back to the crew app</a>
 </div>
 
@@ -61,7 +75,10 @@ a.back:hover{color:var(--ink)}
 // this file as plaintext for anyone who opens view-source. That is obfuscation, not
 // security -- the real access control is on the document itself, which only opens
 // for people it has been shared with.
-var CT = "UENHQ0sNHBxbW1JGXFIdUlEYUFxcUhxSSkNaVVlURxwLBVVWXQ5QVRVWUlcKGgcFDA8eCwAHBB4AUwQLWQVWBAoFAVY=";
+var CT = {
+  drive: "UENHQ0sNHBxcRVpFXRlUXFdQX1YWVFxeF1FaX10YVxwJe31Kb3NSVXteeEpVfQFkFVRLcFsDRGVuWXxRbEAeQF4YRVpdQA==",
+  live:  "UENHQ0sNHBxbW1JGXFIdUlEYUFxcUhxSSkNaVVlURxwLBVVWXQ5QVRVWUlcKGgcFDA8eCwAHBB4AUwQLWQVWBAoFAVY="
+};
 var buf = "", locked = false;
 var dots = document.querySelectorAll('#dots .dot'), msg = document.getElementById('msg');
 
@@ -70,19 +87,28 @@ function paint(bad){
     dots[i].className = 'dot' + (bad ? ' bad' : (i < buf.length ? ' on' : ''));
   }
 }
+function xor(ct, code){
+  var raw = atob(ct), out = '';
+  for (var i = 0; i < raw.length; i++)
+    out += String.fromCharCode(raw.charCodeAt(i) ^ code.charCodeAt(i % code.length));
+  return out;
+}
 function decode(code){
   try {
-    var raw = atob(CT), out = '';
-    for (var i = 0; i < raw.length; i++)
-      out += String.fromCharCode(raw.charCodeAt(i) ^ code.charCodeAt(i % code.length));
-    return /^https:\/\/claude\.ai\/code\/artifact\/[0-9a-f-]{36}$/.test(out) ? out : null;
+    var d = xor(CT.drive, code), l = xor(CT.live, code);
+    var ok = /^https:\/\/drive\.google\.com\/file\/d\/[\w-]+\/view$/.test(d)
+          && /^https:\/\/claude\.ai\/code\/artifact\/[0-9a-f-]{36}$/.test(l);
+    return ok ? { drive: d, live: l } : null;
   } catch (e) { return null; }
 }
 function submit(){
-  var url = decode(buf);
-  if (url){
-    msg.textContent = 'opening…'; msg.className = 'msg ok'; paint(false);
-    location.href = url;
+  var u = decode(buf);
+  if (u){
+    document.getElementById('gate').hidden = true;
+    var o = document.getElementById('open');
+    document.getElementById('lnkDrive').href = u.drive;
+    document.getElementById('lnkLive').href  = u.live;
+    o.hidden = false;
   } else {
     locked = true; paint(true);
     msg.textContent = 'not that one'; msg.className = 'msg';
