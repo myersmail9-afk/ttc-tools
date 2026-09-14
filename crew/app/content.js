@@ -36,8 +36,8 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-12.5",
-    updated: "September 11, 2026",
+    version: "2026-09-14.1",
+    updated: "September 14, 2026",
     appName: "TTC Crew"
   },
 
@@ -139,6 +139,7 @@ window.TTC_CONTENT = {
       id: "office", title: "Office", icon: "building", roles: ["office"],
       blurb: "Dashboards, sheets, and hiring paperwork. Unlocked phones only.",
       tiles: [
+        { id: "for-david", label: "For David", desc: "Price history — what we charge for every service and how long each price has stood. Code required.", href: "https://myersmail9-afk.github.io/ttc-tools/for-david/", kind: "app", search: "pricing rates price history david locked" },
         { id: "hub", label: "TTC Tools Hub", desc: "Every dashboard and page in one place", href: "https://myersmail9-afk.github.io/ttc-tools/", kind: "app" },
         { id: "chip-drop-qa", label: "Chip Drop QA", desc: "Check every new pin before setting it Active", href: "https://myersmail9-afk.github.io/ttc-tools/chip-drop-qa/", kind: "app" },
         { id: "phc-calendar", label: "PHC Calendar", desc: "Growing degree days and every open PHC job by window", href: "https://myersmail9-afk.github.io/ttc-tools/phc-calendar/", kind: "app", search: "gdd spray window" },
