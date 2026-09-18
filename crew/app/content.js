@@ -36,7 +36,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-12.5",
+    version: "2026-09-18.1",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
@@ -122,6 +122,8 @@ window.TTC_CONTENT = {
         { id: "leaderboard", label: "Crew Leaderboard", desc: "Review points by crew member, live", href: "https://myersmail9-afk.github.io/ttc-tools/crew/leaderboard/", kind: "app", search: "points rank" },
         { id: "reviews-bonus", label: "Google Reviews Bonus", desc: "How the review bonus works and what it pays", href: "https://myersmail9-afk.github.io/ttc-tools/crew/reviews-bonus/", kind: "app", search: "bonus cash five star" },
         { id: "post-job-walkthrough", label: "Post-Job Walkthrough", desc: "The end-of-job customer walkthrough, step by step", href: "https://myersmail9-afk.github.io/ttc-tools/crew/post-job-walkthrough/", kind: "app", search: "cleanup review ask" },
+        { id: "estimator-field-manual", label: "Estimator Field Manual", desc: "Consultations, prescriptive specs, production estimating, and PHC discovery, the field reference", href: "pages/training/estimator-field-manual/", kind: "file", search: "estimator bid consultation specifications production phc" },
+        { id: "estimator-pass-off", label: "Qualified Estimator Pass-Off", desc: "The tiered path from Estimator Trainee to independent estimating authority, trackable live", href: "pages/training/estimator-pass-off/", kind: "file", search: "estimator training tier certification pass off" },
         { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" }
       ]
     },

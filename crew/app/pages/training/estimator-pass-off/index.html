@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<!--
+  TTC Crew — Qualified Estimator Pass-Off, read and tracked in-app.
+  Converted faithfully from files/training/qualified-estimator-pass-off.docx by
+  docx2html.py's --interactive mode. Every checkbox line from the document is a
+  real, tappable <input type="checkbox">; per-trainee progress is saved to
+  localStorage on this device only (see the note under the trainee switcher).
+  Static HTML content, no fetch/JSON for the document text itself — works offline
+  through the service worker. Chrome copied from pages/handbook/notes.html.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Qualified Estimator Pass-Off — TTC Crew</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+  :root {
+    --ttc-orange:    #C9601A;
+    --ttc-orange-dk: #a14d14;
+    --ttc-green:     #4a6741;
+    --ttc-dark:      #2a3a25;
+    --ttc-gold:      #f0c080;
+    --ttc-sage:      #B7B681;
+
+    --bg:      #f9f6f2;
+    --bg-alt:  #f4f0ea;
+    --bg-dark: #2a3a25;
+    --card:    #ffffff;
+    --raised:  #f4f0ea;
+
+    --fg1:        #1f2419;
+    --fg2:        #5a5f55;
+    --fg3:        #888888;
+    --fg-on-dark: #f9f6f2;
+
+    --border:         rgba(42,58,37,.14);
+    --border-soft:    rgba(42,58,37,.08);
+    --border-on-dark: rgba(255,255,255,0.18);
+
+    --success-bg: #eaf3de; --success-text: #27500A; --success-border: #97C459;
+    --warn-bg:    #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+    --info-bg:    #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+    --danger-bg:  #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+    --glass-bg:        rgba(255,255,255,.72);
+    --glass-bg-soft:   rgba(255,255,255,.55);
+    --glass-bg-strong: rgba(255,255,255,.90);
+    --glass-border:    rgba(255,255,255,.75);
+    --topbar-bg:       rgba(42,58,37,.86);
+    --overlay-grad: linear-gradient(to bottom, rgba(42,58,37,.62) 0px, rgba(42,58,37,.42) 220px, rgba(249,246,242,.70) 460px, rgba(249,246,242,.86) 100%);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:      #141714;
+      --bg-alt:  #1a1f19;
+      --card:    #1e231d;
+      --raised:  #262c25;
+      --fg1:        #f1eee7;
+      --fg2:        #b9bcb2;
+      --fg3:        #8b9086;
+      --border:         rgba(249,246,242,.14);
+      --border-soft:    rgba(249,246,242,.08);
+      --ttc-orange:     #e0782f;
+      --ttc-orange-dk:  #b8621f;
+      --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+      --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+      --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+      --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+      --glass-bg:        rgba(38,44,37,.72);
+      --glass-bg-soft:   rgba(38,44,37,.55);
+      --glass-bg-strong: rgba(30,35,29,.92);
+      --glass-border:    rgba(249,246,242,.14);
+      --topbar-bg:       rgba(15,18,14,.90);
+      --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:      #141714;
+    --bg-alt:  #1a1f19;
+    --card:    #1e231d;
+    --raised:  #262c25;
+    --fg1:        #f1eee7;
+    --fg2:        #b9bcb2;
+    --fg3:        #8b9086;
+    --border:         rgba(249,246,242,.14);
+    --border-soft:    rgba(249,246,242,.08);
+    --ttc-orange:     #e0782f;
+    --ttc-orange-dk:  #b8621f;
+    --success-bg: rgba(151,196,89,.14); --success-text: #9ed97a; --success-border: #6fae46;
+    --warn-bg:    rgba(239,159,39,.14); --warn-text:    #f0c674; --warn-border:    #c98a2c;
+    --info-bg:    rgba(133,183,235,.14); --info-text:   #8ec2f2; --info-border:   #5f9bd6;
+    --danger-bg:  rgba(240,149,149,.14); --danger-text: #f2a3a3; --danger-border: #c96f6f;
+    --glass-bg:        rgba(38,44,37,.72);
+    --glass-bg-soft:   rgba(38,44,37,.55);
+    --glass-bg-strong: rgba(30,35,29,.92);
+    --glass-border:    rgba(249,246,242,.14);
+    --topbar-bg:       rgba(15,18,14,.90);
+    --overlay-grad: linear-gradient(to bottom, rgba(0,0,0,.72) 0px, rgba(0,0,0,.55) 220px, rgba(20,23,20,.78) 460px, rgba(20,23,20,.94) 100%);
+  }
+
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  a { text-decoration: none; color: inherit; }
+  svg { display: block; }
+  a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--ttc-orange); outline-offset: 2px; }
+
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: grid; grid-template-columns: 48px 1fr 48px; align-items: center;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: var(--ttc-dark); color: var(--fg-on-dark);
+    margin: 0 -20px;
+  }
+  .topbar-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 56px; color: var(--fg-on-dark);
+  }
+  .topbar-back svg { width: 22px; height: 22px; }
+  .topbar-title {
+    text-align: center; font-weight: 600; font-size: 16px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+
+  .doc-title { font-size: 24px; font-weight: 700; line-height: 1.25; margin: 20px 0 6px; color: var(--fg1); scroll-margin-top: 90px; }
+  .doc-subtitle, .doc-lede { font-size: 14.5px; line-height: 1.6; color: var(--fg2); margin: 0 0 18px; }
+  .doc-small { font-size: 12px; color: var(--fg3); margin: 18px 0 0; }
+  main h2 { font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--fg1); margin: 30px 0 10px; scroll-margin-top: 90px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  main h3 { font-size: 16.5px; font-weight: 700; color: var(--ttc-orange-dk); margin: 22px 0 8px; scroll-margin-top: 90px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  main h4 { font-size: 14.5px; font-weight: 700; color: var(--fg1); margin: 16px 0 6px; }
+  main p, main li { font-size: 14.5px; line-height: 1.65; color: var(--fg1); margin: 0 0 12px; }
+  main ul, main ol { margin: 0 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+  main strong { font-weight: 700; }
+  main em { font-style: italic; }
+
+  .doc-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--card); margin: 0 0 16px; -webkit-overflow-scrolling: touch; }
+  .doc-table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 13.5px; }
+  .doc-table th, .doc-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  .doc-table th { color: var(--fg2); font-weight: 600; background: var(--bg-alt); }
+  .doc-table tr:last-child td { border-bottom: none; }
+
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin: 18px 0; padding: 2px 16px; }
+  .toc summary { cursor: pointer; padding: 12px 0; font-weight: 600; font-size: 14px; color: var(--fg1); list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .toc summary::-webkit-details-marker { display: none; }
+  .toc summary::after { content: '\25BE'; color: var(--fg3); font-size: 12px; }
+  .toc[open] summary::after { content: '\25B4'; }
+  .toc-list { margin: 0 0 12px; padding-left: 20px; font-size: 13.5px; line-height: 1.85; }
+  .toc-list a { color: var(--ttc-orange); font-weight: 600; }
+
+  footer { padding: 24px 0 calc(20px + env(safe-area-inset-bottom)); text-align: center; }
+  footer p { margin: 0 0 8px; font-size: 12px; color: var(--fg3); }
+  footer a { font-size: 12.5px; font-weight: 600; color: var(--ttc-orange); }
+
+
+  /* ---- Trainee switcher ---- */
+  .trainee-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; margin: 18px 0 10px;
+  }
+  .trainee-row { display: flex; gap: 8px; align-items: center; }
+  .trainee-label { font-size: 12px; font-weight: 600; color: var(--fg2); margin: 0 0 6px; }
+  #traineeInput {
+    flex: 1 1 auto; min-width: 0;
+    font-family: inherit; font-size: 15px; color: var(--fg1);
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; height: 42px;
+  }
+  .trainee-names { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+  .trainee-chip {
+    font-size: 12.5px; font-weight: 600; color: var(--fg1);
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 14px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .trainee-chip.current { background: var(--ttc-green); border-color: var(--ttc-green); color: var(--fg-on-dark); }
+  .trainee-note { font-size: 12px; color: var(--fg3); line-height: 1.5; margin: 10px 0 0; }
+
+  .progress-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px; margin: 0 0 14px;
+  }
+  .progress-headline { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+  .progress-headline strong { font-size: 15px; color: var(--fg1); }
+  .progress-headline span { font-size: 13px; color: var(--fg2); font-weight: 600; }
+  .progress-bar { height: 8px; border-radius: 5px; background: var(--bg-alt); overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--ttc-green); width: 0%; transition: width .25s ease; border-radius: 5px; }
+  @media (prefers-reduced-motion: reduce) { .progress-bar-fill { transition: none; } }
+
+  .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+  .btn {
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border-radius: 10px; padding: 10px 14px; border: 1px solid var(--border);
+    background: var(--bg-alt); color: var(--fg1);
+  }
+  .btn:active { background: var(--border-soft); }
+  .btn-primary { background: var(--ttc-orange); border-color: var(--ttc-orange); color: #fff; }
+  .btn-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+  .copy-confirm { font-size: 12.5px; font-weight: 600; color: var(--success-text); align-self: center; }
+  .copy-confirm[hidden] { display: none; }
+
+  /* ---- Section progress badge, injected next to h2/h3 ---- */
+  .chk-progress { font-size: 12px; font-weight: 700; color: var(--fg3); background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px; padding: 2px 8px; }
+  .chk-progress:empty { display: none; padding: 0; border: none; background: none; }
+  .chk-progress.chk-progress--done { color: var(--success-text); background: var(--success-bg); border-color: var(--success-border); }
+
+  /* ---- Checklist rows ---- */
+  .chk-table { display: flex; flex-direction: column; gap: 8px; margin: 0 0 16px; }
+  .chk-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    min-height: 44px; padding: 10px 14px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .chk-row:active { background: var(--bg-alt); }
+  .chk-row:has(.chk-box:checked) { background: var(--success-bg); border-color: var(--success-border); }
+  .chk-box {
+    flex: 0 0 auto; appearance: none; -webkit-appearance: none;
+    width: 24px; height: 24px; margin-top: 2px;
+    border: 2px solid var(--border); border-radius: 7px; background: var(--card);
+    display: grid; place-content: center; cursor: pointer;
+  }
+  .chk-box::after {
+    content: ""; width: 13px; height: 13px;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    background: transparent; transform: scale(0);
+    transition: transform .12s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { .chk-box::after { transition: none; } }
+  .chk-box:checked { background: var(--ttc-green); border-color: var(--ttc-green); }
+  .chk-box:checked::after { background: #fff; transform: scale(1); }
+  .chk-text { font-size: 14.5px; line-height: 1.5; color: var(--fg1); padding-top: 2px; }
+  .chk-row:has(.chk-box:checked) .chk-text { color: var(--fg2); }
+  .chk-meta { font-size: 12.5px; color: var(--fg3); font-style: italic; margin: -2px 0 6px; }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <a class="topbar-back" href="../../../index.html" aria-label="Back to TTC Crew">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <div class="topbar-title">Qualified Estimator Pass-Off</div>
+    <span></span>
+  </div>
+
+
+  <div class="trainee-card">
+    <p class="trainee-label">Trainee name</p>
+    <div class="trainee-row">
+      <input id="traineeInput" type="text" placeholder="Type a name" autocomplete="off">
+    </div>
+    <div class="trainee-names" id="traineeNames"></div>
+    <p class="trainee-note">Progress is saved on this device only, not shared with the office &mdash;
+      use Copy summary below to send it in.</p>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-headline"><strong>Overall progress</strong><span id="overallCount">0 of 0 complete</span></div>
+    <div class="progress-bar"><div class="progress-bar-fill" id="overallBar"></div></div>
+    <div class="action-row" style="margin-top:12px;">
+      <button class="btn btn-primary" id="copyBtn" type="button">Copy summary</button>
+      <button class="btn btn-danger" id="resetBtn" type="button">Reset this trainee</button>
+      <span class="copy-confirm" id="copyConfirm" hidden>Copied</span>
+    </div>
+  </div>
+
+
+  <details class="toc"><summary>Contents</summary><ol class="toc-list"><li><a href="#qualified-estimator-training-pass-off">Qualified Estimator Training &amp;amp; Pass-Off</a></li><li><a href="#how-to-use-this-pass-off">How to Use This Pass-Off</a></li><li><a href="#estimator-trainee-supervised-estimating">Estimator Trainee — Supervised Estimating</a></li><li><a href="#tier-1-qualified-estimator-routine-residential">Tier 1 — Qualified Estimator: Routine Residential</a></li><li><a href="#tier-2-qualified-estimator-general-residential">Tier 2 — Qualified Estimator: General Residential</a></li><li><a href="#tier-3-qualified-estimator-senior-complex">Tier 3 — Qualified Estimator: Senior / Complex</a></li><li><a href="#specialty-endorsement-plant-health-care-phc">Specialty Endorsement — Plant Health Care (PHC)</a></li><li><a href="#specialty-endorsement-complex-removals-rigging">Specialty Endorsement — Complex Removals &amp;amp; Rigging</a></li><li><a href="#appendix-a-client-visit-scoring-sheet">Appendix A — Client Visit Scoring Sheet</a></li><li><a href="#appendix-b-estimate-production-audit">Appendix B — Estimate / Production Audit</a></li><li><a href="#appendix-c-authority-record">Appendix C — Authority Record</a></li></ol></details>
+
+  <main id="main">
+<p><strong>TOTAL TREE CARE</strong></p><h2 class="doc-title" id="qualified-estimator-training-pass-off">Qualified Estimator<br>Training &amp; Pass-Off<span class="chk-progress" data-section="d1c91fa4"></span></h2><p><strong>Estimator Trainee • Tier 1 • Tier 2 • Tier 3 • PHC Specialty • Complex Removal Specialty</strong></p><div class="doc-table-wrap"><table class="doc-table"><thead><tr><th><strong>Employee</strong></th><th></th><th><strong>Trainer</strong></th><th></th></tr></thead><tbody><tr><td><strong>Start Date</strong></td><td></td><td><strong>Review Date</strong></td><td></td></tr></tbody></table></div><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Purpose: create a clear, repeatable path for TTC Certified Arborists to progress from supervised Estimator Trainee to independent estimating authority through observable behaviors, documented practice, and measurable production results. Advancement is earned by demonstrated competency—not seniority, personality, or sales volume alone.</td></tr></tbody></table></div><h2 id="how-to-use-this-pass-off">How to Use This Pass-Off<span class="chk-progress" data-section="bb2093e9"></span></h2><ul><li>Begin as an Estimator Trainee and complete tiers in order. An Estimator Trainee may participate in and draft estimates, but is not authorized to complete and send estimates without direct oversight and approval from a Tier 3 Qualified Estimator. Specialty endorsements may be pursued after Tier 1 unless the trainer requires Tier 2 first for a particular employee.</li><li>A checkbox means the employee has demonstrated the standard—not merely received instruction on it. The Tier 3 reviewer remains responsible for approving trainee estimates before they are sent.</li><li>Use live appointments whenever possible. Training/sample estimates may count where specifically stated.</li><li>For percentage standards, keep the supporting audit sheet, Jobber report, transcript, or production record with the employee training file.</li><li>Authority may be narrowed by work type even after a tier is passed. Any estimator must escalate work outside his or her authorized scope.</li></ul><h2 id="estimator-trainee-supervised-estimating">Estimator Trainee — Supervised Estimating<span class="chk-progress" data-section="78364bf1"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Authority</td><td>Direct Oversight Required</td><td>Reviewer</td><td>Status</td></tr><tr><td>Estimate completion / sending</td><td>Yes — every estimate</td><td>Tier 3 Qualified Estimator</td><td>Not independently authorized</td></tr></tbody></table></div><p>Purpose: develop estimating judgment through real appointments while protecting TTC from unsupervised scope, pricing, production, or client-communication errors. A trainee is learning the complete estimator workflow but has not yet earned independent estimating authority.</p><h3 id="a-trainee-authority-boundaries">A. Trainee Authority &amp; Boundaries<span class="chk-progress" data-section="95158105"></span></h3><div class="chk-table" data-section="95158105"><label class="chk-row" data-item="d2a07b9b50" data-section="95158105"><input type="checkbox" class="chk-box" data-item="d2a07b9b50"><span class="chk-text">May conduct or assist with client appointments as assigned, collect measurements, photographs, notes, and draft recommendations/proposals.</span></label><label class="chk-row" data-item="ae57064fe8" data-section="95158105"><input type="checkbox" class="chk-box" data-item="ae57064fe8"><span class="chk-text">May not independently finalize or send an estimate. Every trainee estimate must receive direct review and approval from a Tier 3 Qualified Estimator before client delivery.</span></label><label class="chk-row" data-item="86a6ba2bf3" data-section="95158105"><input type="checkbox" class="chk-box" data-item="86a6ba2bf3"><span class="chk-text">Does not quote uncertain pricing onsite. Formulaic pricing may only be communicated when specifically authorized by the supervising Tier 3 estimator and TTC policy.</span></label><label class="chk-row" data-item="711ff8a99f" data-section="95158105"><input type="checkbox" class="chk-box" data-item="711ff8a99f"><span class="chk-text">Escalates any uncertainty involving arboricultural recommendation, tree risk, PHC diagnosis/treatment, production method, access, utilities, property conflicts, rigging, equipment, pricing, or client expectations rather than guessing.</span></label></div><h3 id="b-training-behaviors-before-tier-1">B. Training Behaviors Before Tier 1<span class="chk-progress" data-section="1eb94367"></span></h3><div class="chk-table" data-section="1eb94367"><label class="chk-row" data-item="a5d78c2336" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="a5d78c2336"><span class="chk-text">Establish the client objective before prescribing work and document the requested outcome.</span></label><label class="chk-row" data-item="cfea5978ff" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="cfea5978ff"><span class="chk-text">Practice Continuous Property Assessment throughout the visit and identify legitimate additional tree-care or PHC observations for Tier 3 review.</span></label><label class="chk-row" data-item="b960d45c99" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="b960d45c99"><span class="chk-text">Photograph all trees, conditions, access limitations, targets, defects, and site features that materially affect recommendation, scope, production, or expectations.</span></label><label class="chk-row" data-item="6fb85b1f7d" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="6fb85b1f7d"><span class="chk-text">Draft pruning line items using TTC’s prescriptive format: Tree / Objective / Specifications. Identify the tree by common name and scientific name plus an unambiguous location; use measurable tolerances where applicable.</span></label><label class="chk-row" data-item="e4c13883e0" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="e4c13883e0"><span class="chk-text">Draft scopes that a qualified TTC crew leader could execute from the proposal, photographs, and normal TTC SOPs without needing the trainee to reconstruct the appointment.</span></label><label class="chk-row" data-item="97b7a333db" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="97b7a333db"><span class="chk-text">Set realistic expectations and limitations; identify what could reasonably surprise or disappoint the client if TTC performs the proposed work exactly as written.</span></label><label class="chk-row" data-item="d08817d9bd" data-section="1eb94367"><input type="checkbox" class="chk-box" data-item="d08817d9bd"><span class="chk-text">Demonstrate basic production thinking: crew, expected hours, equipment, access, cleanup/material handling, stump considerations, utilities, targets, and special costs.</span></label></div><h3 id="trainee-advancement-gate">Trainee Advancement Gate<span class="chk-progress" data-section="5674dec1"></span></h3><div class="chk-table" data-section="5674dec1"><label class="chk-row" data-item="2dfafe4601" data-section="5674dec1"><input type="checkbox" class="chk-box" data-item="2dfafe4601"><span class="chk-text">Ready for Tier 1 Pass-Off</span></label><label class="chk-row" data-item="dd57f22b6d" data-section="5674dec1"><input type="checkbox" class="chk-box" data-item="dd57f22b6d"><span class="chk-text">Continue Training</span></label><p class="chk-meta">Tier 3 Reviewer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="tier-1-qualified-estimator-routine-residential">Tier 1 — Qualified Estimator: Routine Residential<span class="chk-progress" data-section="5d112763"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Authority after pass-off: routine pruning, straightforward small removals, and familiar residential work within TTC’s established pricing system. Recommended initial contract ceiling: $2,500 unless senior review is obtained.</td></tr></tbody></table></div><h3 id="a-prerequisites-training-reps">A. Prerequisites &amp; Training Reps<span class="chk-progress" data-section="dc8521d1"></span></h3><div class="chk-table" data-section="dc8521d1"><label class="chk-row" data-item="041d74798a" data-section="dc8521d1"><input type="checkbox" class="chk-box" data-item="041d74798a"><span class="chk-text">Current ISA Certified Arborist credential verified.</span></label><label class="chk-row" data-item="51b7c25d49" data-section="dc8521d1"><input type="checkbox" class="chk-box" data-item="51b7c25d49"><span class="chk-text">Complete TTC estimator orientation: intake, appointment workflow, Jobber documentation, photos, proposal process, pricing tools, and escalation rules.</span></label><label class="chk-row" data-item="014426d05a" data-section="dc8521d1"><input type="checkbox" class="chk-box" data-item="014426d05a"><span class="chk-text">Observe at least 8 complete client appointments with a Qualified Estimator.</span></label><label class="chk-row" data-item="b14a498bce" data-section="dc8521d1"><input type="checkbox" class="chk-box" data-item="b14a498bce"><span class="chk-text">Lead at least 8 client appointments while a Qualified Estimator observes and scores the visit.</span></label><label class="chk-row" data-item="61a8cbcd4f" data-section="dc8521d1"><input type="checkbox" class="chk-box" data-item="61a8cbcd4f"><span class="chk-text">Pass a TTC estimating knowledge check at ≥ 80% covering pruning objectives, common work specifications, basic PHC referral boundaries, equipment selection, and escalation triggers.</span></label></div><h3 id="b-client-visit-execution">B. Client Visit Execution<span class="chk-progress" data-section="88586738"></span></h3><div class="chk-table" data-section="88586738"><label class="chk-row" data-item="d8a56bde66" data-section="88586738"><input type="checkbox" class="chk-box" data-item="d8a56bde66"><span class="chk-text">Across 10 scored appointments, identify the client’s stated objective before recommending work on ≥ 9/10 visits.</span></label><label class="chk-row" data-item="371965d5e1" data-section="88586738"><input type="checkbox" class="chk-box" data-item="371965d5e1"><span class="chk-text">Across 10 scored appointments, explain both the recommendation and the reason for it on ≥ 90% of proposed work items.</span></label><label class="chk-row" data-item="c66f43a6c5" data-section="88586738"><input type="checkbox" class="chk-box" data-item="c66f43a6c5"><span class="chk-text">Address or document ≥ 95% of trees/work items raised by the client during the visit.</span></label><label class="chk-row" data-item="7deab8977e" data-section="88586738"><input type="checkbox" class="chk-box" data-item="7deab8977e"><span class="chk-text">Explain proposal delivery / next step on ≥ 9/10 scored appointments.</span></label><label class="chk-row" data-item="20d10cb554" data-section="88586738"><input type="checkbox" class="chk-box" data-item="20d10cb554"><span class="chk-text">Zero unsupported promises regarding schedule, tree outcomes, safety, utility clearance, permitting, or work outside TTC control across the final 10 scored appointments.</span></label><label class="chk-row" data-item="1762ef2941" data-section="88586738"><input type="checkbox" class="chk-box" data-item="1762ef2941"><span class="chk-text">When uncertain, collect needed information and escalate after the visit rather than guessing in front of the client; 100% compliance on mandatory-escalation items.</span></label></div><h3 id="c-scope-production-pricing">C. Scope, Production &amp; Pricing<span class="chk-progress" data-section="7c4848b3"></span></h3><div class="chk-table" data-section="7c4848b3"><label class="chk-row" data-item="c8b092252d" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="c8b092252d"><span class="chk-text">Complete 20 training/live estimates with crew size, expected crew-hours, equipment, disposal/special costs, and proposed price documented.</span></label><label class="chk-row" data-item="596df0e73c" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="596df0e73c"><span class="chk-text">Estimated crew-hours fall within ±20% of senior-estimator benchmark on ≥ 16/20 estimates.</span></label><label class="chk-row" data-item="d1fb615ad1" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="d1fb615ad1"><span class="chk-text">No unexplained crew-hour miss greater than 50% in the final 10 training/live estimates.</span></label><label class="chk-row" data-item="5c02dfb14a" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="5c02dfb14a"><span class="chk-text">Correct major equipment package selected on ≥ 19/20 estimates.</span></label><label class="chk-row" data-item="1fd9c1486d" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="1fd9c1486d"><span class="chk-text">Access, disposal, stump, utility, or other material production constraints identified on ≥ 19/20 estimates when applicable.</span></label><label class="chk-row" data-item="9dc7a2247f" data-section="7c4848b3"><input type="checkbox" class="chk-box" data-item="9dc7a2247f"><span class="chk-text">Pricing math and TTC pricing rules applied correctly on ≥ 19/20 estimates.</span></label></div><h3 id="d-proposal-quality-independence">D. Proposal Quality &amp; Independence<span class="chk-progress" data-section="83d242d1"></span></h3><div class="chk-table" data-section="83d242d1"><label class="chk-row" data-item="42ba10d340" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="42ba10d340"><span class="chk-text">20 proposals audited with an average scope-completeness score ≥ 90%.</span></label><label class="chk-row" data-item="a87be41833" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="a87be41833"><span class="chk-text">Zero material scope omissions in the final 10 proposals (an omission is material if it changes crew plan, equipment, price, or client expectation).</span></label><label class="chk-row" data-item="4d39bfa56c" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="4d39bfa56c"><span class="chk-text">Required photos and documentation attached on ≥ 95% of audited proposals.</span></label><label class="chk-row" data-item="8770417fe3" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="8770417fe3"><span class="chk-text">Completed proposals delivered to the client within TTC’s normal 24-hour target on ≥ 95% of appointments, unless documented research, escalation, or client circumstances require additional time.</span></label><label class="chk-row" data-item="c5379aa813" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="c5379aa813"><span class="chk-text">Complete ≥ 17 of the final 20 routine appointments without needing technical or pricing assistance before the proposal can be completed.</span></label><label class="chk-row" data-item="c854537103" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="c854537103"><span class="chk-text">All jobs outside Tier 1 authority correctly escalated; 100% compliance.</span></label><label class="chk-row" data-item="b6e390635f" data-section="83d242d1"><input type="checkbox" class="chk-box" data-item="b6e390635f"><span class="chk-text">For pruning work, consistently produce prescriptive TTC line items in Tree / Objective / Specifications format. Identify each tree by common and scientific name and unambiguous location; include measurable clearance or other tolerances where applicable. Final 10 pruning proposals contain zero material identification/specification omissions.</span></label></div><h3 id="e-production-validation">E. Production Validation<span class="chk-progress" data-section="a5da6ae5"></span></h3><div class="chk-table" data-section="a5da6ae5"><label class="chk-row" data-item="e01ef63b3e" data-section="a5da6ae5"><input type="checkbox" class="chk-box" data-item="e01ef63b3e"><span class="chk-text">After at least 10 sold Tier 1 jobs are completed, actual crew-hours fall within ±25% of estimate on ≥ 8/10 jobs.</span></label><label class="chk-row" data-item="03f8f68a50" data-section="a5da6ae5"><input type="checkbox" class="chk-box" data-item="03f8f68a50"><span class="chk-text">No unexplained actual-vs-estimated crew-hour miss greater than 50% among the 10 validation jobs.</span></label><label class="chk-row" data-item="4e8c4fa53b" data-section="a5da6ae5"><input type="checkbox" class="chk-box" data-item="4e8c4fa53b"><span class="chk-text">Average gross margin on validation jobs meets TTC’s current target for the applicable work type.</span></label><label class="chk-row" data-item="7010c6d30e" data-section="a5da6ae5"><input type="checkbox" class="chk-box" data-item="7010c6d30e"><span class="chk-text">No repeated scope problem appears in crew feedback across the 10 validation jobs.</span></label></div><h3 id="tier-sign-off">Tier Sign-Off<span class="chk-progress" data-section="c312136a"></span></h3><div class="chk-table" data-section="c312136a"><label class="chk-row" data-item="e71210eb4e" data-section="c312136a"><input type="checkbox" class="chk-box" data-item="e71210eb4e"><span class="chk-text">Pass</span></label><label class="chk-row" data-item="32165dfea9" data-section="c312136a"><input type="checkbox" class="chk-box" data-item="32165dfea9"><span class="chk-text">Continue Training</span></label><label class="chk-row" data-item="6cc4f60f2b" data-section="c312136a"><input type="checkbox" class="chk-box" data-item="6cc4f60f2b"><span class="chk-text">Reassess</span></label><p class="chk-meta">Trainer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="tier-2-qualified-estimator-general-residential">Tier 2 — Qualified Estimator: General Residential<span class="chk-progress" data-section="88bd03c6"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Authority after pass-off: multi-tree residential properties, broader pruning/removal scopes, routine PHC recommendations within training, and larger projects. Recommended contract ceiling: $5,000–$7,500; complex removals and unusual technical work still require specialty endorsement or senior review.</td></tr></tbody></table></div><h3 id="a-eligibility">A. Eligibility<span class="chk-progress" data-section="a86f677f"></span></h3><div class="chk-table" data-section="a86f677f"><label class="chk-row" data-item="1c8a167592" data-section="a86f677f"><input type="checkbox" class="chk-box" data-item="1c8a167592"><span class="chk-text">Tier 1 passed and active for at least 60 days or 40 independent appointments, whichever produces the stronger evidence set.</span></label><label class="chk-row" data-item="58fcd6d7e8" data-section="a86f677f"><input type="checkbox" class="chk-box" data-item="58fcd6d7e8"><span class="chk-text">At least 20 completed sold Tier 1 jobs available for production comparison.</span></label><label class="chk-row" data-item="124afa46ad" data-section="a86f677f"><input type="checkbox" class="chk-box" data-item="124afa46ad"><span class="chk-text">No unresolved pattern of client complaints, material scope omissions, or repeated escalation failures.</span></label></div><h3 id="b-advanced-estimating-reps">B. Advanced Estimating Reps<span class="chk-progress" data-section="8466cc59"></span></h3><div class="chk-table" data-section="8466cc59"><label class="chk-row" data-item="f13ba0259c" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="f13ba0259c"><span class="chk-text">Complete 20 Tier 2 training/live estimates involving multi-tree scopes, mixed work types, or projects above Tier 1 authority.</span></label><label class="chk-row" data-item="2261fe6447" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="2261fe6447"><span class="chk-text">Estimated crew-hours within ±20% of senior benchmark on ≥ 17/20 estimates.</span></label><label class="chk-row" data-item="ca88f139cf" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="ca88f139cf"><span class="chk-text">Correct crew configuration and major equipment package on ≥ 19/20 estimates.</span></label><label class="chk-row" data-item="d850cd3943" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="d850cd3943"><span class="chk-text">Identify all material access, rigging, cleanup, haul-off, stump, traffic, utility, or property-protection constraints on ≥ 19/20 estimates when applicable.</span></label><label class="chk-row" data-item="1cc9c425fc" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="1cc9c425fc"><span class="chk-text">For multi-day work, document a defensible crew-day plan and sequence on ≥ 9/10 applicable estimates.</span></label><label class="chk-row" data-item="5bd7c83ddc" data-section="8466cc59"><input type="checkbox" class="chk-box" data-item="5bd7c83ddc"><span class="chk-text">Final 10 estimates contain zero unexplained production-hour misses &gt;40% versus senior benchmark.</span></label></div><h3 id="c-client-proposal-performance">C. Client &amp; Proposal Performance<span class="chk-progress" data-section="b2615fcd"></span></h3><div class="chk-table" data-section="b2615fcd"><label class="chk-row" data-item="b77eb7df38" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="b77eb7df38"><span class="chk-text">Across 15 scored/recorded visits, client objective established on ≥ 14/15.</span></label><label class="chk-row" data-item="be43751a90" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="be43751a90"><span class="chk-text">Recommendation + rationale provided for ≥ 90% of proposed work items.</span></label><label class="chk-row" data-item="8e22b411b7" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="8e22b411b7"><span class="chk-text">Final 15 proposals average ≥ 95% on TTC scope-completeness audit.</span></label><label class="chk-row" data-item="0a3e81e7f7" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="0a3e81e7f7"><span class="chk-text">Zero material scope omissions in final 15 proposals.</span></label><label class="chk-row" data-item="e106ca14f7" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="e106ca14f7"><span class="chk-text">Complete ≥ 18/20 general-residential appointments without technical/pricing assistance before proposal completion.</span></label><label class="chk-row" data-item="cddf816ded" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="cddf816ded"><span class="chk-text">Correctly escalate 100% of work requiring Tier 3, PHC Specialty, Complex Removal Specialty, or senior review.</span></label><label class="chk-row" data-item="74aa36db6e" data-section="b2615fcd"><input type="checkbox" class="chk-box" data-item="74aa36db6e"><span class="chk-text">Demonstrate repeated independent prescriptive-pruning competency: Tree / Objective / Specifications line items use common + scientific name, precise location, measurable tolerances where applicable, and enough instruction that the crew does not have to guess. ≥ 95% compliance across final 15 applicable proposals.</span></label></div><h3 id="d-sold-work-validation">D. Sold-Work Validation<span class="chk-progress" data-section="24b13015"></span></h3><div class="chk-table" data-section="24b13015"><label class="chk-row" data-item="2b2ebb43cc" data-section="24b13015"><input type="checkbox" class="chk-box" data-item="2b2ebb43cc"><span class="chk-text">At least 15 completed sold Tier 2 jobs reviewed against estimate.</span></label><label class="chk-row" data-item="ce5b33bce7" data-section="24b13015"><input type="checkbox" class="chk-box" data-item="ce5b33bce7"><span class="chk-text">Actual crew-hours within ±20% of estimate on ≥ 12/15 jobs.</span></label><label class="chk-row" data-item="9ee6675e46" data-section="24b13015"><input type="checkbox" class="chk-box" data-item="9ee6675e46"><span class="chk-text">No unexplained miss &gt;40% in the final 10 validation jobs.</span></label><label class="chk-row" data-item="33fa60363f" data-section="24b13015"><input type="checkbox" class="chk-box" data-item="33fa60363f"><span class="chk-text">Average gross margin meets TTC target by applicable work type.</span></label><label class="chk-row" data-item="22d05088dc" data-section="24b13015"><input type="checkbox" class="chk-box" data-item="22d05088dc"><span class="chk-text">Crew feedback rates scope as “Good” or equivalent on ≥ 85% of reviewed jobs; every “Tight/Bad” result is reviewed with trainer.</span></label></div><h3 id="tier-sign-off-1">Tier Sign-Off<span class="chk-progress" data-section="b628bdb1"></span></h3><div class="chk-table" data-section="b628bdb1"><label class="chk-row" data-item="b6687af43c" data-section="b628bdb1"><input type="checkbox" class="chk-box" data-item="b6687af43c"><span class="chk-text">Pass</span></label><label class="chk-row" data-item="32005be9f5" data-section="b628bdb1"><input type="checkbox" class="chk-box" data-item="32005be9f5"><span class="chk-text">Continue Training</span></label><label class="chk-row" data-item="63fe8e8653" data-section="b628bdb1"><input type="checkbox" class="chk-box" data-item="63fe8e8653"><span class="chk-text">Reassess</span></label><p class="chk-meta">Trainer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="tier-3-qualified-estimator-senior-complex">Tier 3 — Qualified Estimator: Senior / Complex<span class="chk-progress" data-section="beabc4a0"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Authority after pass-off: high-value residential and selected commercial work, complex multi-day projects, and broad estimating authority within documented specialties. Tier 3 does not automatically authorize advanced PHC diagnosis or complex removal/rigging; those endorsements are separate.</td></tr></tbody></table></div><h3 id="a-eligibility-track-record">A. Eligibility &amp; Track Record<span class="chk-progress" data-section="4e5e770d"></span></h3><div class="chk-table" data-section="4e5e770d"><label class="chk-row" data-item="334da2736a" data-section="4e5e770d"><input type="checkbox" class="chk-box" data-item="334da2736a"><span class="chk-text">Tier 2 passed and at least 75 independent estimates completed after Tier 1 qualification.</span></label><label class="chk-row" data-item="11b3bcf15f" data-section="4e5e770d"><input type="checkbox" class="chk-box" data-item="11b3bcf15f"><span class="chk-text">At least 30 sold jobs completed with estimate-vs-production data.</span></label><label class="chk-row" data-item="f973542c76" data-section="4e5e770d"><input type="checkbox" class="chk-box" data-item="f973542c76"><span class="chk-text">Rolling 20-job gross margin meets TTC target and shows no unresolved downward trend.</span></label><label class="chk-row" data-item="d692c4d59c" data-section="4e5e770d"><input type="checkbox" class="chk-box" data-item="d692c4d59c"><span class="chk-text">No unresolved pattern of material scope misses, unsafe recommendations, or jobs accepted outside authority.</span></label></div><h3 id="b-complex-project-planning">B. Complex Project Planning<span class="chk-progress" data-section="8e44eebb"></span></h3><div class="chk-table" data-section="8e44eebb"><label class="chk-row" data-item="3789ec1a72" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="3789ec1a72"><span class="chk-text">Complete 20 senior-level estimates selected by trainer, including large multi-tree properties and multi-day work.</span></label><label class="chk-row" data-item="10f4c3d63f" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="10f4c3d63f"><span class="chk-text">Estimated crew-hours within ±15% of senior benchmark on ≥ 16/20 estimates.</span></label><label class="chk-row" data-item="1db5e89142" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="1db5e89142"><span class="chk-text">Correct crew, equipment, and job sequence on ≥ 18/20 estimates.</span></label><label class="chk-row" data-item="dc14c537b2" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="dc14c537b2"><span class="chk-text">Identify all material third-party/special costs (crane, lift, traffic control, permits, rentals, disposal, subcontractors) on 100% of applicable estimates.</span></label><label class="chk-row" data-item="0ce7f4f9c8" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="0ce7f4f9c8"><span class="chk-text">Produce a written production plan for 10 complex jobs; ≥ 9/10 accepted by senior reviewer without material revision.</span></label><label class="chk-row" data-item="49ee0767d5" data-section="8e44eebb"><input type="checkbox" class="chk-box" data-item="49ee0767d5"><span class="chk-text">Final 10 training estimates contain zero unexplained misses &gt;30% versus senior benchmark.</span></label></div><h3 id="c-senior-client-commercial-standards">C. Senior Client &amp; Commercial Standards<span class="chk-progress" data-section="ad6a13be"></span></h3><div class="chk-table" data-section="ad6a13be"><label class="chk-row" data-item="3315c8da29" data-section="ad6a13be"><input type="checkbox" class="chk-box" data-item="3315c8da29"><span class="chk-text">Complete 15 observed/recorded high-value or complex client visits with ≥ 90% communication-rubric score.</span></label><label class="chk-row" data-item="ce1a9bd811" data-section="ad6a13be"><input type="checkbox" class="chk-box" data-item="ce1a9bd811"><span class="chk-text">Accurately distinguish client objective, arboricultural recommendation, optional enhancement, and production limitation on ≥ 14/15 reviewed visits.</span></label><label class="chk-row" data-item="ea9b948f8f" data-section="ad6a13be"><input type="checkbox" class="chk-box" data-item="ea9b948f8f"><span class="chk-text">Final 15 proposals average ≥ 95% scope-completeness with zero material omissions.</span></label><label class="chk-row" data-item="3865a376c1" data-section="ad6a13be"><input type="checkbox" class="chk-box" data-item="3865a376c1"><span class="chk-text">Complete ≥ 19/20 qualifying appointments without senior technical/pricing assistance before proposal completion.</span></label><label class="chk-row" data-item="fc7ffb963e" data-section="ad6a13be"><input type="checkbox" class="chk-box" data-item="fc7ffb963e"><span class="chk-text">Escalate 100% of issues outside TTC policy, specialty endorsement, contract authority, or estimator expertise.</span></label></div><h3 id="d-senior-production-validation">D. Senior Production Validation<span class="chk-progress" data-section="21a32bf2"></span></h3><div class="chk-table" data-section="21a32bf2"><label class="chk-row" data-item="c7ebcd68bd" data-section="21a32bf2"><input type="checkbox" class="chk-box" data-item="c7ebcd68bd"><span class="chk-text">At least 20 completed sold Tier 3 jobs reviewed against estimate.</span></label><label class="chk-row" data-item="77e9252f2a" data-section="21a32bf2"><input type="checkbox" class="chk-box" data-item="77e9252f2a"><span class="chk-text">Actual crew-hours within ±20% of estimate on ≥ 17/20 jobs.</span></label><label class="chk-row" data-item="a76c7b99ce" data-section="21a32bf2"><input type="checkbox" class="chk-box" data-item="a76c7b99ce"><span class="chk-text">No unexplained actual-vs-estimated miss &gt;35% in final 15 jobs.</span></label><label class="chk-row" data-item="14f1c5d0a6" data-section="21a32bf2"><input type="checkbox" class="chk-box" data-item="14f1c5d0a6"><span class="chk-text">Average gross margin meets TTC target and no single loss-making job is attributable to an avoidable estimating omission without documented corrective coaching.</span></label><label class="chk-row" data-item="ee82ae00aa" data-section="21a32bf2"><input type="checkbox" class="chk-box" data-item="ee82ae00aa"><span class="chk-text">Crew feedback rates scope “Good” or equivalent on ≥ 90% of reviewed jobs.</span></label></div><h3 id="tier-sign-off-2">Tier Sign-Off<span class="chk-progress" data-section="fba73e52"></span></h3><div class="chk-table" data-section="fba73e52"><label class="chk-row" data-item="7ec227b7e5" data-section="fba73e52"><input type="checkbox" class="chk-box" data-item="7ec227b7e5"><span class="chk-text">Pass</span></label><label class="chk-row" data-item="ac2802569f" data-section="fba73e52"><input type="checkbox" class="chk-box" data-item="ac2802569f"><span class="chk-text">Continue Training</span></label><label class="chk-row" data-item="a680afb064" data-section="fba73e52"><input type="checkbox" class="chk-box" data-item="a680afb064"><span class="chk-text">Reassess</span></label><p class="chk-meta">Trainer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="specialty-endorsement-plant-health-care-phc">Specialty Endorsement — Plant Health Care (PHC)<span class="chk-progress" data-section="ffdf9362"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Purpose: authorize an estimator to diagnose and sell defined TTC PHC services without routinely calling another arborist for confirmation. Endorsement may be limited by treatment category. Label compliance and applicable pesticide licensing requirements always control.</td></tr></tbody></table></div><h3 id="a-prerequisites">A. Prerequisites<span class="chk-progress" data-section="1998c542"></span></h3><div class="chk-table" data-section="1998c542"><label class="chk-row" data-item="39b4c4cbb8" data-section="1998c542"><input type="checkbox" class="chk-box" data-item="39b4c4cbb8"><span class="chk-text">Tier 1 passed.</span></label><label class="chk-row" data-item="317c1d7b93" data-section="1998c542"><input type="checkbox" class="chk-box" data-item="317c1d7b93"><span class="chk-text">Required Utah pesticide applicator licensing/credentials for the employee’s role verified where applicable.</span></label><label class="chk-row" data-item="b46486243a" data-section="1998c542"><input type="checkbox" class="chk-box" data-item="b46486243a"><span class="chk-text">Complete TTC PHC service/pricing orientation and review current labels/SDS for services within requested endorsement.</span></label><label class="chk-row" data-item="22161b6844" data-section="1998c542"><input type="checkbox" class="chk-box" data-item="22161b6844"><span class="chk-text">Shadow at least 8 PHC diagnostic/sales appointments with an approved PHC estimator.</span></label></div><h3 id="b-knowledge-diagnosis">B. Knowledge &amp; Diagnosis<span class="chk-progress" data-section="26a0d883"></span></h3><div class="chk-table" data-section="26a0d883"><label class="chk-row" data-item="c94577ead4" data-section="26a0d883"><input type="checkbox" class="chk-box" data-item="c94577ead4"><span class="chk-text">Pass TTC PHC knowledge exam at ≥ 85% covering common local pests/disorders, abiotic vs. biotic clues, treatment timing, contraindications, and escalation triggers.</span></label><label class="chk-row" data-item="6f2de74541" data-section="26a0d883"><input type="checkbox" class="chk-box" data-item="6f2de74541"><span class="chk-text">Complete 20 case scenarios/live diagnostics; correct primary problem category and next step on ≥ 17/20.</span></label><label class="chk-row" data-item="06b977cce2" data-section="26a0d883"><input type="checkbox" class="chk-box" data-item="06b977cce2"><span class="chk-text">Correctly identify “insufficient evidence / further diagnosis needed” cases on 100% of trainer-designated stop cases.</span></label><label class="chk-row" data-item="ba1d6631d1" data-section="26a0d883"><input type="checkbox" class="chk-box" data-item="ba1d6631d1"><span class="chk-text">Correct treatment/service, timing, and pricing inputs selected on ≥ 18/20 endorsed-treatment cases.</span></label><label class="chk-row" data-item="111628c835" data-section="26a0d883"><input type="checkbox" class="chk-box" data-item="111628c835"><span class="chk-text">Zero recommendations inconsistent with product label or TTC policy in final 20 reviewed cases.</span></label></div><h3 id="c-independent-phc-sales-validation">C. Independent PHC Sales Validation<span class="chk-progress" data-section="0beda261"></span></h3><div class="chk-table" data-section="0beda261"><label class="chk-row" data-item="55a847b10b" data-section="0beda261"><input type="checkbox" class="chk-box" data-item="55a847b10b"><span class="chk-text">Complete 20 live PHC appointments; ≥ 17/20 without technical assistance before proposal completion.</span></label><label class="chk-row" data-item="2484d1a3a0" data-section="0beda261"><input type="checkbox" class="chk-box" data-item="2484d1a3a0"><span class="chk-text">PHC proposal scope and treatment objective documented correctly on ≥ 95% of audited line items.</span></label><label class="chk-row" data-item="e7bf7bdeb6" data-section="0beda261"><input type="checkbox" class="chk-box" data-item="e7bf7bdeb6"><span class="chk-text">Correct measurements/dose-driving inputs documented on ≥ 95% of applicable treatments.</span></label><label class="chk-row" data-item="48df3fd1e4" data-section="0beda261"><input type="checkbox" class="chk-box" data-item="48df3fd1e4"><span class="chk-text">100% of unusual tree-risk, uncertain diagnosis, off-label, or non-endorsed treatment situations escalated.</span></label><label class="chk-row" data-item="2bb0d923c6" data-section="0beda261"><input type="checkbox" class="chk-box" data-item="2bb0d923c6"><span class="chk-text">At least 10 sold PHC jobs reviewed with no material treatment-selection or scope error attributable to estimating.</span></label></div><h3 id="phc-endorsement-sign-off">PHC Endorsement Sign-Off<span class="chk-progress" data-section="7946dd47"></span></h3><div class="chk-table" data-section="7946dd47"><label class="chk-row" data-item="217ba6bd50" data-section="7946dd47"><input type="checkbox" class="chk-box" data-item="217ba6bd50"><span class="chk-text">Pass</span></label><label class="chk-row" data-item="e4f1d35c80" data-section="7946dd47"><input type="checkbox" class="chk-box" data-item="e4f1d35c80"><span class="chk-text">Continue Training</span></label><label class="chk-row" data-item="7c4f224f24" data-section="7946dd47"><input type="checkbox" class="chk-box" data-item="7c4f224f24"><span class="chk-text">Reassess</span></label><p class="chk-meta">Trainer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="specialty-endorsement-complex-removals-rigging">Specialty Endorsement — Complex Removals &amp; Rigging<span class="chk-progress" data-section="ca268673"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Purpose: authorize estimating of removals where rigging, access, equipment, property protection, or job sequencing materially affects production risk and price. This endorsement is intentionally separate from general sales competency.</td></tr></tbody></table></div><h3 id="a-prerequisites-1">A. Prerequisites<span class="chk-progress" data-section="b020dd20"></span></h3><div class="chk-table" data-section="b020dd20"><label class="chk-row" data-item="1581c6acba" data-section="b020dd20"><input type="checkbox" class="chk-box" data-item="1581c6acba"><span class="chk-text">Tier 2 passed, unless senior trainer documents equivalent experience.</span></label><label class="chk-row" data-item="032ddb363f" data-section="b020dd20"><input type="checkbox" class="chk-box" data-item="032ddb363f"><span class="chk-text">Demonstrated field experience participating in at least 20 removals, including at least 10 involving rigging or constrained access.</span></label><label class="chk-row" data-item="2681dd77d9" data-section="b020dd20"><input type="checkbox" class="chk-box" data-item="2681dd77d9"><span class="chk-text">Observe/participate in at least 8 complex-removal estimates with a senior estimator.</span></label><label class="chk-row" data-item="ecf140227b" data-section="b020dd20"><input type="checkbox" class="chk-box" data-item="ecf140227b"><span class="chk-text">Pass TTC complex-removal planning test at ≥ 85% covering access, rigging concept, equipment, crew configuration, drop zones, property protection, debris handling, and escalation triggers.</span></label></div><h3 id="b-planning-pricing-reps">B. Planning &amp; Pricing Reps<span class="chk-progress" data-section="7f6035dd"></span></h3><div class="chk-table" data-section="7f6035dd"><label class="chk-row" data-item="fe5cc106e5" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="fe5cc106e5"><span class="chk-text">Complete 20 complex-removal training/live estimates with written crew, hours, equipment, rigging/access plan, debris plan, and special costs.</span></label><label class="chk-row" data-item="58bff95534" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="58bff95534"><span class="chk-text">Estimated crew-hours within ±15% of senior benchmark on ≥ 16/20 estimates.</span></label><label class="chk-row" data-item="af459c05e8" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="af459c05e8"><span class="chk-text">Correct major equipment package (bucket/lift, mini/Avant, crane, chipper, stump equipment, etc.) on ≥ 19/20 estimates.</span></label><label class="chk-row" data-item="03553d633d" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="03553d633d"><span class="chk-text">Identify all material access/property-protection constraints on ≥ 19/20 estimates.</span></label><label class="chk-row" data-item="da85c4fe5a" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="da85c4fe5a"><span class="chk-text">Identify 100% of trainer-designated “stop and senior review” hazards or unknowns.</span></label><label class="chk-row" data-item="ed289e61e9" data-section="7f6035dd"><input type="checkbox" class="chk-box" data-item="ed289e61e9"><span class="chk-text">Final 10 training estimates contain zero unexplained crew-hour miss &gt;30% versus senior benchmark.</span></label></div><h3 id="c-sold-job-validation">C. Sold-Job Validation<span class="chk-progress" data-section="6c06f01e"></span></h3><div class="chk-table" data-section="6c06f01e"><label class="chk-row" data-item="ae3e0ff6c4" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="ae3e0ff6c4"><span class="chk-text">At least 15 sold complex-removal jobs completed and reviewed.</span></label><label class="chk-row" data-item="ece1b048fa" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="ece1b048fa"><span class="chk-text">Actual crew-hours within ±20% of estimate on ≥ 12/15 jobs.</span></label><label class="chk-row" data-item="192b20adaf" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="192b20adaf"><span class="chk-text">No unexplained miss &gt;35% in final 10 jobs.</span></label><label class="chk-row" data-item="782754f0b9" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="782754f0b9"><span class="chk-text">No material equipment/rental/haul-off cost omitted from final 10 jobs.</span></label><label class="chk-row" data-item="35a047574e" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="35a047574e"><span class="chk-text">Crew leader rates production plan/scope “Good” or equivalent on ≥ 90% of reviewed jobs.</span></label><label class="chk-row" data-item="7ba5cca3ac" data-section="6c06f01e"><input type="checkbox" class="chk-box" data-item="7ba5cca3ac"><span class="chk-text">Average gross margin meets TTC target for complex removal work.</span></label></div><h3 id="complex-removal-endorsement-sign-off">Complex Removal Endorsement Sign-Off<span class="chk-progress" data-section="f474dc62"></span></h3><div class="chk-table" data-section="f474dc62"><label class="chk-row" data-item="8fd31534a0" data-section="f474dc62"><input type="checkbox" class="chk-box" data-item="8fd31534a0"><span class="chk-text">Pass</span></label><label class="chk-row" data-item="e55f848fbf" data-section="f474dc62"><input type="checkbox" class="chk-box" data-item="e55f848fbf"><span class="chk-text">Continue Training</span></label><label class="chk-row" data-item="2405f121dd" data-section="f474dc62"><input type="checkbox" class="chk-box" data-item="2405f121dd"><span class="chk-text">Reassess</span></label><p class="chk-meta">Trainer · Employee</p><p class="chk-meta">Notes</p></div><h2 id="appendix-a-client-visit-scoring-sheet">Appendix A — Client Visit Scoring Sheet<span class="chk-progress" data-section="e3e2c6d2"></span></h2><div class="doc-table-wrap"><table class="doc-table"><tbody><tr><td>Use for observed visits or transcript/recording review. Score each item Yes / No / N/A. Communication score = Yes ÷ applicable items.</td></tr></tbody></table></div><div class="chk-table" data-section="e3e2c6d2"><label class="chk-row" data-item="185be58e63" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="185be58e63"><span class="chk-text">Introduced self and role clearly. — Yes</span></label><label class="chk-row" data-item="ce9461b0ac" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="ce9461b0ac"><span class="chk-text">Introduced self and role clearly. — No</span></label><label class="chk-row" data-item="082a8884f0" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="082a8884f0"><span class="chk-text">Introduced self and role clearly. — N/A</span></label><label class="chk-row" data-item="69b147547d" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="69b147547d"><span class="chk-text">Established the client’s objective before prescribing work. — Yes</span></label><label class="chk-row" data-item="ac90729e81" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="ac90729e81"><span class="chk-text">Established the client’s objective before prescribing work. — No</span></label><label class="chk-row" data-item="222d7d5d30" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="222d7d5d30"><span class="chk-text">Established the client’s objective before prescribing work. — N/A</span></label><label class="chk-row" data-item="6c618ad7c6" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="6c618ad7c6"><span class="chk-text">Confirmed which trees/work items were being discussed. — Yes</span></label><label class="chk-row" data-item="b3ee8393a8" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="b3ee8393a8"><span class="chk-text">Confirmed which trees/work items were being discussed. — No</span></label><label class="chk-row" data-item="e117cadf43" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="e117cadf43"><span class="chk-text">Confirmed which trees/work items were being discussed. — N/A</span></label><label class="chk-row" data-item="036506e1ef" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="036506e1ef"><span class="chk-text">Asked enough questions to understand desired outcome and constraints. — Yes</span></label><label class="chk-row" data-item="5c79a1c41b" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="5c79a1c41b"><span class="chk-text">Asked enough questions to understand desired outcome and constraints. — No</span></label><label class="chk-row" data-item="10fc2e27c4" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="10fc2e27c4"><span class="chk-text">Asked enough questions to understand desired outcome and constraints. — N/A</span></label><label class="chk-row" data-item="3c2fd19618" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="3c2fd19618"><span class="chk-text">Explained recommendation in understandable language. — Yes</span></label><label class="chk-row" data-item="de76dd01dd" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="de76dd01dd"><span class="chk-text">Explained recommendation in understandable language. — No</span></label><label class="chk-row" data-item="790bd45447" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="790bd45447"><span class="chk-text">Explained recommendation in understandable language. — N/A</span></label><label class="chk-row" data-item="14b1459e3c" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="14b1459e3c"><span class="chk-text">Explained the reason for the recommendation. — Yes</span></label><label class="chk-row" data-item="e6f6df8280" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="e6f6df8280"><span class="chk-text">Explained the reason for the recommendation. — No</span></label><label class="chk-row" data-item="f3ec80a70a" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="f3ec80a70a"><span class="chk-text">Explained the reason for the recommendation. — N/A</span></label><label class="chk-row" data-item="2c1bb600f5" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="2c1bb600f5"><span class="chk-text">Distinguished recommendation from optional work where applicable. — Yes</span></label><label class="chk-row" data-item="2dc3fa8d2b" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="2dc3fa8d2b"><span class="chk-text">Distinguished recommendation from optional work where applicable. — No</span></label><label class="chk-row" data-item="39cf060d80" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="39cf060d80"><span class="chk-text">Distinguished recommendation from optional work where applicable. — N/A</span></label><label class="chk-row" data-item="931dd8f6ad" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="931dd8f6ad"><span class="chk-text">Did not overstate safety, treatment outcome, scheduling, or other certainty. — Yes</span></label><label class="chk-row" data-item="64f5ee674d" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="64f5ee674d"><span class="chk-text">Did not overstate safety, treatment outcome, scheduling, or other certainty. — No</span></label><label class="chk-row" data-item="ed836bee41" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="ed836bee41"><span class="chk-text">Did not overstate safety, treatment outcome, scheduling, or other certainty. — N/A</span></label><label class="chk-row" data-item="2e27ddea5b" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="2e27ddea5b"><span class="chk-text">Handled uncertainty appropriately rather than guessing. — Yes</span></label><label class="chk-row" data-item="6035e83a0f" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="6035e83a0f"><span class="chk-text">Handled uncertainty appropriately rather than guessing. — No</span></label><label class="chk-row" data-item="9f957a8270" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="9f957a8270"><span class="chk-text">Handled uncertainty appropriately rather than guessing. — N/A</span></label><label class="chk-row" data-item="681f92412b" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="681f92412b"><span class="chk-text">Explained what happens next / proposal delivery. — Yes</span></label><label class="chk-row" data-item="c9ae6d0129" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="c9ae6d0129"><span class="chk-text">Explained what happens next / proposal delivery. — No</span></label><label class="chk-row" data-item="c8e89c5d2e" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="c8e89c5d2e"><span class="chk-text">Explained what happens next / proposal delivery. — N/A</span></label><label class="chk-row" data-item="a2b8aa51c2" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="a2b8aa51c2"><span class="chk-text">Documented relevant access, property, utility, cleanup, or stump details. — Yes</span></label><label class="chk-row" data-item="5fb1766668" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="5fb1766668"><span class="chk-text">Documented relevant access, property, utility, cleanup, or stump details. — No</span></label><label class="chk-row" data-item="8edc95f664" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="8edc95f664"><span class="chk-text">Documented relevant access, property, utility, cleanup, or stump details. — N/A</span></label><label class="chk-row" data-item="59b4e297c4" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="59b4e297c4"><span class="chk-text">Interaction remained respectful and work-focused throughout the visit. — Yes</span></label><label class="chk-row" data-item="f6e9993e50" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="f6e9993e50"><span class="chk-text">Interaction remained respectful and work-focused throughout the visit. — No</span></label><label class="chk-row" data-item="c0a014b30a" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="c0a014b30a"><span class="chk-text">Interaction remained respectful and work-focused throughout the visit. — N/A</span></label><label class="chk-row" data-item="c4747e9924" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="c4747e9924"><span class="chk-text">For pruning work, identified the tree by common and scientific name, unambiguous location, objective, and sufficiently specific work specifications. — Yes</span></label><label class="chk-row" data-item="c661419cfc" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="c661419cfc"><span class="chk-text">For pruning work, identified the tree by common and scientific name, unambiguous location, objective, and sufficiently specific work specifications. — No</span></label><label class="chk-row" data-item="4cef8dedbd" data-section="e3e2c6d2"><input type="checkbox" class="chk-box" data-item="4cef8dedbd"><span class="chk-text">For pruning work, identified the tree by common and scientific name, unambiguous location, objective, and sufficiently specific work specifications. — N/A</span></label></div><p><strong>Score: ______ / ______ applicable = ______ %     Trainer: __________________     Date: __________</strong></p><h2 id="appendix-b-estimate-production-audit">Appendix B — Estimate / Production Audit<span class="chk-progress" data-section="080a2c78"></span></h2><p>Estimator: __________________________</p><p>Client / Job: _______________________</p><p>Date Estimated: __________   Date Completed: __________</p><div class="doc-table-wrap"><table class="doc-table"><thead><tr><th><strong>Measure</strong></th><th><strong>Estimate</strong></th><th><strong>Actual / Senior Benchmark</strong></th><th><strong>Variance / Notes</strong></th></tr></thead><tbody><tr><td>Crew size</td><td></td><td></td><td></td></tr><tr><td>Crew-hours</td><td></td><td></td><td></td></tr><tr><td>Crew-days</td><td></td><td></td><td></td></tr><tr><td>Major equipment</td><td></td><td></td><td></td></tr><tr><td>Rental / special costs</td><td></td><td></td><td></td></tr><tr><td>Disposal / haul-off</td><td></td><td></td><td></td></tr><tr><td>Contract price</td><td></td><td></td><td></td></tr><tr><td>Gross margin</td><td></td><td></td><td></td></tr><tr><td>Crew scope rating (Good / Tight / Bad)</td><td></td><td></td><td></td></tr></tbody></table></div><h2 id="appendix-c-authority-record">Appendix C — Authority Record<span class="chk-progress" data-section="027c02e7"></span></h2><div class="chk-table" data-section="027c02e7"><label class="chk-row" data-item="a422d0ff56" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="a422d0ff56"><span class="chk-text">Tier 1 — Routine Residential</span></label><label class="chk-row" data-item="91740141db" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="91740141db"><span class="chk-text">Estimator Trainee — Supervised Only (No independent sending authority · Every estimate requires Tier 3 review and approval before client delivery.)</span></label><label class="chk-row" data-item="02511df136" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="02511df136"><span class="chk-text">Tier 1 — Routine Residential</span></label><label class="chk-row" data-item="c5a796fecc" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="c5a796fecc"><span class="chk-text">Tier 2 — General Residential</span></label><label class="chk-row" data-item="656ec4a11c" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="656ec4a11c"><span class="chk-text">Tier 3 — Senior / Complex</span></label><label class="chk-row" data-item="ba63a2b7bc" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="ba63a2b7bc"><span class="chk-text">PHC Specialty</span></label><label class="chk-row" data-item="ee19f37141" data-section="027c02e7"><input type="checkbox" class="chk-box" data-item="ee19f37141"><span class="chk-text">Complex Removals &amp; Rigging</span></label></div>
+  </main>
+
+  <footer>
+    <p>Total Tree Care &middot; Qualified Estimator Pass-Off &middot; 2026 edition</p>
+    <a href="../../../files/training/qualified-estimator-pass-off.docx">Download the original (.docx)</a>
+  </footer>
+</div>
+
+<textarea id="clipHelper" style="position:fixed; top:-9999px; left:-9999px;" aria-hidden="true"></textarea>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'ttc-passoff:v1';
+
+  function loadStore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return { trainees: {}, last: null };
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return { trainees: {}, last: null };
+      if (!parsed.trainees || typeof parsed.trainees !== 'object') parsed.trainees = {};
+      return parsed;
+    } catch (e) { return { trainees: {}, last: null }; }
+  }
+  function saveStore(store) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* storage unavailable */ }
+  }
+  function normalizeName(name) {
+    return (name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  var store = loadStore();
+  var currentKey = store.last && store.trainees[store.last] ? store.last : null;
+
+  var traineeInput = document.getElementById('traineeInput');
+  var traineeNames = document.getElementById('traineeNames');
+  var overallCount = document.getElementById('overallCount');
+  var overallBar = document.getElementById('overallBar');
+  var copyBtn = document.getElementById('copyBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var copyConfirm = document.getElementById('copyConfirm');
+  var clipHelper = document.getElementById('clipHelper');
+
+  var allRows = Array.prototype.slice.call(document.querySelectorAll('.chk-row'));
+  var allBadges = Array.prototype.slice.call(document.querySelectorAll('.chk-progress'));
+
+  function currentTrainee() {
+    if (!currentKey) return null;
+    return store.trainees[currentKey] || null;
+  }
+
+  function ensureTrainee(displayName) {
+    var key = normalizeName(displayName);
+    if (!key) return null;
+    if (!store.trainees[key]) {
+      store.trainees[key] = { display: displayName.trim(), items: {}, updatedAt: new Date().toISOString() };
+    }
+    currentKey = key;
+    store.last = key;
+    saveStore(store);
+    return key;
+  }
+
+  function renderTraineeChips() {
+    traineeNames.innerHTML = '';
+    var keys = Object.keys(store.trainees).sort(function (a, b) {
+      var ta = store.trainees[a].updatedAt || '';
+      var tb = store.trainees[b].updatedAt || '';
+      return tb < ta ? -1 : (tb > ta ? 1 : 0);
+    });
+    keys.forEach(function (key) {
+      var t = store.trainees[key];
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'trainee-chip' + (key === currentKey ? ' current' : '');
+      chip.textContent = t.display || key;
+      chip.addEventListener('click', function () {
+        currentKey = key;
+        store.last = key;
+        saveStore(store);
+        traineeInput.value = t.display || key;
+        renderAll();
+      });
+      traineeNames.appendChild(chip);
+    });
+  }
+
+  function itemDone(itemId) {
+    var t = currentTrainee();
+    if (!t) return false;
+    var it = t.items[itemId];
+    return !!(it && it.done);
+  }
+
+  function setItemDone(itemId, done) {
+    if (!currentKey) return;
+    var t = store.trainees[currentKey];
+    if (!t) return;
+    if (!t.items) t.items = {};
+    t.items[itemId] = { done: done, ts: new Date().toISOString() };
+    t.updatedAt = new Date().toISOString();
+    saveStore(store);
+  }
+
+  function renderChecks() {
+    allRows.forEach(function (row) {
+      var id = row.getAttribute('data-item');
+      var box = row.querySelector('.chk-box');
+      box.checked = itemDone(id);
+    });
+  }
+
+  function renderProgress() {
+    var total = allRows.length;
+    var done = 0;
+    var bySection = {};
+    allRows.forEach(function (row) {
+      var section = row.getAttribute('data-section');
+      var box = row.querySelector('.chk-box');
+      if (!bySection[section]) bySection[section] = { total: 0, done: 0 };
+      bySection[section].total++;
+      if (box.checked) { bySection[section].done++; done++; }
+    });
+    overallCount.textContent = done + ' of ' + total + ' complete';
+    overallBar.style.width = total ? Math.round((done / total) * 100) + '%' : '0%';
+
+    allBadges.forEach(function (badge) {
+      var section = badge.getAttribute('data-section');
+      var s = bySection[section];
+      if (!s || !s.total) { badge.textContent = ''; return; }
+      badge.textContent = s.done + ' of ' + s.total;
+      badge.classList.toggle('chk-progress--done', s.done === s.total);
+    });
+  }
+
+  function renderAll() {
+    renderTraineeChips();
+    renderChecks();
+    renderProgress();
+  }
+
+  traineeInput.addEventListener('change', function () {
+    var name = traineeInput.value.trim();
+    if (!name) return;
+    ensureTrainee(name);
+    renderAll();
+  });
+  traineeInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { traineeInput.blur(); }
+  });
+
+  allRows.forEach(function (row) {
+    var box = row.querySelector('.chk-box');
+    box.addEventListener('change', function () {
+      var name = traineeInput.value.trim();
+      if (!currentKey && name) ensureTrainee(name);
+      if (!currentKey) {
+        box.checked = false;
+        traineeInput.focus();
+        return;
+      }
+      setItemDone(row.getAttribute('data-item'), box.checked);
+      renderTraineeChips();
+      renderProgress();
+    });
+  });
+
+  resetBtn.addEventListener('click', function () {
+    if (!currentKey || !store.trainees[currentKey]) return;
+    var t = store.trainees[currentKey];
+    var ok = window.confirm('Reset all saved progress for ' + (t.display || currentKey) + '? This cannot be undone.');
+    if (!ok) return;
+    t.items = {};
+    t.updatedAt = new Date().toISOString();
+    saveStore(store);
+    renderAll();
+  });
+
+  function buildSummary() {
+    var t = currentTrainee();
+    var name = t ? (t.display || currentKey) : '(no trainee selected)';
+    var lines = [];
+    lines.push('TTC Qualified Estimator Pass-Off — progress summary');
+    lines.push('Trainee: ' + name);
+    lines.push('Date: ' + new Date().toLocaleDateString());
+    lines.push('');
+
+    var sections = [];
+    var sectionIndex = {};
+    allRows.forEach(function (row) {
+      var section = row.getAttribute('data-section');
+      if (!(section in sectionIndex)) {
+        sectionIndex[section] = sections.length;
+        var heading = document.querySelector('.chk-progress[data-section="' + section + '"]');
+        var label = section;
+        if (heading && heading.closest) {
+          var h = heading.closest('h2, h3');
+          if (h) label = h.textContent.replace(/\s+/g, ' ').trim();
+        }
+        sections.push({ label: label, total: 0, done: 0, unchecked: [] });
+      }
+      var s = sections[sectionIndex[section]];
+      var box = row.querySelector('.chk-box');
+      var text = row.querySelector('.chk-text').textContent.trim();
+      s.total++;
+      if (box.checked) { s.done++; } else { s.unchecked.push(text); }
+    });
+
+    sections.forEach(function (s) {
+      if (!s.total) return;
+      lines.push(s.label + ' — ' + s.done + ' of ' + s.total);
+      s.unchecked.forEach(function (text) { lines.push('  [ ] ' + text); });
+    });
+
+    return lines.join('\n');
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      try {
+        clipHelper.value = text;
+        clipHelper.style.display = 'block';
+        clipHelper.focus();
+        clipHelper.select();
+        var ok = document.execCommand('copy');
+        clipHelper.style.display = 'none';
+        ok ? resolve() : reject(new Error('execCommand failed'));
+      } catch (e) { reject(e); }
+    });
+  }
+
+  copyBtn.addEventListener('click', function () {
+    var summary = buildSummary();
+    copyToClipboard(summary).then(function () {
+      copyConfirm.hidden = false;
+      setTimeout(function () { copyConfirm.hidden = true; }, 2000);
+    }).catch(function () {
+      window.prompt('Copy this summary:', summary);
+    });
+  });
+
+  // ---- initial render ----
+  if (currentKey && store.trainees[currentKey]) {
+    traineeInput.value = store.trainees[currentKey].display || currentKey;
+  }
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
