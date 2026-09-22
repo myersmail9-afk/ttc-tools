@@ -1080,9 +1080,19 @@
       else if(b.type==='p'||b.type==='note') host.appendChild(el('p',b.type==='note'?'note-block':null,b.text||''));
     });
     // The .docx repeats "Tier 1 — Routine Residential" as both a stray first line and its real
-    // row. Keep one line per distinct tier, in David's order, without editing any wording.
+    // row, which on the page put Tier 1 above the Trainee line it comes after. Keep one line per
+    // tier and order them by the ladder — David's own level order — rather than by where the
+    // duplicate happened to land in the Word table. No wording is edited.
+    var levelOrder={}; (D.levels||[]).forEach(function(L,i){ levelOrder[L.id]=i; });
     var seen={}, lines=[];
     rows.forEach(function(r){ var k=r[0]; if(!k||seen[k]) return; seen[k]=true; lines.push(r); });
+    lines.sort(function(x,y){
+      var a=levelOrder[levelForAuthorityLine(x[0])], b=levelOrder[levelForAuthorityLine(y[0])];
+      if(a==null&&b==null) return 0;
+      if(a==null) return 1;            // a line with no matching level sinks to the bottom
+      if(b==null) return -1;
+      return a-b;
+    });
 
     host.appendChild(el('p','fm-tally-note',
       'Read from the ladder above. A line is held once every item in that level is verified, so '+
