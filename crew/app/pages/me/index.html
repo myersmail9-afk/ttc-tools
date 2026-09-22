@@ -612,11 +612,15 @@
     var card=el('div','card');
     card.appendChild(el('h2','sec-title','Pass-off standing'));
     var stats=profileRes.stats.passoff;
+    var cl=stats.currentLevel; // the per-gate view — never the 127-item document total
     var row=el('div','standing-row');
-    row.appendChild(el('div','standing-level',stats.level||'Not started'));
-    row.appendChild(el('div','standing-nums',stats.verified+' / '+stats.total+' verified'));
+    row.appendChild(el('div','standing-level', cl?cl.title:(stats.level||'Not started')));
+    if(cl) row.appendChild(el('div','standing-nums', cl.allDone?'All verified':(cl.verified+' of '+cl.total+' verified')));
     card.appendChild(row);
-    var bar=el('div','standing-bar'); var i=el('i'); i.style.width=(stats.total?Math.round(stats.verified/stats.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
+    if(cl){
+      var bar=el('div','standing-bar'); var i=el('i'); i.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
+      if(!cl.allDone) card.appendChild(el('p','fixed-note', cl.remaining+' item'+(cl.remaining===1?'':'s')+' left for this gate'+(cl.nextSection?' — next up: '+cl.nextSection.title:'')+'.'));
+    }
     if(profileRes.stats.items_waiting_review){
       card.appendChild(el('p','standing-waiting', profileRes.stats.items_waiting_review+' item'+(profileRes.stats.items_waiting_review===1?'':'s')+' waiting on review.'));
     }

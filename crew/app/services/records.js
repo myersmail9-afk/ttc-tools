@@ -268,6 +268,61 @@
     return { verified: verified, claimed: claimed, total: total, level: standingLevel };
   }
 
+  // The per-GATE view: never a document-wide denominator. "Tier 2 — 18 of 24", the next unfinished
+  // section within that tier, and how many items stand between here and that tier's own sign-off.
+  function computeCurrentLevel(recordsMap) {
+    recordsMap = recordsMap || {};
+    var D = window.TTC_PASSOFF;
+    if (!D) return null;
+    var levels = passoffLevelsFlat();
+    var byId = {}; (D.levels || []).forEach(function (L) { byId[L.id] = L; });
+    for (var i = 0; i < levels.length; i++) {
+      var L = levels[i], full = byId[L.id] || {};
+      var v = 0, total = L.items.length;
+      L.items.forEach(function (id) { if (recordsMap[id] && recordsMap[id].state === 'verified') v++; });
+      if (v < total || total === 0) {
+        var nextSection = null;
+        (full.sections || []).some(function (S) {
+          var items = S.items || [];
+          var sv = 0; items.forEach(function (it) { if (recordsMap[it.id] && recordsMap[it.id].state === 'verified') sv++; });
+          if (sv < items.length) { nextSection = { id: S.id, title: S.title, verified: sv, total: items.length }; return true; }
+          return false;
+        });
+        return {
+          id: L.id, title: L.title, kind: full.kind || 'tier', purpose: full.purpose || '',
+          verified: v, total: total, remaining: total - v, nextSection: nextSection, allDone: false,
+          order: i, isLast: i === levels.length - 1
+        };
+      }
+    }
+    var last = levels[levels.length - 1];
+    if (!last) return null;
+    var lastFull = byId[last.id] || {};
+    return { id: last.id, title: last.title, kind: lastFull.kind || 'tier', purpose: lastFull.purpose || '',
+      verified: last.items.length, total: last.items.length, remaining: 0, nextSection: null, allDone: true,
+      order: levels.length - 1, isLast: true };
+  }
+
+  // Raw per-item passoff records for ANY person (self or, for a trainer/office viewer, someone else),
+  // local or remote — the one place both the profile page and the pass-off page get "what state is
+  // item X in for person Y" without duplicating the local/remote branch everywhere.
+  function passoffRecordsFor(pid) {
+    return ready().then(function () {
+      var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
+      if (!configured()) {
+        var db = loadLocalDb();
+        return (localPerson(db, pid).records || {}).passoff || {};
+      }
+      if (pid === self.id) return apiPost('me', { area: 'passoff' }, true).then(function (r) { return (r.records && r.records.passoff) || {}; });
+      if (!can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'You may only view your own records.' });
+      return apiPost('person', { person_id: pid, area: 'passoff' }, true).then(function (r) { return (r.records && r.records.passoff) || {}; });
+    });
+  }
+
+  function passoffCurrentLevel(pid) {
+    return passoffRecordsFor(pid).then(function (recMap) { return computeCurrentLevel(recMap); });
+  }
+
   function countOwnClaimed(personId) {
     var db = loadLocalDb(), lp = localPerson(db, personId);
     var recs = (lp.records && lp.records.passoff) || {};
@@ -285,20 +340,34 @@
     return ready().then(function () {
       var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       var pid = id || self.id;
-      if (configured()) return apiPost('profile_get', pid !== self.id ? { person_id: pid } : {}, true);
-      if (pid !== self.id && !can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'You may only view your own profile.' });
-      var roster = findPersonById(pid);
-      if (!roster) return Promise.reject({ error: 'unknown_person', message: 'Unknown person.' });
-      var db = loadLocalDb(), lp = localPerson(db, pid);
-      var passoff = computePassoffStats(pid);
-      var claimed = countOwnClaimed(pid);
-      return {
-        ok: true,
-        person: { id: roster.person_id, name: roster.display_name, email: roster.email, role: roster.role, active: true, test: !!roster.test },
-        profile: Object.assign({ preferred_name: '', about: '', certifications: '', phone_optional: '', photo: '', updated_at: null }, lp.profile || {}),
-        stats: { passoff: passoff, items_waiting_review: claimed.count, last_sign_in: lp.last_sign_in || null },
-        server_time: Date.now()
-      };
+      var basePromise;
+      if (configured()) {
+        basePromise = apiPost('profile_get', pid !== self.id ? { person_id: pid } : {}, true);
+      } else {
+        if (pid !== self.id && !can('see_everyone')) { basePromise = Promise.reject({ error: 'forbidden', message: 'You may only view your own profile.' }); }
+        else {
+          var roster = findPersonById(pid);
+          if (!roster) { basePromise = Promise.reject({ error: 'unknown_person', message: 'Unknown person.' }); }
+          else {
+            var db = loadLocalDb(), lp = localPerson(db, pid);
+            var passoff = computePassoffStats(pid);
+            var claimed = countOwnClaimed(pid);
+            basePromise = Promise.resolve({
+              ok: true,
+              person: { id: roster.person_id, name: roster.display_name, email: roster.email, role: roster.role, active: true, test: !!roster.test },
+              profile: Object.assign({ preferred_name: '', about: '', certifications: '', phone_optional: '', photo: '', updated_at: null }, lp.profile || {}),
+              stats: { passoff: passoff, items_waiting_review: claimed.count, last_sign_in: lp.last_sign_in || null },
+              server_time: Date.now()
+            });
+          }
+        }
+      }
+      // Attach the per-gate ("Tier 2 — 18 of 24") view alongside whatever document-wide numbers the
+      // backend contract returns — a page renders the per-gate object, never stats.passoff.total.
+      return basePromise.then(function (res) {
+        return passoffCurrentLevel(pid).then(function (cl) { res.stats.passoff.currentLevel = cl; return res; })
+          .catch(function () { res.stats.passoff.currentLevel = null; return res; });
+      });
     });
   }
 
@@ -546,6 +615,8 @@
     insights: insights, reviewQueue: reviewQueue,
     recordBatch: recordBatch, recordSet: recordSet,
     records: records, loadRecords: loadRecords,
+    passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor,
+    passoffLevelsFlat: passoffLevelsFlat, passoffCatalog: flattenPassoffCatalog,
     on: on
   };
 })();
