@@ -1191,18 +1191,14 @@
   }
   // The same four blanks repeated under each tier's sign-off, answered from that tier's own items.
   function levelFieldValue(L, label){
-    var l=String(label||'').toLowerCase(), items=levelItems(L), recs=recMap();
+    var l=String(label||'').toLowerCase(), pass=levelPassItem(L), recs=recMap();
     if(l.indexOf('employee')===0) return subject ? subject.name : '';
     if(l.indexOf('notes')===0){
-      var notes=[];
-      items.forEach(function(i){ var r=recs[i.id]; if(r&&r.note) notes.push(r.note); });
-      return notes.length ? notes[notes.length-1] : '';
+      return pass&&recs[pass.id]&&recs[pass.id].note || '';
     }
-    var newest=null;
-    items.forEach(function(i){ var r=recs[i.id];
-      if(r && r.state==='verified' && (!newest || (r.ts||0)>(newest.ts||0))) newest=r; });
-    if(l.indexOf('date')===0) return newest ? new Date(newest.ts).toISOString().slice(0,10) : '';
-    if(newest && newest.by_person_id) return personNameById(newest.by_person_id);
+    var signed=pass&&recs[pass.id]&&recs[pass.id].state==='verified' ? recs[pass.id] : null;
+    if(l.indexOf('date')===0) return signed ? new Date(signed.ts).toISOString().slice(0,10) : '';
+    if(signed && signed.by_person_id) return personNameById(signed.by_person_id);
     return '';
   }
   function fieldBlock(label, value, emptyText){
@@ -1516,19 +1512,49 @@
     card.appendChild(el('div','hero-title', cl.title));
     if(cl.purpose) card.appendChild(el('div','hero-purpose', cl.purpose));
     var bar=el('div','hero-bar'); var i=el('i'); i.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
-    if(cl.nextSection){
+    if(cl.waitingForSignoff){
+      card.appendChild(el('div','hero-next','Ready for sign-off'));
+    } else if(cl.nextSection){
       card.appendChild(el('div','hero-next','Next up: '+cl.nextSection.title+' — '+(cl.nextSection.total-cl.nextSection.verified)+' to go'));
     }
     var levelsFlat=TTCRecords.passoffLevelsFlat();
     var gateNext = levelsFlat[cl.order+1];
-    card.appendChild(el('div','hero-gate', cl.remaining+' item'+(cl.remaining===1?'':'s')+' stand between here and this '+(cl.kind==='endorsement'?'endorsement':'tier')+'’s sign-off'+(gateNext?', which opens '+gateNext.title:'')+'.'));
-    var jump=el('button','btn primary small','Jump to it');
-    jump.onclick=function(){
-      UI.levels[cl.id]=true; if(cl.nextSection) UI.sections[cl.nextSection.id]=true; saveUI(); rerender();
-      var target=document.getElementById('lvl-'+cl.id); if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
-    };
+    card.appendChild(el('div','hero-gate', cl.waitingForSignoff
+      ? 'All '+cl.total+' training requirements are verified. A trainer now needs to record the sign-off.'
+      : cl.remaining+' item'+(cl.remaining===1?'':'s')+' stand between here and this '+(cl.kind==='endorsement'?'endorsement':'tier')+'’s sign-off'+(gateNext?', which opens '+gateNext.title:'')+'.'));
+    var jump=el('button','btn primary small',cl.waitingForSignoff?'Open sign-off':'Jump to it');
+    jump.onclick=function(){ openCurrentAction(cl); };
     card.appendChild(jump);
     return card;
+  }
+
+  function openCurrentAction(cl){
+    if(!cl) return;
+    UI.levels[cl.id]=true;
+    if(cl.nextSection) UI.sections[cl.nextSection.id]=true;
+    saveUI(); rerender();
+    var target=document.getElementById(cl.waitingForSignoff?'signoff-'+cl.id:'lvl-'+cl.id);
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function nextActionBar(cl){
+    var bar=el('div','next-action-bar');
+    var inner=el('div','next-action-inner');
+    var copy=el('div','next-action-copy');
+    var label='Your progress is saved.';
+    if(cl && !cl.allDone) label=cl.waitingForSignoff ? cl.title+' is ready for sign-off' :
+      (cl.nextSection ? 'Next: '+cl.nextSection.title : 'Continue '+cl.title);
+    else if(cl && cl.allDone) label='Every level is complete.';
+    copy.appendChild(el('span','next-action-label',label));
+    var status=el('span','save-state',saveStateText()); status.id='save-state'; status.setAttribute('data-state',saveState); copy.appendChild(status);
+    inner.appendChild(copy);
+    if(cl && !cl.allDone){
+      var action=el('button','btn primary',cl.waitingForSignoff?'Open sign-off':'Continue');
+      action.onclick=function(){ openCurrentAction(cl); };
+      inner.appendChild(action);
+    }
+    bar.appendChild(inner);
+    return bar;
   }
 
   /* ---------- filters bar ---------- */
@@ -1602,11 +1628,11 @@
     }
 
     levels.forEach(function(L){
-      var items=levelItems(L), cnt=countOf(items);
+      var items=levelItems(L), cnt=countOf(items), isComplete=levelFullyVerified(L), pass=levelPassItem(L);
       var lockTitle = locks[L.id];
       var isLocked = !!lockTitle && !canVerify;
       var isOpen = UI.levels[L.id];
-      var box=el('div','level'+(L.kind==='endorsement'?' is-endorsement':'')+(cnt.verified===cnt.total&&cnt.total?' is-done':'')+(isLocked?' is-locked':'')+(isOpen?' is-open':''));
+      var box=el('div','level'+(L.kind==='endorsement'?' is-endorsement':'')+(isComplete?' is-done':'')+(isLocked?' is-locked':'')+(isOpen?' is-open':''));
       box.id='lvl-'+L.id;
 
       var head=el('button','level-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
@@ -1617,7 +1643,7 @@
       if(lockTitle) tt.appendChild(el('div','level-lock-chip','Opens after '+lockTitle+' sign-off'));
       head.appendChild(tt);
       var cc=el('div','level-count tabular'); var b=el('b',null,cnt.verified+'/'+cnt.total);
-      cc.appendChild(b); cc.appendChild(document.createTextNode(cnt.claimed?cnt.claimed+' waiting':'verified'));
+      cc.appendChild(b); cc.appendChild(document.createTextNode(cnt.claimed?cnt.claimed+' waiting':(cnt.verified===cnt.total&&!isComplete&&pass?'ready to sign off':'verified')));
       head.appendChild(cc);
       head.appendChild(el('div','level-chev','›'));
       head.onclick=function(){
@@ -1637,7 +1663,7 @@
       (L.sections||[]).forEach(function(S){ body.appendChild(sectionRow(S, isLocked?lockTitle:null)); });
 
       if(L.signoff){
-        var so=el('div','signoff');
+        var so=el('div','signoff'); so.id='signoff-'+L.id;
         so.appendChild(el('div','signoff-head',L.signoff.title||'Sign-off'));
         var sb=el('div','signoff-body');
         if(L.signoff.intro&&L.signoff.intro.length){ var g=el('div','blocks'); blocks(L.signoff.intro,g); sb.appendChild(g); }
@@ -1680,6 +1706,7 @@
     f.appendChild(document.createTextNode('Every word on this page is David’s, taken from the original document. '));
     var a=el('a',null,'Download the original (.docx)'); a.href='../../../files/training/qualified-estimator-pass-off.docx';
     f.appendChild(a); root.appendChild(f);
+    root.appendChild(nextActionBar(currentLevelCache));
   }
 
   function setDefaultOpenState(){
