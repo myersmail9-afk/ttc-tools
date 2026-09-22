@@ -52,6 +52,10 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }
   :root[data-textsize="big"]{--fs:18.5px}
+  .sect.is-filtered-out{display:none}
+  .filter-empty{margin:18px 0;padding:16px 18px;border:1px dashed var(--border);border-radius:14px;
+        background:var(--card);color:var(--fg2);font-size:14px}
+  .filter-empty b{color:var(--fg1)}
 
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -502,7 +506,19 @@
     FILTER_KEY='ttc-passoff-filter:'+personId;
     var stored=null; try{ stored=localStorage.getItem(FILTER_KEY); }catch(e){}
     if(stored){ filter=stored; return; }
-    filter = TTCRecords.can('verify_others') ? 'claimed' : 'open';
+    // Default by role — but ONLY when that filter actually matches something. A reviewer with an
+    // empty queue must not land on a page of empty sections; that reads as broken, not as "all clear".
+    var want = TTCRecords.can('verify_others') ? 'claimed' : 'open';
+    filter = countMatching(want) > 0 ? want : 'all';
+  }
+  // How many items anywhere in the document currently sit in this state.
+  function countMatching(f){
+    if(f==='all') return 1;
+    var n=0;
+    (D.levels||[]).forEach(function(L){
+      levelItems(L).forEach(function(i){ if(itemState(i.id)===f) n++; });
+    });
+    return n;
   }
   function setFilter(f){ filter=f; try{ localStorage.setItem(FILTER_KEY,f); }catch(e){} }
   var FILTER_LABELS={ all:'All', open:'Not started', claimed:'Waiting on review', verified:'Verified', returned:'Sent back' };
@@ -674,7 +690,10 @@
       shown++;
       body.appendChild(itemRow(i, levelLockTitle));
     });
-    if(!shown){ body.appendChild(el('p','locked-note', items.length?'Nothing here matches “'+FILTER_LABELS[filter]+'.”':'No items in this section.')); }
+    if(!shown){
+      if(!items.length){ body.appendChild(el('p','locked-note','No items in this section.')); }
+      else { sect.classList.add('is-filtered-out'); }   // hidden entirely; the filter bar explains why
+    }
     if(S.after&&S.after.length){ var sa=el('div','blocks'); blocks(S.after,sa); body.appendChild(sa); }
     box.appendChild(body);
     return box;
