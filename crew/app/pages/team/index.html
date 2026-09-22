@@ -210,7 +210,7 @@
       row.onclick=function(){ location.href='../me/index.html?person='+encodeURIComponent(p.person_id); };
       // Straight into their pass-off, which is where a trainer actually wants to land.
       var go=document.createElement('a'); go.className='row-passoff'; go.textContent='Pass-off →';
-      go.href='../training/estimator-pass-off/?person='+encodeURIComponent(p.person_id);
+      go.href='../training/estimator-pass-off/index.html?person='+encodeURIComponent(p.person_id);
       go.onclick=function(e){ e.stopPropagation(); };
       row.appendChild(go);
 

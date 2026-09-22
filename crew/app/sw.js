@@ -15,7 +15,7 @@
 // Do NOT bump it for content.js edits.
 
 const SHELL_CACHE = 'ttc-crew-v33';
-const FILES_CACHE = 'ttc-crew-files-v17';
+const FILES_CACHE = 'ttc-crew-files-v18';
 const SHELL = [
   './',
   './index.html',
