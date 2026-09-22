@@ -103,8 +103,12 @@
     sync.status = status;
     sync.lastError = err || null;
     if (status === 'synced') {
-      sync.lastSuccess = Date.now();
-      saveSyncMeta({ lastSuccess: sync.lastSuccess });
+      // A healthy head poll happens every three seconds. Keep the timestamp useful without
+      // rewriting localStorage on every heartbeat (which is especially wasteful on phones).
+      if (!sync.lastSuccess || !quiet || (Date.now() - sync.lastSuccess) >= 15000) {
+        sync.lastSuccess = Date.now();
+        saveSyncMeta({ lastSuccess: sync.lastSuccess });
+      }
     }
     if (!quiet || changed) emit('syncstate', syncSnapshot());
   }
@@ -897,7 +901,14 @@
 
   // ---------------------------------------------------------------------- events
 
-  function on(evt, cb) { listeners[evt] = listeners[evt] || []; listeners[evt].push(cb); }
+  function on(evt, cb) {
+    listeners[evt] = listeners[evt] || [];
+    listeners[evt].push(cb);
+    return function () {
+      var list = listeners[evt] || [], idx = list.indexOf(cb);
+      if (idx !== -1) list.splice(idx, 1);
+    };
+  }
 
   // ---------------------------------------------------------------------- export
 
@@ -914,6 +925,9 @@
     records: records, loadRecords: loadRecords,
     passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor, recordsFor: recordsFor,
     passoffLevelsFlat: passoffLevelsFlat, passoffCatalog: flattenPassoffCatalog,
+    watchVisible: watchVisible,
+    refreshVisible: function () { return refreshAllWatchers('manual'); },
+    syncStatus: syncSnapshot,
     on: on
   };
 })();
