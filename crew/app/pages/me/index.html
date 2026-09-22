@@ -281,22 +281,25 @@
       });
       wrap.appendChild(list);
     } else {
-      wrap.appendChild(el('p','signin-note','Sign in with your email — a 6-digit code will be sent to it.'));
-      var fr1=el('div','field-row'); fr1.appendChild(el('label',null,'Email'));
-      var emailInput=document.createElement('input'); emailInput.type='email'; emailInput.placeholder='you@totaltreecareutah.com';
+      wrap.appendChild(el('p','signin-note','Use the Gmail or other email address on your TTC crew profile. We’ll send a 6-digit code to that inbox — no password needed. If you need your email added or changed, contact the office.'));
+      var fr1=el('div','field-row'); var emailLabel=el('label',null,'Gmail or email address'); emailLabel.htmlFor='signin-email'; fr1.appendChild(emailLabel);
+      var emailInput=document.createElement('input'); emailInput.id='signin-email'; emailInput.type='email'; emailInput.placeholder='you@gmail.com'; emailInput.autocomplete='email'; emailInput.autocapitalize='none'; emailInput.spellcheck=false; emailInput.required=true;
       fr1.appendChild(emailInput); wrap.appendChild(fr1);
       var sendBtn=el('button','btn primary','Send code'); wrap.appendChild(sendBtn);
       var codeWrap=el('div',null); codeWrap.hidden=true;
-      var fr2=el('div','field-row'); fr2.appendChild(el('label',null,'6-digit code'));
-      var codeInput=document.createElement('input'); codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.maxLength=6;
+      var fr2=el('div','field-row'); var codeLabel=el('label',null,'6-digit code'); codeLabel.htmlFor='signin-code'; fr2.appendChild(codeLabel);
+      var codeInput=document.createElement('input'); codeInput.id='signin-code'; codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.maxLength=6; codeInput.autocomplete='one-time-code';
       fr2.appendChild(codeInput); codeWrap.appendChild(fr2);
       var verifyBtn=el('button','btn primary','Verify'); codeWrap.appendChild(verifyBtn);
       wrap.appendChild(codeWrap);
-      var status=el('p','signin-status'); wrap.appendChild(status);
+      var status=el('p','signin-status'); status.setAttribute('role','status'); wrap.appendChild(status);
       sendBtn.onclick=function(){
+        if(!emailInput.reportValidity()) return;
+        sendBtn.disabled=true;
         status.className='signin-status'; status.textContent='Sending…';
-        TTCRecords.signIn(emailInput.value).then(function(){ status.textContent='Code sent — check that inbox.'; codeWrap.hidden=false; })
-          .catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Could not send a code.'; });
+        TTCRecords.signIn(emailInput.value).then(function(){ status.textContent='If this email is on the active crew roster, a code is on its way. Check your inbox and spam folder.'; codeWrap.hidden=false; codeInput.focus(); })
+          .catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Could not send a code.'; })
+          .then(function(){ sendBtn.disabled=false; });
       };
       verifyBtn.onclick=function(){
         status.className='signin-status'; status.textContent='Verifying…';
