@@ -277,7 +277,9 @@
     if (sync.headInFlight) { scheduleHeadPoll(500); return; }
     sync.headInFlight = apiPost('sync_head', {}, true).then(function (res) {
       var revision = String(res.revision || '0');
-      var changed = sync.lastRevision !== null && revision !== sync.lastRevision;
+      // Treat the first successful head as a change too. That one conservative refresh closes the
+      // tiny race between the page's initial read and its first heartbeat; later polls stay head-only.
+      var changed = sync.lastRevision === null || revision !== sync.lastRevision;
       sync.lastRevision = revision;
       sync.backoffMs = SYNC_POLL_MS;
       setSyncStatus('synced', null, true);
@@ -298,7 +300,8 @@
     var now = Date.now();
     if ((now - sync.wakeAt) < 1200) return;
     sync.wakeAt = now;
-    refreshAllWatchers(reason || 'focus');
+    // Check the cheap marker first. The page data is fetched only if something actually changed
+    // while this tab was hidden or another app had focus.
     scheduleHeadPoll(0);
   }
 
