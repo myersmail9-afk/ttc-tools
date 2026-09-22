@@ -23,7 +23,9 @@
     --open-bg:#f1ece4; --open-fg:#6b6f66;
     --claim-bg:#faeeda; --claim-fg:#633806; --claim-br:#EF9F27;
     --ver-bg:#eaf3de;  --ver-fg:#27500A;  --ver-br:#97C459;
-    --ret-bg:#FCEBEB;  --ret-fg:#791F1F;  --ret-br:#F09595;
+    /* "Returned" reads as calm, not alarm — a document authorising real authority should never look
+       like an error state. Muted neutral-amber, deliberately less saturated than "waiting on review". */
+    --ret-bg:#f3ece1;  --ret-fg:#6b4a1f;  --ret-br:#c9a464;
     --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
     --fs:16px;
   }
@@ -34,7 +36,7 @@
     --open-bg:#2b3624; --open-fg:#9aa091;
     --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
     --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
-    --ret-bg:#3e1d1d;  --ret-fg:#f0a5a5;  --ret-br:#8d4141;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
     --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }}
@@ -45,7 +47,7 @@
     --open-bg:#2b3624; --open-fg:#9aa091;
     --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
     --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
-    --ret-bg:#3e1d1d;  --ret-fg:#f0a5a5;  --ret-br:#8d4141;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
     --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }
@@ -57,7 +59,9 @@
        font-size:var(--fs);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
   a{text-decoration:none;color:inherit} svg{display:block}
   button{font:inherit;color:inherit}
+  input,textarea{font:inherit;color:inherit}
   :focus-visible{outline:2px solid var(--ttc-orange);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
   /* ---- top bar ---- */
   .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
@@ -69,6 +73,31 @@
   .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
 
   .wrap{max-width:780px;margin:0 auto;padding:18px 16px 90px}
+  .tabular{font-variant-numeric:tabular-nums}
+
+  /* ---- sign-in (same idiom as the other TTC Crew pages) ---- */
+  .signin-wrap{max-width:420px;margin:40px auto;padding:0 16px}
+  .signin-note{font-size:13px;color:var(--fg2);margin:0 0 14px}
+  .signin-list{display:flex;flex-direction:column;gap:8px}
+  .signin-person{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+        border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;text-align:left;width:100%}
+  .signin-person:active{background:var(--bg-alt)}
+  .signin-person-name{font-weight:700;font-size:14.5px}
+  .signin-person-role{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3)}
+  .test-tag{font-size:9.5px;font-weight:800;letter-spacing:.06em;background:var(--claim-bg);color:var(--claim-fg);
+        border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+  .field-row{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  .field-row label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3)}
+  .field-row input,.field-row textarea{padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--bg-alt);font-size:15px}
+  .signin-status{font-size:13px;color:var(--fg2);min-height:18px;margin:8px 0 0}
+  .signin-status.err{color:var(--ret-fg)}
+  .btn{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;border:1px solid var(--border);
+       background:var(--card);cursor:pointer}
+  .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
+  .btn.good{background:var(--ver-br);border-color:var(--ver-br);color:#12280a}
+  .btn.bad{background:var(--card);border-color:var(--ret-br);color:var(--ret-fg)}
+  .btn.small{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:default}
 
   /* ---- header ---- */
   .doc-head{text-align:center;padding:10px 0 4px}
@@ -76,29 +105,25 @@
   h1{font-size:clamp(25px,5.4vw,33px);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
   .doc-sub{font-size:13.5px;color:var(--fg2);margin:0 0 4px}
 
-  /* ---- who ---- */
-  .who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);
-       border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);margin:16px 0}
-  .who-label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);font-weight:700}
-  .who select,.who input{font:inherit;font-size:15px;background:var(--bg-alt);color:var(--fg1);
-       border:1px solid var(--border);border-radius:9px;padding:7px 10px;min-width:150px}
-  .who-note{flex-basis:100%;font-size:12.5px;color:var(--fg3);margin:0}
+  /* ---- hero: "what's next", the primary object on the screen ---- */
+  .hero{background:linear-gradient(155deg,var(--ttc-dark),#37492f);color:#f1eee7;border-radius:18px;
+        padding:18px 20px;margin:16px 0;box-shadow:var(--shadow)}
+  :root[data-theme="light"] .hero, .hero{color:#f1eee7}
+  .hero-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ttc-gold);margin-bottom:6px}
+  .hero-title{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+  .hero-purpose{font-size:13.5px;color:rgba(241,238,231,.82);margin:0 0 10px}
+  .hero-bar{height:8px;border-radius:99px;background:rgba(241,238,231,.18);overflow:hidden;margin:2px 0 10px}
+  .hero-bar i{display:block;height:100%;background:var(--ttc-gold);border-radius:99px;transition:width .35s ease}
+  .hero-next{font-size:14px;font-weight:600;margin-bottom:4px}
+  .hero-gate{font-size:12.5px;color:rgba(241,238,231,.75);margin-bottom:12px}
+  .hero .btn.primary{background:var(--ttc-gold);border-color:var(--ttc-gold);color:#2a2214}
 
-  /* ---- tier rail ---- */
-  .rail{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 16px 12px;
-        box-shadow:var(--shadow);margin:0 0 18px}
-  .rail-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 12px}
-  .rail-now{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);font-weight:700}
-  .rail-tier{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--ttc-orange)}
-  .rail-track{display:flex;gap:5px}
-  .rail-seg{flex:1;min-width:0}
-  .rail-bar{height:7px;border-radius:99px;background:var(--rail);overflow:hidden}
-  .rail-bar i{display:block;height:100%;background:var(--ttc-green);border-radius:99px;transition:width .35s ease}
-  .rail-seg.done .rail-bar i{background:var(--ver-br)}
-  .rail-name{font-size:10.5px;color:var(--fg3);margin-top:6px;text-align:center;line-height:1.25;
-             overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .rail-seg.cur .rail-name{color:var(--ttc-orange);font-weight:700}
-  .rail-foot{font-size:12.5px;color:var(--fg2);margin:12px 0 0;text-align:center}
+  /* ---- filter bar ---- */
+  .filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;margin:0}
+  .filter-chip{flex:0 0 auto;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:99px;
+        border:1px solid var(--border);background:var(--card);color:var(--fg2);cursor:pointer;white-space:nowrap}
+  .filter-chip[aria-pressed="true"]{background:var(--ttc-dark);border-color:var(--ttc-dark);color:#f1eee7}
+  .filter-chip .n{font-variant-numeric:tabular-nums;opacity:.8;margin-left:4px}
 
   /* ---- generic blocks (verbatim content) ---- */
   .blocks p{margin:0 0 10px}
@@ -116,39 +141,51 @@
   .level{margin:0 0 14px;border:1px solid var(--border);border-radius:16px;background:var(--card);
          box-shadow:var(--shadow);overflow:hidden}
   .level.is-endorsement{border-style:dashed}
+  .level.is-locked{opacity:.6}
   .level-head{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card-2);
               border-bottom:1px solid var(--border-soft);cursor:pointer;width:100%;border:0;text-align:left}
   .level-ord{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
              background:var(--ttc-dark);color:#f1eee7;font-size:13px;font-weight:800}
   .level.is-done .level-ord{background:var(--ver-br);color:#12280a}
+  .level.is-locked .level-ord{background:var(--rail);color:var(--fg3)}
   .level-titles{flex:1;min-width:0}
   .level-title{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
   .level-kind{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:700;margin-top:2px}
-  .level-count{flex:0 0 auto;font-size:12.5px;color:var(--fg2);font-variant-numeric:tabular-nums;text-align:right}
+  .level-lock-chip{display:inline-block;font-size:10.5px;font-weight:700;color:var(--fg3);background:var(--rail);
+        border-radius:6px;padding:2px 6px;margin-top:4px}
+  .level-count{flex:0 0 auto;font-size:12.5px;color:var(--fg2);text-align:right}
   .level-count b{display:block;font-size:15px;color:var(--fg1)}
   .level-chev{flex:0 0 auto;transition:transform .2s ease;color:var(--fg3)}
-  .level[open] .level-chev,.level.is-open .level-chev{transform:rotate(90deg)}
+  .level.is-open .level-chev{transform:rotate(90deg)}
   .level-bar{height:4px;background:var(--rail)}
   .level-bar i{display:block;height:100%;background:var(--ttc-green);transition:width .35s ease}
   .level-body{padding:14px 16px 6px;display:none}
   .level.is-open .level-body{display:block}
-  .level-purpose{font-size:14.5px;color:var(--fg2);margin:0 0 12px}
+  .level-purpose{font-size:15px;font-weight:600;color:var(--fg1);margin:0 0 14px;line-height:1.5}
 
-  /* ---- section ---- */
-  .sect{margin:0 0 16px}
-  .sect-head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
-  .sect-title{font-size:14px;font-weight:800;color:var(--ttc-orange);letter-spacing:.01em;flex:1}
-  .sect-count{font-size:12px;color:var(--fg3);font-variant-numeric:tabular-nums}
+  /* ---- section: its own collapsible row, same idiom as <details class="appx"> below ---- */
+  .sect{border:1px solid var(--border);border-radius:12px;background:var(--card-2);margin:0 0 10px;overflow:hidden}
+  .sect-head{display:flex;align-items:center;gap:10px;width:100%;padding:11px 13px;background:none;border:0;
+        cursor:pointer;text-align:left}
+  .sect-titles{flex:1;min-width:0}
+  .sect-title{font-size:14px;font-weight:800;color:var(--ttc-orange);letter-spacing:.01em}
+  .sect-hint{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+  .sect-count{font-size:12px;color:var(--fg3)}
   .sect-count.all-done{color:var(--ver-fg);font-weight:700}
+  .sect-count.has-waiting{color:var(--claim-fg);font-weight:700}
+  .sect-chev{flex:0 0 auto;color:var(--fg3);transition:transform .18s ease}
+  .sect[data-open="1"] .sect-chev{transform:rotate(90deg)}
+  .sect-body{padding:0 13px 12px}
+  .sect[data-open="0"] .sect-body{display:none}
 
   /* ---- item ---- */
-  .item{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border:1px solid var(--border-soft);
-        border-radius:12px;background:var(--bg-alt);margin:0 0 7px;transition:border-color .2s,background .2s}
+  .item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--border-soft);
+        border-radius:12px;background:var(--bg-alt);margin:0 0 7px;min-height:56px}
   .item[data-state="claimed"]{background:var(--claim-bg);border-color:var(--claim-br)}
   .item[data-state="verified"]{background:var(--ver-bg);border-color:var(--ver-br)}
   .item[data-state="returned"]{background:var(--ret-bg);border-color:var(--ret-br)}
   .item-mark{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--border);
-             background:var(--card);display:grid;place-items:center;cursor:pointer;padding:0;margin-top:1px}
+             background:var(--card);display:grid;place-items:center;padding:0;margin-top:1px}
   .item-mark svg{width:15px;height:15px;opacity:0}
   .item[data-state="claimed"] .item-mark{border-color:var(--claim-br)}
   .item[data-state="claimed"] .item-mark svg{opacity:1;color:var(--claim-fg)}
@@ -157,8 +194,9 @@
   .item[data-state="returned"] .item-mark{border-color:var(--ret-br)}
   .item[data-state="returned"] .item-mark svg{opacity:1;color:var(--ret-fg)}
   .item-body{flex:1;min-width:0}
-  .item-text{font-size:14.5px;line-height:1.5}
-  .item-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
+  .item-text{font-size:16px;line-height:1.55;color:var(--fg1)}
+  .more-link{background:none;border:0;color:var(--ttc-orange);font-weight:700;font-size:13px;cursor:pointer;padding:0}
+  .item-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
   .chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;
         background:var(--open-bg);color:var(--open-fg);white-space:nowrap}
   .chip.claimed{background:var(--claim-bg);color:var(--claim-fg)}
@@ -166,16 +204,12 @@
   .chip.returned{background:var(--ret-bg);color:var(--ret-fg)}
   .item-when{font-size:11.5px;color:var(--fg3)}
   .item-note{font-size:13px;color:var(--fg2);margin-top:6px;padding:7px 10px;background:var(--card);
-             border-radius:9px;border:1px solid var(--border-soft)}
+             border-radius:9px;border:1px solid var(--border-soft);white-space:pre-line}
   .item-note b{font-weight:700;color:var(--fg1)}
-  .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .btn{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;border:1px solid var(--border);
-       background:var(--card);cursor:pointer}
-  .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
-  .btn.good{background:var(--ver-br);border-color:var(--ver-br);color:#12280a}
-  .btn.bad{background:var(--card);border-color:var(--ret-br);color:var(--ret-fg)}
+  .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .locked-note{font-size:12px;color:var(--fg3);margin-top:8px}
 
-  /* ---- sign-off ---- */
+  /* ---- sign-off (always visible — the gate, never collapsed) ---- */
   .signoff{margin:14px 0 4px;border:2px solid var(--ttc-gold);border-radius:14px;background:var(--card);overflow:hidden}
   .signoff-head{padding:10px 14px;background:var(--ttc-gold);color:#3a2a10;font-size:13px;font-weight:800;
                 letter-spacing:.06em;text-transform:uppercase}
@@ -200,7 +234,27 @@
   .foot{margin-top:30px;padding-top:15px;border-top:1px solid var(--border);font-size:12.5px;color:var(--fg3);text-align:center}
   .foot a{color:var(--ttc-orange);font-weight:600}
   .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
-  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+  /* ---- evidence / reason sheet ---- */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(20,20,15,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .sheet-overlay[hidden]{display:none}
+  .sheet{background:var(--card);border-radius:18px 18px 0 0;max-width:480px;width:100%;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+        box-shadow:0 -8px 30px rgba(0,0,0,.25);max-height:86vh;overflow-y:auto}
+  @media(min-width:560px){.sheet-overlay{align-items:center}.sheet{border-radius:18px;max-height:80vh}}
+  .sheet-title{font-size:16px;font-weight:800;margin-bottom:2px}
+  .sheet-item-text{font-size:13.5px;color:var(--fg2);margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
+  .sheet-close{float:right;background:none;border:0;font-size:20px;color:var(--fg3);cursor:pointer}
+  .sheet .field-row textarea{min-height:70px;resize:vertical}
+  .sheet-photo-preview{width:72px;height:72px;border-radius:10px;object-fit:cover;margin-top:6px;display:block}
+  .sheet-photo-note{font-size:11.5px;color:var(--fg3);margin-top:5px}
+  .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+  /* ---- toast (undo, never a confirm dialog) ---- */
+  .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        background:var(--ttc-dark);color:#f1eee7;padding:10px 14px;border-radius:11px;font-size:13.5px;
+        display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:60;max-width:calc(100vw - 32px)}
+  .toast[hidden]{display:none}
+  .toast button{background:none;border:0;color:var(--ttc-gold);font-weight:700;cursor:pointer;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -215,12 +269,20 @@
 
 <div class="wrap" id="root"><div class="loading">Loading the pass-off…</div></div>
 
+<div class="sheet-overlay" id="sheetOverlay" hidden><div class="sheet" id="sheetBody"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="../../../data/people.js"></script>
 <script src="../../../data/passoff.js"></script>
+<script src="../../../services/records.js"></script>
 <script>
 (function(){
   'use strict';
   var D = window.TTC_PASSOFF || null;
   var root = document.getElementById('root');
+  var overlay = document.getElementById('sheetOverlay');
+  var sheetBody = document.getElementById('sheetBody');
+  var toastEl = document.getElementById('toast');
 
   /* ---------- text size ---------- */
   var TS='ttc-textsize';
@@ -231,34 +293,6 @@
     else document.documentElement.setAttribute('data-textsize','big');
     try{ localStorage.setItem(TS,on?'normal':'big'); }catch(e){}
   });
-
-  /* ---------- records service ----------
-     Local for now. When the Apps Script backend is deployed this object is the
-     only thing that changes: same four calls, same shapes, network underneath.  */
-  var KEY='ttc-passoff:v2';
-  var Rec = {
-    _s:null,
-    load:function(){ if(this._s) return this._s;
-      try{ this._s=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ this._s=null; }
-      if(!this._s) this._s={people:{},current:null,viewer:null};
-      return this._s; },
-    save:function(){ try{ localStorage.setItem(KEY,JSON.stringify(this._s)); }catch(e){} },
-    people:function(){ return Object.keys(this.load().people).sort(); },
-    current:function(){ return this.load().current; },
-    setCurrent:function(n){ var s=this.load(); n=(n||'').trim(); if(!n) return;
-      if(!s.people[n]) s.people[n]={items:{}}; s.current=n; this.save(); },
-    viewer:function(){ return this.load().viewer||'crew'; },
-    setViewer:function(v){ var s=this.load(); s.viewer=v; this.save(); },
-    all:function(){ var s=this.load(); var p=s.current&&s.people[s.current]; return p?p.items:{}; },
-    get:function(id){ return this.all()[id]||{state:'open'}; },
-    set:function(id,state,note){ var s=this.load(); if(!s.current) return null;
-      var it={state:state,ts:new Date().toISOString(),by:s.viewer};
-      if(note) it.note=note;
-      var prev=s.people[s.current].items[id];
-      if(prev&&prev.note&&state==='verified') it.claimNote=prev.note;
-      if(prev&&prev.claimNote&&!it.claimNote) it.claimNote=prev.claimNote;
-      s.people[s.current].items[id]=it; this.save(); return it; }
-  };
 
   /* ---------- helpers ---------- */
   function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls;
@@ -274,6 +308,140 @@
     var p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M9 18l6-6-6-6'); s.appendChild(p); return s; }
   function when(iso){ if(!iso) return ''; var d=new Date(iso);
     return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  function relTime(ts){ if(!ts) return ''; var days=Math.floor((Date.now()-ts)/86400000);
+    if(days<=0) return 'today'; if(days===1) return '1 day ago'; if(days<30) return days+' days ago';
+    return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  function exactTime(ts){ return ts?new Date(ts).toLocaleString():''; }
+  function todayISO(){ var d=new Date(); return d.toISOString().slice(0,10); }
+
+  var toastTimer=null;
+  function showToast(msg, onUndo){
+    toastEl.innerHTML='';
+    toastEl.appendChild(el('span',null,msg));
+    if(onUndo){ var b=el('button',null,'Undo'); b.onclick=function(){ toastEl.hidden=true; onUndo(); }; toastEl.appendChild(b); }
+    toastEl.hidden=false;
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ toastEl.hidden=true; }, 6000);
+  }
+
+  function closeSheet(){ overlay.hidden=true; sheetBody.innerHTML=''; }
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) closeSheet(); });
+
+  /* ---------- sign-in screen (same idiom as the rest of the app) ---------- */
+  function renderSignIn(){
+    root.innerHTML='';
+    var wrap=el('div','signin-wrap');
+    wrap.appendChild(el('h1',null,'Sign in'));
+    var local = !TTCRecords.configured();
+    if(local){
+      wrap.appendChild(el('p','signin-note','No records backend deployed yet — this device is using its own local copy. Pick yourself from the roster below.'));
+      var list=el('div','signin-list');
+      TTCRecords.people().forEach(function(p){
+        var b=el('button','signin-person');
+        var left=el('span','signin-person-name'); left.textContent=p.display_name;
+        if(p.test){ var tag=el('span','test-tag','TEST'); left.appendChild(tag); }
+        var right=el('span','signin-person-role',p.role);
+        b.appendChild(left); b.appendChild(right);
+        b.onclick=function(){ TTCRecords.signInAs(p.person_id).then(boot).catch(function(err){ alert(err.message||'Could not sign in.'); }); };
+        list.appendChild(b);
+      });
+      wrap.appendChild(list);
+    } else {
+      wrap.appendChild(el('p','signin-note','Sign in with your email — a 6-digit code will be sent to it.'));
+      var fr1=el('div','field-row'); fr1.appendChild(el('label',null,'Email'));
+      var emailInput=document.createElement('input'); emailInput.type='email';
+      fr1.appendChild(emailInput); wrap.appendChild(fr1);
+      var sendBtn=el('button','btn primary','Send code'); wrap.appendChild(sendBtn);
+      var codeWrap=el('div',null); codeWrap.hidden=true;
+      var fr2=el('div','field-row'); fr2.appendChild(el('label',null,'6-digit code'));
+      var codeInput=document.createElement('input'); codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.maxLength=6;
+      fr2.appendChild(codeInput); codeWrap.appendChild(fr2);
+      var verifyBtn=el('button','btn primary','Verify'); codeWrap.appendChild(verifyBtn);
+      wrap.appendChild(codeWrap);
+      var status=el('p','signin-status'); wrap.appendChild(status);
+      sendBtn.onclick=function(){
+        status.className='signin-status'; status.textContent='Sending…';
+        TTCRecords.signIn(emailInput.value).then(function(){ status.textContent='Code sent — check that inbox.'; codeWrap.hidden=false; })
+          .catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Could not send a code.'; });
+      };
+      verifyBtn.onclick=function(){
+        status.className='signin-status'; status.textContent='Verifying…';
+        TTCRecords.verifyCode(codeInput.value).then(boot).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
+      };
+    }
+    root.appendChild(wrap);
+  }
+
+  /* ---------- legacy local-storage migration (offer, never delete the source) ---------- */
+  function buildLegacyIdMap(){
+    var map={};
+    if(!D) return map;
+    (D.levels||[]).forEach(function(L){
+      (L.sections||[]).forEach(function(S){ (S.items||[]).forEach(function(it){ if(it.legacy_id) map[it.legacy_id]=it.id; }); });
+      if(L.signoff&&L.signoff.items) L.signoff.items.forEach(function(it){ if(it.legacy_id) map[it.legacy_id]=it.id; });
+    });
+    return map;
+  }
+  function findLegacyEntry(store, name){
+    if(!store||!store.people) return null;
+    var target=(name||'').trim().toLowerCase();
+    var keys=Object.keys(store.people);
+    for(var i=0;i<keys.length;i++){ if(keys[i].trim().toLowerCase()===target) return store.people[keys[i]]; }
+    return null;
+  }
+  function maybeMigrateLegacy(self){
+    var flagKey='ttc-passoff-migrated:'+self.id;
+    var flags={}; try{ flags=JSON.parse(localStorage.getItem(flagKey)||'null')||{}; }catch(e){}
+    var jobs=[];
+    if(!flags.v2){
+      var v2=null; try{ v2=JSON.parse(localStorage.getItem('ttc-passoff:v2')||'null'); }catch(e){}
+      var e2=findLegacyEntry(v2, self.name);
+      if(e2 && e2.items && Object.keys(e2.items).length){
+        jobs.push(offerImport('We found progress saved on this phone for '+self.name+'. Import it?', e2.items, function(id){return id;}));
+      }
+    }
+    if(!flags.v1){
+      var v1=null; try{ v1=JSON.parse(localStorage.getItem('ttc-passoff:v1')||'null'); }catch(e){}
+      var e1=findLegacyEntry(v1, self.name);
+      if(e1 && e1.items && Object.keys(e1.items).length){
+        var legacyMap=buildLegacyIdMap();
+        jobs.push(offerImport('We also found an older save on this phone for '+self.name+'. Import that too?', e1.items, function(hex){ return legacyMap[hex]||null; }));
+      }
+    }
+    flags.v1=true; flags.v2=true;
+    try{ localStorage.setItem(flagKey, JSON.stringify(flags)); }catch(e){}
+    return Promise.all(jobs);
+  }
+  function offerImport(question, rawItems, mapKey){
+    var items=[];
+    Object.keys(rawItems).forEach(function(k){
+      var itemId=mapKey(k); var row=rawItems[k];
+      if(itemId && row && row.state) items.push({ person_id:TTCRecords.person().id, area:'passoff', item_id:itemId,
+        item_label:'', state: row.state==='claimed'||row.state==='verified'||row.state==='returned'?row.state:'claimed',
+        note: row.note||row.claimNote||'', ts: row.ts?new Date(row.ts).getTime():Date.now() });
+    });
+    if(!items.length) return Promise.resolve();
+    if(!window.confirm(question)) return Promise.resolve();
+    return TTCRecords.recordBatch(items).catch(function(){ /* import best-effort; original keys stay untouched either way */ });
+  }
+
+  /* ---------- item text (David's sentence stays the hero; only very long ones clamp) ---------- */
+  function itemTextEl(text){
+    var wrap=el('div','item-text');
+    if(text && text.length>260){
+      var cut=text.slice(0,240).replace(/\s+\S*$/,'');
+      var span=el('span',null,cut+'…');
+      wrap.appendChild(span);
+      wrap.appendChild(document.createTextNode(' '));
+      var more=el('button','more-link','More'); more.type='button';
+      var expanded=false;
+      more.onclick=function(ev){ ev.stopPropagation(); expanded=!expanded; span.textContent=expanded?text:(cut+'…'); more.textContent=expanded?'Less':'More'; };
+      wrap.appendChild(more);
+    } else {
+      wrap.textContent=text||'';
+    }
+    return wrap;
+  }
 
   /* Render a verbatim block exactly as extracted. Never rewrite the text. */
   function blocks(list,host){
@@ -299,61 +467,18 @@
     t.appendChild(tb); w.appendChild(t); return w;
   }
 
-  /* ---------- item ---------- */
-  function itemRow(it){
-    var st=Rec.get(it.id), row=el('div','item'); row.setAttribute('data-state',st.state||'open');
-    var mark=el('button','item-mark'); mark.appendChild(tick());
-    mark.setAttribute('aria-label','Mark done'); row.appendChild(mark);
-
-    var body=el('div','item-body'); row.appendChild(body);
-    body.appendChild(el('div','item-text',it.text));
-
-    var meta=el('div','item-meta');
-    var label={open:'Not started',claimed:'Waiting on review',verified:'Verified',returned:'Needs another look'}[st.state||'open'];
-    var chip=el('span','chip '+(st.state==='open'?'':st.state),label); meta.appendChild(chip);
-    if(st.ts) meta.appendChild(el('span','item-when',when(st.ts)));
-    body.appendChild(meta);
-
-    if(st.claimNote){ var n1=el('div','item-note'); n1.appendChild(el('b',null,'Evidence: '));
-      n1.appendChild(document.createTextNode(st.claimNote)); body.appendChild(n1); }
-    if(st.note&&st.note!==st.claimNote){ var n2=el('div','item-note');
-      n2.appendChild(el('b',null,st.state==='returned'?'Sent back: ':(st.state==='claimed'?'Evidence: ':'Note: ')));
-      n2.appendChild(document.createTextNode(st.note)); body.appendChild(n2); }
-
-    var act=el('div','act'), viewer=Rec.viewer();
-    function re(){ var fresh=itemRow(it); row.parentNode.replaceChild(fresh,row); paintTotals(); }
-
-    if(viewer==='crew'){
-      if(st.state==='open'||st.state==='returned'){
-        var b1=el('button','btn primary',st.state==='returned'?'Mark done again':'I have done this');
-        b1.onclick=function(){ var note=prompt('Anything to show for it? (optional — a job number, a date, a note for David)','')||'';
-          Rec.set(it.id,'claimed',note.trim()); re(); };
-        act.appendChild(b1);
-      } else if(st.state==='claimed'){
-        var b2=el('button','btn','Undo');
-        b2.onclick=function(){ Rec.set(it.id,'open',''); re(); }; act.appendChild(b2);
-      }
-    } else {
-      if(st.state==='claimed'||st.state==='open'){
-        var v=el('button','btn good','Verify');
-        v.onclick=function(){ Rec.set(it.id,'verified',''); re(); }; act.appendChild(v);
-      }
-      if(st.state==='claimed'){
-        var r=el('button','btn bad','Send back');
-        r.onclick=function(){ var why=prompt('What still needs doing?','')||''; Rec.set(it.id,'returned',why.trim()); re(); };
-        act.appendChild(r);
-      }
-      if(st.state==='verified'){
-        var u=el('button','btn','Undo verify');
-        u.onclick=function(){ Rec.set(it.id,'claimed',st.claimNote||''); re(); }; act.appendChild(u);
-      }
-    }
-    mark.onclick=function(){ if(act.firstChild) act.firstChild.click(); };
-    if(act.childNodes.length) body.appendChild(act);
-    return row;
+  /* ---------- open/closed persistence, per signed-in person ---------- */
+  var UI=null, UI_KEY=null;
+  function loadUI(personId){
+    UI_KEY='ttc-passoff-ui:'+personId;
+    try{ UI=JSON.parse(localStorage.getItem(UI_KEY)||'null'); }catch(e){ UI=null; }
+    if(!UI) UI={levels:{},sections:{}};
   }
+  function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify(UI)); }catch(e){} }
 
-  /* ---------- counting ---------- */
+  /* ---------- state + counting (reads TTCRecords.records('passoff'), synchronous) ---------- */
+  function itemState(id){ var r=TTCRecords.records('passoff')[id]; return r?r.state:'open'; }
+  function itemRecord(id){ return TTCRecords.records('passoff')[id]||null; }
   function levelItems(L){
     var out=[];
     (L.sections||[]).forEach(function(s){ (s.items||[]).forEach(function(i){ out.push(i); }); });
@@ -361,54 +486,281 @@
     return out;
   }
   function countOf(items){
-    var v=0,c=0; items.forEach(function(i){ var s=Rec.get(i.id).state;
-      if(s==='verified')v++; else if(s==='claimed')c++; });
-    return {verified:v,claimed:c,total:items.length};
+    var v=0,c=0,r=0; items.forEach(function(i){ var s=itemState(i.id);
+      if(s==='verified')v++; else if(s==='claimed')c++; else if(s==='returned')r++; });
+    return {verified:v,claimed:c,returned:r,total:items.length};
+  }
+  function levelFullyVerified(L){ var c=countOf(levelItems(L)); return c.total>0 && c.verified===c.total; }
+
+  /* ---------- role-driven capability ---------- */
+  function myRole(){ return TTCRecords.role(); }
+  function isSelfViewer(){ return true; } // this page always shows the signed-in person's own checklist (no picker)
+
+  /* ---------- filter (the four states, defaulted by role) ---------- */
+  var FILTER_KEY=null, filter='open';
+  function loadFilter(personId){
+    FILTER_KEY='ttc-passoff-filter:'+personId;
+    var stored=null; try{ stored=localStorage.getItem(FILTER_KEY); }catch(e){}
+    if(stored){ filter=stored; return; }
+    filter = TTCRecords.can('verify_others') ? 'claimed' : 'open';
+  }
+  function setFilter(f){ filter=f; try{ localStorage.setItem(FILTER_KEY,f); }catch(e){} }
+  var FILTER_LABELS={ all:'All', open:'Not started', claimed:'Waiting on review', verified:'Verified', returned:'Sent back' };
+
+  /* ---------- item row ---------- */
+  function itemRow(it, levelLockTitle){
+    var st=itemState(it.id), rec=itemRecord(it.id);
+    var row=el('div','item'); row.setAttribute('data-state',st);
+
+    var mark=el('button','item-mark'); mark.appendChild(tick());
+    mark.setAttribute('aria-label','State: '+st); row.appendChild(mark);
+
+    var body=el('div','item-body'); row.appendChild(body);
+    body.appendChild(itemTextEl(it.text));
+
+    var meta=el('div','item-meta');
+    var label={open:'Not started',claimed:'Waiting on review',verified:'Verified',returned:'Sent back'}[st];
+    var chip=el('span','chip '+(st==='open'?'':st),label); meta.appendChild(chip);
+    if(rec&&rec.ts){ var w=el('span','item-when','Marked '+relTime(rec.ts)); w.title=exactTime(rec.ts); meta.appendChild(w); }
+    body.appendChild(meta);
+
+    if(rec&&rec.note){ var n=el('div','item-note');
+      n.appendChild(el('b',null,st==='returned'?'Sent back: ':(st==='verified'?'Evidence: ':'Evidence: ')));
+      n.appendChild(document.createTextNode(rec.note)); body.appendChild(n); }
+
+    var canVerify = TTCRecords.can('verify_others');
+    var act=el('div','act');
+    if(levelLockTitle && !canVerify){
+      body.appendChild(el('p','locked-note','Opens after '+levelLockTitle+' sign-off.'));
+    } else if(!canVerify){
+      if(st==='open'||st==='returned'){
+        var b1=el('button','btn primary',st==='returned'?'Mark done again':'I have done this');
+        b1.onclick=function(){ openEvidenceSheet(it,'claim'); }; act.appendChild(b1);
+      } else if(st==='claimed'){
+        var b2=el('button','btn','Undo');
+        b2.onclick=function(){ writeState(it,'open','',null,'Undid your mark.'); }; act.appendChild(b2);
+      }
+    } else {
+      if(st==='claimed'||st==='open'){
+        var v=el('button','btn good','Verify');
+        v.onclick=function(){ openEvidenceSheet(it,'verify'); }; act.appendChild(v);
+      }
+      if(st==='claimed'){
+        var r=el('button','btn bad','Send back');
+        r.onclick=function(){ openReasonSheet(it); }; act.appendChild(r);
+      }
+      if(st==='verified'){
+        var u=el('button','btn','Undo verify');
+        u.onclick=function(){ writeState(it,'claimed',rec&&rec.note||'',null,'Undid the verify.'); }; act.appendChild(u);
+      }
+    }
+    mark.onclick=function(){ if(act.firstChild) act.firstChild.click(); };
+    if(act.childNodes.length) body.appendChild(act);
+    return row;
   }
 
-  /* ---------- render ---------- */
+  function writeState(it, state, note, meta, undoMsg, prevState, prevNote){
+    var composed=note||'';
+    TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed})
+      .then(function(){ refreshAndRerender();
+        if(undoMsg) showToast(undoMsg, prevState!=null?function(){ writeState(it, prevState, prevNote||''); }:null);
+      })
+      .catch(function(err){ alert(err.message||'Could not save.'); });
+  }
+
+  /* ---------- evidence sheet (claim / verify) — no prompt(), ever ---------- */
+  function openEvidenceSheet(it, mode){
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title', mode==='verify'?'Verify this item':'Mark this done'));
+    sheetBody.appendChild(el('p','sheet-item-text', it.text));
+
+    var dateRow=el('div','field-row'); dateRow.appendChild(el('label',null,'Date'));
+    var dateInput=document.createElement('input'); dateInput.type='date'; dateInput.value=todayISO();
+    dateRow.appendChild(dateInput); sheetBody.appendChild(dateRow);
+
+    var jobRow=el('div','field-row'); jobRow.appendChild(el('label',null,'Jobber job # (optional)'));
+    var jobInput=document.createElement('input'); jobInput.type='text'; jobInput.placeholder='e.g. 48213';
+    jobRow.appendChild(jobInput); sheetBody.appendChild(jobRow);
+
+    var noteRow=el('div','field-row'); noteRow.appendChild(el('label',null,'Note'));
+    var noteInput=document.createElement('textarea'); noteInput.placeholder='What happened, and where';
+    noteRow.appendChild(noteInput); sheetBody.appendChild(noteRow);
+
+    var photoRow=el('div','field-row'); photoRow.appendChild(el('label',null,'Photo (optional)'));
+    var photoInput=document.createElement('input'); photoInput.type='file'; photoInput.accept='image/*';
+    var preview=null;
+    photoInput.onchange=function(){
+      var file=photoInput.files&&photoInput.files[0]; if(!file) return;
+      var reader=new FileReader();
+      reader.onload=function(){ if(preview) preview.remove(); preview=document.createElement('img');
+        preview.className='sheet-photo-preview'; preview.src=reader.result; photoRow.appendChild(preview); };
+      reader.readAsDataURL(file);
+    };
+    photoRow.appendChild(photoInput);
+    photoRow.appendChild(el('p','sheet-photo-note','Kept on this device for your own reference — the records field does not store images yet.'));
+    sheetBody.appendChild(photoRow);
+
+    var actions=el('div','sheet-actions');
+    var cancel=el('button','btn','Cancel'); cancel.onclick=closeSheet; actions.appendChild(cancel);
+    var submit=el('button','btn '+(mode==='verify'?'good':'primary'), mode==='verify'?'Verify':'Save');
+    submit.onclick=function(){
+      var parts=[];
+      if(jobInput.value.trim()) parts.push('Job #'+jobInput.value.trim());
+      if(dateInput.value) parts.push(dateInput.value);
+      var head=parts.join(' — ');
+      var note=[head,noteInput.value.trim()].filter(Boolean).join(': ');
+      var prevRec=itemRecord(it.id), prevState=prevRec?prevRec.state:'open', prevNote=prevRec?prevRec.note:'';
+      closeSheet();
+      writeState(it, mode==='verify'?'verified':'claimed', note, null,
+        mode==='verify'?'Verified.':'Marked done.', prevState, prevNote);
+    };
+    actions.appendChild(submit);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+
+  /* ---------- reason sheet (send back) — a real field, not a prompt() ---------- */
+  function openReasonSheet(it){
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title','Send back'));
+    sheetBody.appendChild(el('p','sheet-item-text', it.text));
+    var row=el('div','field-row'); row.appendChild(el('label',null,'What still needs doing'));
+    var ta=document.createElement('textarea'); ta.placeholder='Be specific — this is what they’ll see';
+    row.appendChild(ta); sheetBody.appendChild(row);
+    var actions=el('div','sheet-actions');
+    var cancel=el('button','btn','Cancel'); cancel.onclick=closeSheet; actions.appendChild(cancel);
+    var submit=el('button','btn bad','Send back'); submit.disabled=true;
+    ta.addEventListener('input',function(){ submit.disabled = !ta.value.trim(); });
+    submit.onclick=function(){
+      var prevRec=itemRecord(it.id), prevState=prevRec?prevRec.state:'open', prevNote=prevRec?prevRec.note:'';
+      closeSheet();
+      writeState(it, 'returned', ta.value.trim(), null, 'Sent back.', prevState, prevNote);
+    };
+    actions.appendChild(submit);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+
+  /* ---------- section (collapsible row — same idiom as the appendix <details>) ---------- */
+  function sectionRow(S, levelLockTitle){
+    var items=S.items||[], c=countOf(items);
+    var isOpen = UI.sections[S.id];
+    var box=el('div','sect'); box.dataset.open=isOpen?'1':'0';
+
+    var head=el('button','sect-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
+    var titles=el('div','sect-titles'); titles.appendChild(el('div','sect-title',S.title)); head.appendChild(titles);
+    var hint=el('div','sect-hint');
+    var countCls = c.total&&c.verified===c.total ? 'all-done' : (c.claimed?'has-waiting':'');
+    var countLabel = c.total&&c.verified===c.total ? '✓ '+c.verified+'/'+c.total : (c.claimed?c.claimed+' waiting · ':'')+c.verified+'/'+c.total;
+    hint.appendChild(el('span','sect-count tabular '+countCls, countLabel));
+    head.appendChild(hint);
+    head.appendChild(el('div','sect-chev','›'));
+    head.onclick=function(){
+      var open=box.dataset.open==='1';
+      box.dataset.open=open?'0':'1';
+      head.setAttribute('aria-expanded', open?'false':'true');
+      UI.sections[S.id]=!open; saveUI();
+    };
+    box.appendChild(head);
+
+    var body=el('div','sect-body');
+    if(S.intro&&S.intro.length){ var si=el('div','blocks'); blocks(S.intro,si); body.appendChild(si); }
+    var shown=0;
+    items.forEach(function(i){
+      var st=itemState(i.id);
+      if(filter!=='all' && st!==filter) return;
+      shown++;
+      body.appendChild(itemRow(i, levelLockTitle));
+    });
+    if(!shown){ body.appendChild(el('p','locked-note', items.length?'Nothing here matches “'+FILTER_LABELS[filter]+'.”':'No items in this section.')); }
+    if(S.after&&S.after.length){ var sa=el('div','blocks'); blocks(S.after,sa); body.appendChild(sa); }
+    box.appendChild(body);
+    return box;
+  }
+
+  /* ---------- level locking ---------- */
+  function computeLevelLocks(levels){
+    // levels = D.levels in document order. Returns id -> "opens after <title>" or null.
+    var locks={}, byId={}; levels.forEach(function(L){ byId[L.id]=L; });
+    var tierOrder=levels.filter(function(L){ return L.kind!=='endorsement'; });
+    tierOrder.forEach(function(L,i){
+      if(i===0){ locks[L.id]=null; return; }
+      var prev=tierOrder[i-1];
+      locks[L.id] = levelFullyVerified(prev) ? null : prev.title;
+    });
+    var tier1=byId['tier1'];
+    levels.filter(function(L){ return L.kind==='endorsement'; }).forEach(function(L){
+      locks[L.id] = (tier1 && !levelFullyVerified(tier1)) ? tier1.title : null;
+    });
+    return locks;
+  }
+
+  /* ---------- hero: "what's next" ---------- */
+  function heroCard(cl){
+    var card=el('div','hero');
+    if(!cl){ card.appendChild(el('div','hero-title','Loading your standing…')); return card; }
+    if(cl.allDone){
+      card.appendChild(el('div','hero-kicker','STANDING'));
+      card.appendChild(el('div','hero-title','Every level complete.'));
+      return card;
+    }
+    card.appendChild(el('div','hero-kicker', cl.kind==='endorsement'?'CURRENT — SPECIALTY ENDORSEMENT':'CURRENT TIER'));
+    card.appendChild(el('div','hero-title', cl.title));
+    if(cl.purpose) card.appendChild(el('div','hero-purpose', cl.purpose));
+    var bar=el('div','hero-bar'); var i=el('i'); i.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
+    if(cl.nextSection){
+      card.appendChild(el('div','hero-next','Next up: '+cl.nextSection.title+' — '+(cl.nextSection.total-cl.nextSection.verified)+' to go'));
+    }
+    var levelsFlat=TTCRecords.passoffLevelsFlat();
+    var gateNext = levelsFlat[cl.order+1];
+    card.appendChild(el('div','hero-gate', cl.remaining+' item'+(cl.remaining===1?'':'s')+' stand between here and this '+(cl.kind==='endorsement'?'endorsement':'tier')+'’s sign-off'+(gateNext?', which opens '+gateNext.title:'')+'.'));
+    var jump=el('button','btn primary small','Jump to it');
+    jump.onclick=function(){
+      UI.levels[cl.id]=true; if(cl.nextSection) UI.sections[cl.nextSection.id]=true; saveUI(); rerender();
+      var target=document.getElementById('lvl-'+cl.id); if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    card.appendChild(jump);
+    return card;
+  }
+
+  /* ---------- filters bar ---------- */
+  function filterBar(){
+    var counts={all:0,open:0,claimed:0,verified:0,returned:0};
+    (D.levels||[]).forEach(function(L){ levelItems(L).forEach(function(i){ counts.all++; counts[itemState(i.id)]++; }); });
+    var bar=el('div','filters'); bar.setAttribute('role','tablist');
+    ['open','claimed','verified','returned','all'].forEach(function(f){
+      var chip=el('button','filter-chip'); chip.setAttribute('role','tab'); chip.setAttribute('aria-pressed', filter===f?'true':'false');
+      chip.appendChild(document.createTextNode(FILTER_LABELS[f]));
+      chip.appendChild(el('span','n','('+counts[f]+')'));
+      chip.onclick=function(){ setFilter(f); rerender(); };
+      bar.appendChild(chip);
+    });
+    return bar;
+  }
+
+  /* ---------- main render ---------- */
+  var currentLevelCache=null;
+  function refreshAndRerender(){
+    TTCRecords.passoffCurrentLevel(TTCRecords.person().id).then(function(cl){ currentLevelCache=cl; rerender(); });
+  }
+  function rerender(){ render(); }
+
   function render(){
     root.innerHTML='';
     if(!D){ var w=el('div','loading');
       w.textContent='The pass-off data file has not been generated yet (data/passoff.js).'; root.appendChild(w); return; }
 
-    /* header */
     var h=el('div','doc-head');
     h.appendChild(el('p','doc-eyebrow','Total Tree Care'));
     h.appendChild(el('h1',null,D.title||'Qualified Estimator Pass-Off'));
     if(D.subtitle) h.appendChild(el('p','doc-sub',D.subtitle));
     root.appendChild(h);
 
-    /* who + viewing as */
-    var who=el('div','who');
-    who.appendChild(el('span','who-label','Person'));
-    var sel=el('select'); var people=Rec.people(), cur=Rec.current();
-    people.forEach(function(n){ var o=el('option',null,n); o.value=n; if(n===cur)o.selected=true; sel.appendChild(o); });
-    var addO=el('option',null,'+ Add a person…'); addO.value='__add'; sel.appendChild(addO);
-    if(!people.length) sel.value='__add';
-    sel.onchange=function(){
-      if(sel.value==='__add'){ var n=prompt('Whose pass-off is this?','')||''; n=n.trim();
-        if(n){ Rec.setCurrent(n); } render(); return; }
-      Rec.setCurrent(sel.value); render();
-    };
-    who.appendChild(sel);
-    who.appendChild(el('span','who-label','Viewing as'));
-    var vsel=el('select');
-    [['crew','The person'],['trainer','David or a trainer']].forEach(function(p){
-      var o=el('option',null,p[1]); o.value=p[0]; if(Rec.viewer()===p[0])o.selected=true; vsel.appendChild(o); });
-    vsel.onchange=function(){ Rec.setViewer(vsel.value); render(); };
-    who.appendChild(vsel);
-    who.appendChild(el('p','who-note','Saved on this device for now. Once the records backend is deployed, a person signs in with their email and David reviews from anywhere.'));
-    root.appendChild(who);
+    root.appendChild(heroCard(currentLevelCache));
+    root.appendChild(filterBar());
 
-    /* tier rail */
-    var rail=el('div','rail'), rtop=el('div','rail-top');
-    rtop.appendChild(el('span','rail-now','Standing at'));
-    var tierName=el('span','rail-tier','—'); rtop.appendChild(tierName); rail.appendChild(rtop);
-    var track=el('div','rail-track'); rail.appendChild(track);
-    var rfoot=el('p','rail-foot',''); rail.appendChild(rfoot); root.appendChild(rail);
-
-    /* intro */
     if(D.intro&&D.intro.length){ var ib=el('div','blocks'); blocks(D.intro,ib); root.appendChild(ib); }
     if(D.header_fields&&D.header_fields.length){
       var hf=el('div','fields');
@@ -419,23 +771,34 @@
 
     root.appendChild(el('h2','part','The ladder'));
 
-    /* levels */
-    (D.levels||[]).forEach(function(L,idx){
+    var levels=D.levels||[];
+    var locks=computeLevelLocks(levels);
+    var canVerify=TTCRecords.can('verify_others');
+
+    levels.forEach(function(L){
       var items=levelItems(L), cnt=countOf(items);
-      var box=el('div','level'+(L.kind==='endorsement'?' is-endorsement':'')+(cnt.verified===cnt.total&&cnt.total?' is-done':''));
+      var lockTitle = locks[L.id];
+      var isLocked = !!lockTitle && !canVerify;
+      var isOpen = UI.levels[L.id];
+      var box=el('div','level'+(L.kind==='endorsement'?' is-endorsement':'')+(cnt.verified===cnt.total&&cnt.total?' is-done':'')+(isLocked?' is-locked':'')+(isOpen?' is-open':''));
       box.id='lvl-'+L.id;
 
-      var head=el('button','level-head');
-      var ord=el('div','level-ord',L.kind==='endorsement'?'★':String(idx+1)); head.appendChild(ord);
+      var head=el('button','level-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
+      var ord=el('div','level-ord',L.kind==='endorsement'?'★':String(levels.indexOf(L)+1)); head.appendChild(ord);
       var tt=el('div','level-titles');
       tt.appendChild(el('div','level-title',L.title));
       tt.appendChild(el('div','level-kind',L.kind==='endorsement'?'Specialty endorsement':'Tier'));
+      if(lockTitle) tt.appendChild(el('div','level-lock-chip','Opens after '+lockTitle+' sign-off'));
       head.appendChild(tt);
-      var cc=el('div','level-count'); var b=el('b',null,cnt.verified+'/'+cnt.total);
+      var cc=el('div','level-count tabular'); var b=el('b',null,cnt.verified+'/'+cnt.total);
       cc.appendChild(b); cc.appendChild(document.createTextNode(cnt.claimed?cnt.claimed+' waiting':'verified'));
       head.appendChild(cc);
-      var ch=el('div','level-chev'); ch.appendChild(chev()); head.appendChild(ch);
-      head.onclick=function(){ box.classList.toggle('is-open'); };
+      head.appendChild(el('div','level-chev','›'));
+      head.onclick=function(){
+        var open=box.classList.toggle('is-open');
+        head.setAttribute('aria-expanded', open?'true':'false');
+        UI.levels[L.id]=open; saveUI();
+      };
       box.appendChild(head);
 
       var bar=el('div','level-bar'), fill=el('i');
@@ -445,23 +808,14 @@
       if(L.purpose) body.appendChild(el('p','level-purpose',L.purpose));
       if(L.meta_table) body.appendChild(tableOf(L.meta_table));
 
-      (L.sections||[]).forEach(function(S){
-        var sc=countOf(S.items||[]), sect=el('div','sect'), sh=el('div','sect-head');
-        sh.appendChild(el('div','sect-title',S.title));
-        sh.appendChild(el('div','sect-count'+(sc.verified===sc.total&&sc.total?' all-done':''),sc.verified+' of '+sc.total));
-        sect.appendChild(sh);
-        if(S.intro&&S.intro.length){ var si=el('div','blocks'); blocks(S.intro,si); sect.appendChild(si); }
-        (S.items||[]).forEach(function(i){ sect.appendChild(itemRow(i)); });
-        if(S.after&&S.after.length){ var sa=el('div','blocks'); blocks(S.after,sa); sect.appendChild(sa); }
-        body.appendChild(sect);
-      });
+      (L.sections||[]).forEach(function(S){ body.appendChild(sectionRow(S, isLocked?lockTitle:null)); });
 
       if(L.signoff){
         var so=el('div','signoff');
         so.appendChild(el('div','signoff-head',L.signoff.title||'Sign-off'));
         var sb=el('div','signoff-body');
         if(L.signoff.intro&&L.signoff.intro.length){ var g=el('div','blocks'); blocks(L.signoff.intro,g); sb.appendChild(g); }
-        (L.signoff.items||[]).forEach(function(i){ sb.appendChild(itemRow(i)); });
+        (L.signoff.items||[]).forEach(function(i){ sb.appendChild(itemRow(i, isLocked?lockTitle:null)); });
         if(L.signoff.fields&&L.signoff.fields.length){
           var ff=el('div','fields');
           L.signoff.fields.forEach(function(f){ var d=el('div','field');
@@ -471,11 +825,9 @@
         so.appendChild(sb); body.appendChild(so);
       }
       box.appendChild(body);
-      if(idx===0) box.classList.add('is-open');
       root.appendChild(box);
     });
 
-    /* appendices */
     if(D.appendices&&D.appendices.length){
       root.appendChild(el('h2','part','Appendices'));
       D.appendices.forEach(function(A){
@@ -488,53 +840,45 @@
     f.appendChild(document.createTextNode('Every word on this page is David’s, taken from the original document. '));
     var a=el('a',null,'Download the original (.docx)'); a.href='../../../files/training/qualified-estimator-pass-off.docx';
     f.appendChild(a); root.appendChild(f);
-
-    paintTotals();
   }
 
-  /* tier rail + totals, recomputed without a full re-render */
-  function paintTotals(){
-    if(!D) return;
-    var track=root.querySelector('.rail-track'); if(!track) return;
-    track.innerHTML='';
-    var standing='Not started', firstOpen=null;
-    (D.levels||[]).forEach(function(L){
-      var c=countOf(levelItems(L)), pct=c.total?Math.round(c.verified/c.total*100):0;
-      var seg=el('div','rail-seg'+(c.total&&c.verified===c.total?' done':''));
-      var bar=el('div','rail-bar'), i=el('i'); i.style.width=pct+'%'; bar.appendChild(i); seg.appendChild(bar);
-      var short=(L.title||'').split('—')[0].trim().replace('Specialty Endorsement','Specialty');
-      seg.appendChild(el('div','rail-name',short));
-      if(c.total&&c.verified===c.total){ standing=L.title; }
-      else if(!firstOpen){ firstOpen=L; seg.classList.add('cur'); }
-      track.appendChild(seg);
-    });
-    var t=root.querySelector('.rail-tier'); if(t) t.textContent=standing;
-    var foot=root.querySelector('.rail-foot');
-    if(foot){
-      if(firstOpen){ var c=countOf(levelItems(firstOpen));
-        foot.textContent='Working on '+firstOpen.title+' — '+c.verified+' of '+c.total+' verified'+
-          (c.claimed?', '+c.claimed+' waiting on review':'')+'.';
-      } else foot.textContent='Every level complete.';
+  function setDefaultOpenState(){
+    var levels=D.levels||[];
+    var haveAnyLevelPref = levels.some(function(L){ return Object.prototype.hasOwnProperty.call(UI.levels,L.id); });
+    if(haveAnyLevelPref) return;
+    for(var i=0;i<levels.length;i++){
+      var L=levels[i];
+      if(!levelFullyVerified(L)){
+        UI.levels[L.id]=true;
+        var secs=L.sections||[];
+        for(var j=0;j<secs.length;j++){
+          var S=secs[j], its=S.items||[], c=countOf(its);
+          if(!(c.total&&c.verified===c.total)){ UI.sections[S.id]=true; break; }
+        }
+        break;
+      }
     }
-    /* level headers */
-    (D.levels||[]).forEach(function(L){
-      var box=document.getElementById('lvl-'+L.id); if(!box) return;
-      var c=countOf(levelItems(L));
-      var b=box.querySelector('.level-count b'); if(b) b.textContent=c.verified+'/'+c.total;
-      var lbl=box.querySelector('.level-count'); if(lbl){
-        lbl.lastChild.nodeValue=c.claimed?c.claimed+' waiting':'verified'; }
-      var fill=box.querySelector('.level-bar i');
-      if(fill) fill.style.width=(c.total?Math.round(c.verified/c.total*100):0)+'%';
-      box.classList.toggle('is-done',!!c.total&&c.verified===c.total);
-      box.querySelectorAll('.sect').forEach(function(sect,si){
-        var S=(L.sections||[])[si]; if(!S) return; var sc=countOf(S.items||[]);
-        var el2=sect.querySelector('.sect-count'); if(el2){ el2.textContent=sc.verified+' of '+sc.total;
-          el2.classList.toggle('all-done',!!sc.total&&sc.verified===sc.total); }
-      });
-    });
+    saveUI();
   }
 
-  render();
+  function boot(){
+    var self=TTCRecords.person();
+    if(!self){ renderSignIn(); return; }
+    root.innerHTML='<div class="loading">Loading…</div>';
+    loadUI(self.id);
+    loadFilter(self.id);
+    maybeMigrateLegacy(self).then(function(){
+      return TTCRecords.loadRecords('passoff');
+    }).then(function(){
+      if(D) setDefaultOpenState();
+      return TTCRecords.passoffCurrentLevel(self.id);
+    }).then(function(cl){
+      currentLevelCache=cl;
+      render();
+    }).catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
+  }
+
+  TTCRecords.ready().then(boot);
 })();
 </script>
 </body>
