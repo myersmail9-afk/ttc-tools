@@ -508,8 +508,12 @@
     if(stored){ filter=stored; return; }
     // Default by role — but ONLY when that filter actually matches something. A reviewer with an
     // empty queue must not land on a page of empty sections; that reads as broken, not as "all clear".
-    var want = TTCRecords.can('verify_others') ? 'claimed' : 'open';
-    filter = countMatching(want) > 0 ? want : 'all';
+    // A crew member sees their WHOLE checklist by default. Filtering them to "Not started" hid the
+    // items they had just marked done — the work saved, vanished from view, and looked like nothing
+    // had happened (2026-09-22). The filter is a tool they can pick up, never a default that hides
+    // their own work. A reviewer still lands on their queue, but only when it actually has something.
+    var want = TTCRecords.can('verify_others') ? 'claimed' : 'all';
+    filter = (want === 'all' || countMatching(want) > 0) ? want : 'all';
   }
   // How many items anywhere in the document currently sit in this state.
   function countMatching(f){
