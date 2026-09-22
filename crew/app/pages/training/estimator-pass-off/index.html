@@ -808,8 +808,8 @@
       var d=sv.data;
       card.appendChild(el('span','pct', d.pct==null?'—':d.pct+'%'));
       var meta=el('div','meta');
-      meta.appendChild(el('b', (d.job?('Job '+d.job):personNameById(d.estimator||''))));
-      meta.appendChild(el('span', (d.date||String(d.saved_at||'').slice(0,10))+' · '+d.yes+' of '+d.applicable+' applicable · scored by '+(d.saved_by_name||personNameById(d.saved_by||''))));
+      meta.appendChild(el('b', null, (d.job?('Job '+d.job):personNameById(d.estimator||''))));
+      meta.appendChild(el('span', null, (d.date||String(d.saved_at||'').slice(0,10))+' · '+d.yes+' of '+d.applicable+' applicable · scored by '+(d.saved_by_name||personNameById(d.saved_by||''))));
       card.appendChild(meta);
       card.appendChild(statePill(sv.rec));
     });
@@ -937,8 +937,8 @@
       var d=sv.data, filled=(d.rows||[]).filter(function(r){ return (r[0]||'').trim()||(r[1]||'').trim(); }).length;
       card.appendChild(el('span','pct', String(filled)));
       var meta=el('div','meta');
-      meta.appendChild(el('b', d.job?('Job '+d.job):personNameById(d.estimator||'')));
-      meta.appendChild(el('span', (d.date_completed?('completed '+d.date_completed):('estimated '+(d.date_estimated||'—')))+
+      meta.appendChild(el('b', null, d.job?('Job '+d.job):personNameById(d.estimator||'')));
+      meta.appendChild(el('span', null, (d.date_completed?('completed '+d.date_completed):('estimated '+(d.date_estimated||'—')))+
                         ' · '+filled+' of '+(d.measures||[]).length+' measures · by '+(d.saved_by_name||personNameById(d.saved_by||''))));
       card.appendChild(meta);
       card.appendChild(statePill(sv.rec));
