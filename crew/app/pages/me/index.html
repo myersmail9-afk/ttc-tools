@@ -265,21 +265,11 @@
   function renderSignIn(){
     root.innerHTML='';
     var wrap=el('div','signin-wrap');
-    wrap.appendChild(el('h1',null,'Sign in'));
+    wrap.appendChild(el('h1',null,'Sign in to TTC Crew'));
     var local = !TTCRecords.configured();
     if(local){
-      wrap.appendChild(el('p','signin-note','No records backend deployed yet — this device is using its own local copy. Pick yourself from the roster below.'));
-      var list=el('div','signin-list');
-      TTCRecords.people().forEach(function(p){
-        var b=el('button','signin-person'+(p.test?' is-test':''));
-        var left=el('span','signin-person-name'); left.textContent=p.display_name;
-        if(p.test){ var tag=el('span','test-tag','TEST'); left.appendChild(tag); }
-        var right=el('span','signin-person-role',p.role);
-        b.appendChild(left); b.appendChild(right);
-        b.onclick=function(){ TTCRecords.signInAs(p.person_id).then(boot).catch(function(err){ alert(err.message||'Could not sign in.'); }); };
-        list.appendChild(b);
-      });
-      wrap.appendChild(list);
+      wrap.appendChild(el('p','signin-note','Connect to the internet and reload to sign in. Crew identity cannot be verified while the sign-in service is unavailable.'));
+      var retry=el('button','btn primary','Reload sign-in'); retry.onclick=function(){ location.reload(); }; wrap.appendChild(retry);
     } else {
       wrap.appendChild(el('p','signin-note','Use the Gmail or other email address on your TTC crew profile. We’ll send a 6-digit code to that inbox — no password needed. If you need your email added or changed, contact the office.'));
       var fr1=el('div','field-row'); var emailLabel=el('label',null,'Gmail or email address'); emailLabel.htmlFor='signin-email'; fr1.appendChild(emailLabel);
@@ -303,7 +293,10 @@
       };
       verifyBtn.onclick=function(){
         status.className='signin-status'; status.textContent='Verifying…';
-        TTCRecords.verifyCode(codeInput.value).then(boot).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
+        TTCRecords.verifyCode(codeInput.value).then(function(){
+          if(window.TTCAuthGate && new URLSearchParams(location.search).get('signin')==='1') return TTCAuthGate.completeSignIn();
+          boot();
+        }).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
       };
     }
     root.appendChild(wrap);
