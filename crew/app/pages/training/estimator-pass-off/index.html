@@ -995,7 +995,9 @@
       var txt=el('div','fm-row-text'); txt.appendChild(document.createTextNode(r[0]));
       if(r[2]) txt.appendChild(el('div','sub', r[2]));
       if(r[3]) txt.appendChild(el('div','sub', r[3]));
-      if(rec){
+      // Only a live grant or claim carries attribution. A row toggled back off is just off —
+      // showing "Claimed by David" under an empty box was the bug this replaces.
+      if(rec && (rec.state==='verified' || rec.state==='claimed')){
         txt.appendChild(el('div','sub', (rec.state==='verified'?'Granted by ':'Claimed by ')+
           personNameById(rec.by_person_id||'')+' '+when(new Date(rec.ts||Date.now()).toISOString())));
       }
