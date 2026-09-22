@@ -244,8 +244,11 @@
     return (D.levels || []).map(function (L) {
       var items = [];
       (L.sections || []).forEach(function (S) { (S.items || []).forEach(function (it) { items.push(it.id); }); });
-      if (L.signoff && L.signoff.items) L.signoff.items.forEach(function (it) { items.push(it.id); });
-      return { id: L.id, title: L.title, order: L.order != null ? L.order : 0, items: items };
+      // Status choices are a decision, not training work. They must never inflate a tier's
+      // denominator or require a reviewer to mark mutually exclusive choices as complete.
+      var signoff = L.signoff && L.signoff.items && L.signoff.items[0];
+      return { id: L.id, title: L.title, order: L.order != null ? L.order : 0,
+        items: items, signoffItemId: signoff ? signoff.id : null };
     }).sort(function (a, b) { return a.order - b.order; });
   }
 
@@ -262,6 +265,7 @@
         if (st === 'verified') verified++; else if (st === 'claimed') claimed++;
         if (st !== 'verified') allVerified = false;
       });
+      if (L.signoffItemId && (!stateByItem[L.signoffItemId] || stateByItem[L.signoffItemId].state !== 'verified')) allVerified = false;
       if (!allVerified && standingLevel === null) standingLevel = L.title;
     });
     if (standingLevel === null && levels.length) standingLevel = levels[levels.length - 1].title;
@@ -280,7 +284,8 @@
       var L = levels[i], full = byId[L.id] || {};
       var v = 0, total = L.items.length;
       L.items.forEach(function (id) { if (recordsMap[id] && recordsMap[id].state === 'verified') v++; });
-      if (v < total || total === 0) {
+      var gatePassed = !L.signoffItemId || (recordsMap[L.signoffItemId] && recordsMap[L.signoffItemId].state === 'verified');
+      if (v < total || total === 0 || !gatePassed) {
         var nextSection = null;
         (full.sections || []).some(function (S) {
           var items = S.items || [];
@@ -290,7 +295,8 @@
         });
         return {
           id: L.id, title: L.title, kind: full.kind || 'tier', purpose: full.purpose || '',
-          verified: v, total: total, remaining: total - v, nextSection: nextSection, allDone: false,
+          verified: v, total: total, remaining: total - v, nextSection: nextSection,
+          waitingForSignoff: v === total && total > 0 && !gatePassed, allDone: false,
           order: i, isLast: i === levels.length - 1
         };
       }

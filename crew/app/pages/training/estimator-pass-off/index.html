@@ -27,7 +27,7 @@
        like an error state. Muted neutral-amber, deliberately less saturated than "waiting on review". */
     --ret-bg:#f3ece1;  --ret-fg:#6b4a1f;  --ret-br:#c9a464;
     --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
-    --fs:16px;
+    --fs:16px; --touch:44px;
     --no-bg:#f8e4dd; --no-fg:#7d2d13; --no-br:#c8704f;
   }
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -98,15 +98,15 @@
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
   /* ---- top bar ---- */
-  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;min-height:calc(var(--touch) + 20px);
           padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));
           background:var(--ttc-dark);color:#f1eee7}
-  .topbar-back{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto}
+  .topbar-back{display:flex;align-items:center;justify-content:center;width:var(--touch);height:var(--touch);flex:0 0 auto}
   .topbar-back svg{width:22px;height:22px}
-  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:34px}
-  .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
+  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:var(--touch)}
+  .icon-btn{background:none;border:0;min-width:var(--touch);min-height:var(--touch);padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
 
-  .wrap{max-width:780px;margin:0 auto;padding:18px 16px 90px}
+  .wrap{max-width:780px;margin:0 auto;padding:18px 16px calc(136px + env(safe-area-inset-bottom))}
   .tabular{font-variant-numeric:tabular-nums}
 
   /* ---- sign-in (same idiom as the other TTC Crew pages) ---- */
@@ -125,12 +125,12 @@
   .field-row input,.field-row textarea{padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--bg-alt);font-size:15px}
   .signin-status{font-size:13px;color:var(--fg2);min-height:18px;margin:8px 0 0}
   .signin-status.err{color:var(--ret-fg)}
-  .btn{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;border:1px solid var(--border);
+  .btn{min-height:var(--touch);font-size:13px;font-weight:700;padding:8px 13px;border-radius:9px;border:1px solid var(--border);
        background:var(--card);cursor:pointer}
   .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
   .btn.good{background:var(--ver-br);border-color:var(--ver-br);color:#12280a}
   .btn.bad{background:var(--card);border-color:var(--ret-br);color:var(--ret-fg)}
-  .btn.small{padding:5px 10px;font-size:12px}
+  .btn.small{padding:7px 12px;font-size:12.5px}
   .btn:disabled{opacity:.5;cursor:default}
 
   /* ---- header ---- */
@@ -154,7 +154,7 @@
 
   /* ---- filter bar ---- */
   .filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;margin:0}
-  .filter-chip{flex:0 0 auto;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:99px;
+  .filter-chip{flex:0 0 auto;min-height:var(--touch);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:99px;
         border:1px solid var(--border);background:var(--card);color:var(--fg2);cursor:pointer;white-space:nowrap}
   .filter-chip[aria-pressed="true"]{background:var(--ttc-dark);border-color:var(--ttc-dark);color:#f1eee7}
   .filter-chip .n{font-variant-numeric:tabular-nums;opacity:.8;margin-left:4px}
@@ -175,8 +175,8 @@
   .level{margin:0 0 14px;border:1px solid var(--border);border-radius:16px;background:var(--card);
          box-shadow:var(--shadow);overflow:hidden}
   .level.is-endorsement{border-style:dashed}
-  .level.is-locked{opacity:.6}
-  .level-head{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card-2);
+  .level.is-locked{opacity:.82}
+  .level-head{display:flex;align-items:center;gap:12px;min-height:58px;padding:14px 16px;background:var(--card-2);
               border-bottom:1px solid var(--border-soft);cursor:pointer;width:100%;border:0;text-align:left}
   .level-ord{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
              background:var(--ttc-dark);color:#f1eee7;font-size:13px;font-weight:800}
@@ -199,7 +199,7 @@
 
   /* ---- section: its own collapsible row, same idiom as <details class="appx"> below ---- */
   .sect{border:1px solid var(--border);border-radius:12px;background:var(--card-2);margin:0 0 10px;overflow:hidden}
-  .sect-head{display:flex;align-items:center;gap:10px;width:100%;padding:11px 13px;background:none;border:0;
+  .sect-head{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--touch);padding:11px 13px;background:none;border:0;
         cursor:pointer;text-align:left}
   .sect-titles{flex:1;min-width:0}
   .sect-title{font-size:14px;font-weight:800;color:var(--ttc-orange);letter-spacing:.01em}
@@ -218,9 +218,9 @@
   .item[data-state="claimed"]{background:var(--claim-bg);border-color:var(--claim-br)}
   .item[data-state="verified"]{background:var(--ver-bg);border-color:var(--ver-br)}
   .item[data-state="returned"]{background:var(--ret-bg);border-color:var(--ret-br)}
-  .item-mark{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--border);
+  .item-mark{flex:0 0 auto;width:var(--touch);height:var(--touch);border-radius:10px;border:2px solid var(--border);
              background:var(--card);display:grid;place-items:center;padding:0;margin-top:1px}
-  .item-mark svg{width:15px;height:15px;opacity:0}
+  .item-mark svg{width:18px;height:18px;opacity:0}
   .item[data-state="claimed"] .item-mark{border-color:var(--claim-br)}
   .item[data-state="claimed"] .item-mark svg{opacity:1;color:var(--claim-fg)}
   .item[data-state="verified"] .item-mark{border-color:var(--ver-br);background:var(--ver-br)}
@@ -356,8 +356,22 @@
   .sheet-photo-note{font-size:11.5px;color:var(--fg3);margin-top:5px}
   .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 
+  /* ---- field action: always in thumb reach, with honest record status ---- */
+  .next-action-bar{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+       background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--border);box-shadow:0 -7px 20px rgba(42,58,37,.10);backdrop-filter:blur(12px)}
+  .next-action-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  .next-action-copy{flex:1;min-width:0}
+  .next-action-label{display:block;font-size:12.5px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .save-state{display:inline-flex;align-items:center;gap:5px;margin-top:2px;font-size:11.5px;color:var(--fg3)}
+  .save-state::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ver-br)}
+  .save-state[data-state="saving"]::before{background:var(--ttc-gold);animation:pulse 1s infinite}
+  .save-state[data-state="error"]::before{background:var(--no-br)}
+  .next-action-bar .btn{flex:0 0 auto;white-space:nowrap}
+  @keyframes pulse{50%{opacity:.35}}
+  @media(max-width:390px){.next-action-copy{max-width:52vw}.next-action-bar .btn{padding-left:11px;padding-right:11px}}
+
   /* ---- toast (undo, never a confirm dialog) ---- */
-  .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);
         background:var(--ttc-dark);color:#f1eee7;padding:10px 14px;border-radius:11px;font-size:13.5px;
         display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:60;max-width:calc(100vw - 32px)}
   .toast[hidden]{display:none}
@@ -422,6 +436,16 @@
   function todayISO(){ var d=new Date(); return d.toISOString().slice(0,10); }
 
   var toastTimer=null;
+  var saveState='local';
+  function saveStateText(){
+    return saveState==='saving' ? 'Saving…' : saveState==='synced' ? 'Synced' :
+      saveState==='error' ? 'Not saved' : 'Saved on this device';
+  }
+  function setSaveState(next){
+    saveState=next;
+    var status=document.getElementById('save-state');
+    if(status){ status.setAttribute('data-state',saveState); status.textContent=saveStateText(); }
+  }
   function showToast(msg, onUndo){
     toastEl.innerHTML='';
     toastEl.appendChild(el('span',null,msg));
@@ -629,12 +653,13 @@
     data.saved_at=new Date().toISOString();
     var me=TTCRecords.person()||{};
     data.saved_by=me.id||''; data.saved_by_name=me.name||me.display_name||'';
+    setSaveState('saving');
     return TTCRecords.recordSet(FORMS_AREA,
         {item_id:itemId, item_label:label, state:formStateForWriter(), note:JSON.stringify(data)},
         pid===((TTCRecords.person()||{}).id) ? null : pid)
       .then(function(){ return TTCRecords.recordsFor(pid, FORMS_AREA); })
-      .then(function(m){ formsRecords=m||{}; refreshAndRerender(); if(doneMsg) showToast(doneMsg, null); })
-      .catch(function(err){ alert(err.message||'Could not save this sheet.'); });
+      .then(function(m){ formsRecords=m||{}; setSaveState(TTCRecords.configured()?'synced':'local'); refreshAndRerender(); if(doneMsg) showToast(doneMsg, null); })
+      .catch(function(err){ setSaveState('error'); alert(err.message||'Could not save this sheet.'); });
   }
 
   /* ---------- shared header: who was estimating, which job, when ---------- */
@@ -1214,15 +1239,18 @@
   function levelItems(L){
     var out=[];
     (L.sections||[]).forEach(function(s){ (s.items||[]).forEach(function(i){ out.push(i); }); });
-    if(L.signoff&&L.signoff.items) L.signoff.items.forEach(function(i){ out.push(i); });
     return out;
   }
+  function levelPassItem(L){ return L.signoff&&L.signoff.items&&L.signoff.items[0] || null; }
   function countOf(items){
     var v=0,c=0,r=0; items.forEach(function(i){ var s=itemState(i.id);
       if(s==='verified')v++; else if(s==='claimed')c++; else if(s==='returned')r++; });
     return {verified:v,claimed:c,returned:r,total:items.length};
   }
-  function levelFullyVerified(L){ var c=countOf(levelItems(L)); return c.total>0 && c.verified===c.total; }
+  function levelFullyVerified(L){
+    var c=countOf(levelItems(L)), pass=levelPassItem(L);
+    return c.total>0 && c.verified===c.total && (!pass || itemState(pass.id)==='verified');
+  }
 
   /* ---------- role-driven capability ---------- */
   function myRole(){ return TTCRecords.role(); }
@@ -1329,14 +1357,15 @@
   function writeState(it, state, note, meta, undoMsg, prevState, prevNote){
     var composed=note||'';
     justChanged[it.id]=true;
+    setSaveState('saving');
     TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed},
                          isOwn() ? null : subject.id)
       .then(function(){ return isOwn() ? null :
         TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; }); })
-      .then(function(){ refreshAndRerender();
+      .then(function(){ setSaveState(TTCRecords.configured()?'synced':'local'); refreshAndRerender();
         if(undoMsg) showToast(undoMsg, prevState!=null?function(){ writeState(it, prevState, prevNote||''); }:null);
       })
-      .catch(function(err){ alert(err.message||'Could not save.'); });
+      .catch(function(err){ setSaveState('error'); alert(err.message||'Could not save.'); });
   }
 
   /* ---------- evidence sheet (claim / verify) — no prompt(), ever ---------- */
