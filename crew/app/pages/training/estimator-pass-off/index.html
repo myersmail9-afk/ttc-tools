@@ -1004,7 +1004,11 @@
         row.appendChild(av);
         var mid=el('div','crew-mid');
         mid.appendChild(el('div','crew-name',p.name));
-        mid.appendChild(el('div','crew-tier', p.currentLevel || p.level || 'Not started'));
+        // currentLevel is an object ({title, nextSection, ...}), not a string — printing it raw
+        // rendered "[object Object]" on every row.
+        var cl=p.currentLevel, tier = (cl && (cl.title || cl.levelTitle || cl.name)) ||
+               (typeof p.level==='string' ? p.level : '') || 'Not started';
+        mid.appendChild(el('div','crew-tier', tier));
         var bar=el('div','crew-bar'), fill=el('i');
         fill.style.width=(p.passoff_total?Math.round(p.passoff_verified/p.passoff_total*100):0)+'%';
         bar.appendChild(fill); mid.appendChild(bar);

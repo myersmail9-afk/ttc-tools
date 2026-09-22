@@ -310,6 +310,7 @@
     return ready().then(function () {
       var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       if (!configured()) {
+        ensureFounderPassoff(pid);
         var db = loadLocalDb();
         return (localPerson(db, pid).records || {}).passoff || {};
       }
@@ -412,6 +413,33 @@
       }
     });
     lp.certsSeeded = true;
+    saveLocalDb(db);
+  }
+
+  // David wrote this standard and holds the authority it describes, so his own pass-off is a
+  // founding record rather than something to work through. Seeded complete, attributed to him,
+  // and only ever created once — if he later undoes an item, it stays undone.
+  var PASSOFF_FOUNDER = 'david-thunell';
+  function ensureFounderPassoff(personId) {
+    if (personId !== PASSOFF_FOUNDER) return;
+    var db = loadLocalDb(), lp = localPerson(db, personId);
+    if (lp.passoffSeeded) return;
+    var D = window.TTC_PASSOFF; if (!D) return;          // data not loaded yet; try again later
+    lp.records = lp.records || {}; lp.records.passoff = lp.records.passoff || {};
+    var ts = Date.now();
+    (D.levels || []).forEach(function (L) {
+      var ids = [];
+      (L.sections || []).forEach(function (S) { (S.items || []).forEach(function (i) { ids.push(i.id); }); });
+      if (L.signoff && L.signoff.items) L.signoff.items.forEach(function (i) { ids.push(i.id); });
+      ids.forEach(function (id) {
+        if (lp.records.passoff[id]) return;
+        lp.records.passoff[id] = {
+          state: 'verified', ts: ts, note: 'Authored this standard; qualified at Tier 3 with both specialty endorsements.',
+          by_person_id: personId, by_role: 'office'
+        };
+      });
+    });
+    lp.passoffSeeded = true;
     saveLocalDb(db);
   }
 
@@ -525,6 +553,7 @@
       if (configured()) return apiPost('insights', {}, true);
       var db = loadLocalDb();
       var out = people().filter(function (p) { return !p.test; }).map(function (p) {
+        ensureFounderPassoff(p.person_id);
         var passoff = computePassoffStats(p.person_id);
         var claimed = countOwnClaimed(p.person_id);
         var lp = db.people[p.person_id] || {};
@@ -657,6 +686,7 @@
           return meCache[area];
         });
       }
+      ensureFounderPassoff(self.id);
       var db = loadLocalDb(), lp = localPerson(db, self.id);
       meCache[area] = (lp.records && lp.records[area]) || {};
       return meCache[area];
