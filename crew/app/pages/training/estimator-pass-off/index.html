@@ -1128,7 +1128,7 @@
     lines.forEach(function(r){
       var lid=levelForAuthorityLine(r[0]), L=lid?byId[lid]:null;
       var counts=L?countOf(levelItems(L)):null;
-      var held=!!(counts && counts.total>0 && counts.verified===counts.total);
+      var held=!!(L && levelFullyVerified(L));
 
       var row=el('div','fm-row');
       var bx=el('div','box'+(held?' on':'')); bx.appendChild(tick()); row.appendChild(bx);
@@ -1139,16 +1139,14 @@
       if(!counts){
         txt.appendChild(el('div','sub','No matching level in the ladder.'));
       } else if(held){
-        // Attribution comes from the last item verified in that level — the real grant moment.
-        var newest=null, recs=recMap();
-        levelItems(L).forEach(function(i){ var rec=recs[i.id];
-          if(rec && rec.state==='verified' && (!newest || (rec.ts||0)>(newest.ts||0))) newest=rec; });
-        txt.appendChild(el('div','sub','Held — all '+counts.total+' items verified'+
+        // The affirmative sign-off is the actual grant moment, not the last prerequisite.
+        var pass=levelPassItem(L), newest=pass&&recMap()[pass.id];
+        txt.appendChild(el('div','sub','Held — all '+counts.total+' training requirements verified'+
           (newest&&newest.by_person_id ? ', last signed off by '+personNameById(newest.by_person_id)+
             ' '+when(new Date(newest.ts).toISOString()) : '')));
       } else {
         var waiting = counts.claimed ? ', '+counts.claimed+' waiting on review' : '';
-        txt.appendChild(el('div','sub', counts.verified+' of '+counts.total+' items verified'+waiting));
+        txt.appendChild(el('div','sub', counts.verified+' of '+counts.total+' training requirements verified'+waiting));
       }
       row.appendChild(txt);
       box.appendChild(row);
@@ -1238,6 +1236,16 @@
     return out;
   }
   function levelPassItem(L){ return L.signoff&&L.signoff.items&&L.signoff.items[0] || null; }
+  function signoffPeers(it){
+    var peers=[];
+    (D.levels||[]).some(function(L){
+      var options=L.signoff&&L.signoff.items||[];
+      if(!options.some(function(option){ return option.id===it.id; })) return false;
+      peers=options.filter(function(option){ return option.id!==it.id; });
+      return true;
+    });
+    return peers;
+  }
   function countOf(items){
     var v=0,c=0,r=0; items.forEach(function(i){ var s=itemState(i.id);
       if(s==='verified')v++; else if(s==='claimed')c++; else if(s==='returned')r++; });
@@ -1319,7 +1327,9 @@
     if(levelLockTitle && !canVerify){
       body.appendChild(el('p','locked-note','Opens after '+levelLockTitle+' sign-off.'));
     } else if(!canVerify){
-      if(st==='open'||st==='returned'){
+      if(signoffPeers(it).length){
+        body.appendChild(el('p','locked-note','A trainer records this sign-off decision.'));
+      } else if(st==='open'||st==='returned'){
         var b1=el('button','btn primary',st==='returned'?'Mark done again':'I have done this');
         b1.onclick=function(){ openEvidenceSheet(it,'claim'); }; act.appendChild(b1);
       } else if(st==='claimed'){
@@ -1354,10 +1364,18 @@
     var composed=note||'';
     justChanged[it.id]=true;
     setSaveState('saving');
-    TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed},
-                         isOwn() ? null : subject.id)
-      .then(function(){ return isOwn() ? null :
-        TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; }); })
+    var targetId=isOwn() ? TTCRecords.person().id : subject.id;
+    var peers=signoffPeers(it), save;
+    if(state==='verified' && peers.length){
+      var changes=[{person_id:targetId, area:'passoff', item_id:it.id, item_label:it.text, state:state, note:composed}];
+      peers.forEach(function(peer){ changes.push({person_id:targetId, area:'passoff', item_id:peer.id, item_label:peer.text, state:'open', note:''}); });
+      save=TTCRecords.recordBatch(changes);
+    } else {
+      save=TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed},
+                                isOwn() ? null : subject.id);
+    }
+    save.then(function(){ return isOwn() ? TTCRecords.loadRecords('passoff') :
+      TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; }); })
       .then(function(){ setSaveState(TTCRecords.configured()?'synced':'local'); refreshAndRerender();
         if(undoMsg) showToast(undoMsg, prevState!=null?function(){ writeState(it, prevState, prevNote||''); }:null);
       })
@@ -1769,9 +1787,9 @@
         // rendered "[object Object]" on every row.
         var cl=p.currentLevel, tier = (cl && (cl.title || cl.levelTitle || cl.name)) ||
                (typeof p.level==='string' ? p.level : '') || 'Not started';
-        mid.appendChild(el('div','crew-tier', tier));
+        var tierEl=el('div','crew-tier', tier); mid.appendChild(tierEl);
         var bar=el('div','crew-bar'), fill=el('i');
-        fill.style.width=(p.passoff_total?Math.round(p.passoff_verified/p.passoff_total*100):0)+'%';
+        fill.style.width=(cl&&cl.total?Math.round(cl.verified/cl.total*100):0)+'%';
         bar.appendChild(fill); mid.appendChild(bar);
         row.appendChild(mid);
         var right=el('div','crew-right');
@@ -1781,10 +1799,19 @@
         } else {
           right.appendChild(el('span','crew-quiet','up to date'));
         }
-        right.appendChild(el('div','crew-count', p.passoff_verified+'/'+p.passoff_total+' verified'));
+        var progressEl=el('div','crew-count',cl&&cl.total!=null?cl.verified+'/'+cl.total+' this tier':'Loading tier…');
+        right.appendChild(progressEl);
         row.appendChild(right);
         row.onclick=function(){ location.href='?person='+encodeURIComponent(p.person_id); };
         list.appendChild(row);
+        // The overview response may be cached by an older backend. Ask the shared per-tier helper
+        // for the authoritative current tier so this screen never falls back to 0/127.
+        TTCRecords.passoffCurrentLevel(p.person_id).then(function(fresh){
+          if(!fresh) return;
+          tierEl.textContent=fresh.title || 'Not started';
+          fill.style.width=(fresh.total?Math.round(fresh.verified/fresh.total*100):0)+'%';
+          progressEl.textContent=fresh.verified+'/'+fresh.total+(fresh.waitingForSignoff?' ready for sign-off':' this tier');
+        }).catch(function(){});
       });
       if(!people.length) list.appendChild(el('p','crew-quiet','No crew members found.'));
     }).catch(function(err){ sum.textContent='Could not load the crew: '+(err.message||'unknown error'); });
