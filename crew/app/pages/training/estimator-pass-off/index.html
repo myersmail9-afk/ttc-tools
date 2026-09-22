@@ -249,6 +249,9 @@
   .field{border:1px dashed var(--border);border-radius:9px;padding:8px 10px}
   .field-label{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:700}
   .field-line{height:18px;border-bottom:1px solid var(--border);margin-top:3px}
+  .field-value{font-size:14.5px;font-weight:700;margin-top:3px;line-height:1.35;word-break:break-word}
+  .field-value.empty{font-weight:600;color:var(--fg3)}
+  .field.filled{border-style:solid}
 
   /* ---- appendix ---- */
   details.appx{border:1px solid var(--border);border-radius:14px;background:var(--card);margin:0 0 10px;
@@ -985,6 +988,59 @@
   var APPENDIX_FORMS={'appendix-a':renderAppendixA,'appendix-b':renderAppendixB,'appendix-c':renderAppendixC};
   var APPX_OPEN={};   // a save re-renders the page; an open appendix must not snap shut under the user
 
+  // The four lines at the top of David's paper form — Employee, Trainer, Start Date, Review Date —
+  // are blanks you fill in with a pen. On a phone they are dead decoration: the app already knows
+  // all four from the record trail, so they are shown as values, not as rules to write on. Nothing
+  // is invented; a value with nothing behind it yet says so.
+  function docFieldValue(label){
+    var recs=recMap(), ids=Object.keys(recs);
+    var l=String(label||'').toLowerCase();
+    if(l.indexOf('employee')===0) return subject ? subject.name : '';
+    if(l.indexOf('trainer')===0 || l.indexOf('tier 3 reviewer')===0){
+      var newest=null;
+      ids.forEach(function(id){ var r=recs[id];
+        if(r && r.state==='verified' && r.by_person_id && r.by_person_id!==subjectId()){
+          if(!newest || (r.ts||0)>(newest.ts||0)) newest=r;
+        }
+      });
+      if(newest) return personNameById(newest.by_person_id);
+      return canVerifyForms() ? ((TTCRecords.person()||{}).name || '') : '';
+    }
+    if(l.indexOf('start date')===0){
+      var first=null;
+      ids.forEach(function(id){ var t=recs[id]&&recs[id].ts; if(t && (first===null||t<first)) first=t; });
+      return first ? new Date(first).toISOString().slice(0,10) : '';
+    }
+    if(l.indexOf('review date')===0 || l==='date'){
+      var last=null;
+      ids.forEach(function(id){ var t=recs[id]&&recs[id].ts; if(t && (last===null||t>last)) last=t; });
+      return last ? new Date(last).toISOString().slice(0,10) : '';
+    }
+    return '';
+  }
+  // The same four blanks repeated under each tier's sign-off, answered from that tier's own items.
+  function levelFieldValue(L, label){
+    var l=String(label||'').toLowerCase(), items=levelItems(L), recs=recMap();
+    if(l.indexOf('employee')===0) return subject ? subject.name : '';
+    if(l.indexOf('notes')===0){
+      var notes=[];
+      items.forEach(function(i){ var r=recs[i.id]; if(r&&r.note) notes.push(r.note); });
+      return notes.length ? notes[notes.length-1] : '';
+    }
+    var newest=null;
+    items.forEach(function(i){ var r=recs[i.id];
+      if(r && r.state==='verified' && (!newest || (r.ts||0)>(newest.ts||0))) newest=r; });
+    if(l.indexOf('date')===0) return newest ? new Date(newest.ts).toISOString().slice(0,10) : '';
+    if(newest && newest.by_person_id) return personNameById(newest.by_person_id);
+    return '';
+  }
+  function fieldBlock(label, value, emptyText){
+    var d=el('div','field'+(value?' filled':''));
+    d.appendChild(el('div','field-label',label));
+    d.appendChild(el('div','field-value'+(value?'':' empty'), value || (emptyText||'Not yet')));
+    return d;
+  }
+
   /* ---------- open/closed persistence, per signed-in person ---------- */
   var UI=null, UI_KEY=null;
   function loadUI(personId){
@@ -1347,8 +1403,10 @@
     if(D.intro&&D.intro.length){ var ib=el('div','blocks'); blocks(D.intro,ib); root.appendChild(ib); }
     if(D.header_fields&&D.header_fields.length){
       var hf=el('div','fields');
-      D.header_fields.forEach(function(f){ var d=el('div','field');
-        d.appendChild(el('div','field-label',f.label)); d.appendChild(el('div','field-line')); hf.appendChild(d); });
+      D.header_fields.forEach(function(f){
+        hf.appendChild(fieldBlock(f.label, docFieldValue(f.label),
+          /trainer/i.test(f.label) ? 'Nobody yet' : (/date/i.test(f.label) ? 'Not started' : '')));
+      });
       root.appendChild(hf);
     }
 
@@ -1411,8 +1469,10 @@
         (L.signoff.items||[]).forEach(function(i){ sb.appendChild(itemRow(i, isLocked?lockTitle:null)); });
         if(L.signoff.fields&&L.signoff.fields.length){
           var ff=el('div','fields');
-          L.signoff.fields.forEach(function(f){ var d=el('div','field');
-            d.appendChild(el('div','field-label',f.label)); d.appendChild(el('div','field-line')); ff.appendChild(d); });
+          L.signoff.fields.forEach(function(f){
+            ff.appendChild(fieldBlock(f.label, levelFieldValue(L, f.label),
+              /notes/i.test(f.label) ? 'No notes' : 'Not signed off'));
+          });
           sb.appendChild(ff);
         }
         so.appendChild(sb); body.appendChild(so);
