@@ -694,7 +694,7 @@
       // Never let the thing you just acted on disappear. Marking an item done changes its state,
       // and under a "Not started" filter that would hide it the instant you saved — which reads as
       // nothing having happened. Anything touched this session stays visible until the next reload.
-      if(filter!=='all' && st!==filter && !justChanged[it.id]) return;
+      if(filter!=='all' && st!==filter && !justChanged[i.id]) return;
       shown++;
       body.appendChild(itemRow(i, levelLockTitle));
     });
