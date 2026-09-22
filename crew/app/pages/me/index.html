@@ -264,6 +264,9 @@
   /* ---------- sign-in screen ---------- */
   function renderSignIn(){
     root.innerHTML='';
+    document.title='Sign in — TTC Crew';
+    document.querySelector('.topbar-title').textContent='TTC Crew';
+    document.querySelector('.topbar-back').hidden=true;
     var wrap=el('div','signin-wrap');
     wrap.appendChild(el('h1',null,'Sign in to TTC Crew'));
     var local = !TTCRecords.configured();

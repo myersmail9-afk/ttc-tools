@@ -186,7 +186,12 @@
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     }).then(function (r) { return r.json(); }).then(function (res) {
-      if (res && res.token_refreshed && state.session) {
+      // Do not apply a late refresh to a session that was signed out or replaced while this request
+      // was in flight. The request token identifies the exact session the response belongs to.
+      var storedForRefresh = res && res.token_refreshed ? loadSession() : null;
+      if (res && res.token_refreshed && state.session && state.session.token === payload.token &&
+          storedForRefresh && storedForRefresh.token === payload.token &&
+          storedForRefresh.person && state.session.person && storedForRefresh.person.id === state.session.person.id) {
         state.session.token = res.token_refreshed;
         saveSession(state.session);
       }
@@ -443,6 +448,9 @@
   // useful in development screens, but are never authorization for the published app gate.
   function requireSession() {
     return ready().then(function () {
+      // localStorage is authoritative across tabs. Re-read it for every gate validation rather than
+      // trusting the in-memory snapshot created when this script first ran.
+      state.session = loadSession();
       if (!configured()) {
         var configError = new Error('TTC Crew sign-in is not configured.');
         configError.error = 'not_configured';
@@ -453,7 +461,20 @@
         sessionError.error = 'not_signed_in';
         throw sessionError;
       }
+      var checkedToken = state.session.token;
+      var checkedPersonId = state.session.person.id;
       return apiPost('profile_get', {}, true).then(function (res) {
+        // A sign-out or account switch may happen while profile_get is in flight. Never let that
+        // older response restore the former identity or its refreshed token.
+        var persisted = loadSession();
+        var acceptedToken = res && res.token_refreshed ? res.token_refreshed : checkedToken;
+        if (!persisted || persisted.mode !== 'remote' || persisted.token !== acceptedToken ||
+            !persisted.person || persisted.person.id !== checkedPersonId) {
+          state.session = persisted;
+          var changed = new Error('The sign-in changed while it was being checked.');
+          changed.error = 'session_changed';
+          throw changed;
+        }
         // Refresh mutable roster facts on every entrance. In particular, a role change must take
         // effect before any page renders; authenticate_ also rejects people who are now inactive.
         var fresh = res && res.person;
@@ -462,11 +483,15 @@
           invalid.error = 'invalid_session';
           throw invalid;
         }
-        state.session.person = {
+        var nextPerson = {
           id: fresh.id, name: fresh.name, role: fresh.role,
-          email: fresh.email || state.session.person.email || '', test: !!fresh.test
+          email: fresh.email || persisted.person.email || '', test: !!fresh.test
         };
-        saveSession(state.session);
+        state.session = persisted;
+        if (JSON.stringify(state.session.person) !== JSON.stringify(nextPerson)) {
+          state.session.person = nextPerson;
+          saveSession(state.session);
+        }
         return state.session.person;
       });
     });

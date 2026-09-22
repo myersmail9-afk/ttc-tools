@@ -17,6 +17,7 @@
   var lastCheck = 0;
 
   document.documentElement.classList.add('ttc-auth-pending');
+  document.documentElement.classList.remove('ttc-auth-ready');
   var style = document.createElement('style');
   style.textContent = 'html.ttc-auth-pending body>*:not(#ttc-auth-gate){visibility:hidden!important}' +
     '#ttc-auth-gate{visibility:visible!important;position:fixed;z-index:2147483647;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:#f9f6f2;color:#1f2419;font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center}' +
@@ -24,7 +25,8 @@
     '@media(prefers-color-scheme:dark){#ttc-auth-gate{background:#1b2218;color:#f1eee7}#ttc-auth-gate p{color:#b9bcb2}}';
   (document.head || document.documentElement).appendChild(style);
 
-  function isLogin() { return location.pathname === loginUrl.pathname || location.pathname === loginUrl.pathname.replace(/index\.html$/, ''); }
+  function normalizedPath(pathname) { return pathname.replace(/index\.html$/, '').replace(/\/+$/, ''); }
+  function isLogin() { return normalizedPath(location.pathname) === normalizedPath(loginUrl.pathname); }
   function signinTarget(returnValue) {
     var target = new URL(loginUrl.href);
     target.searchParams.set('signin', '1');
@@ -39,15 +41,16 @@
     if (candidate.origin !== location.origin || candidate.username || candidate.password) return null;
     var rootPath = root.pathname.replace(/\/+$/, '/') ;
     if (candidate.pathname.indexOf(rootPath) !== 0) return null;
-    if (candidate.pathname === loginUrl.pathname || candidate.pathname === loginUrl.pathname.replace(/index\.html$/, '')) return null;
+    if (normalizedPath(candidate.pathname) === normalizedPath(loginUrl.pathname)) return null;
     return candidate.pathname + candidate.search + candidate.hash;
   }
   function reveal() {
     document.documentElement.classList.remove('ttc-auth-pending');
+    document.documentElement.classList.add('ttc-auth-ready');
     var old = document.getElementById('ttc-auth-gate');
     if (old) old.remove();
   }
-  function message(title, detail) {
+  function message(title, detail, retry) {
     function draw() {
       var old = document.getElementById('ttc-auth-gate');
       if (old) old.remove();
@@ -55,9 +58,12 @@
       var inner = document.createElement('div');
       var h = document.createElement('h1'); h.textContent = title;
       var p = document.createElement('p'); p.textContent = detail;
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Try again';
-      b.addEventListener('click', function () { check(true); });
-      inner.appendChild(h); inner.appendChild(p); inner.appendChild(b); box.appendChild(inner);
+      inner.appendChild(h); inner.appendChild(p);
+      if (retry) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Try again';
+        b.addEventListener('click', function () { location.reload(); }); inner.appendChild(b);
+      }
+      box.appendChild(inner);
       document.body.appendChild(box);
     }
     if (document.body) draw(); else document.addEventListener('DOMContentLoaded', draw, { once: true });
@@ -70,17 +76,20 @@
       tag.onload = function () { window.TTCRecords ? resolve(window.TTCRecords) : reject(new Error('Records service did not start.')); };
       tag.onerror = function () { reject(new Error('Could not load the sign-in service.')); };
       (document.head || document.documentElement).appendChild(tag);
-    });
+    }).catch(function (err) { loadedRecords = null; throw err; });
     return loadedRecords;
   }
   function goToSignIn() {
     if (isLogin()) { reveal(); return; }
     location.replace(signinTarget(currentReturn()));
   }
-  function invalidAuth(err) { return err && ['not_signed_in', 'bad_token', 'invalid_token', 'invalid_session', 'expired_token', 'unknown_person', 'forbidden'].indexOf(err.error) !== -1; }
-  function check(force) {
-    if (checking && !force) return checking;
+  function invalidAuth(err) { return err && ['not_signed_in', 'bad_token', 'invalid_token', 'invalid_session', 'session_changed', 'expired_token', 'unknown_person', 'forbidden'].indexOf(err.error) !== -1; }
+  function check() {
+    if (checking) return checking;
     lastCheck = Date.now();
+    document.documentElement.classList.remove('ttc-auth-ready');
+    document.documentElement.classList.add('ttc-auth-pending');
+    message('Checking your sign-in…', 'One moment while TTC Crew verifies this device.', false);
     checking = loadRecords().then(function (records) {
       return records.ready().then(function () {
         if (!initialized) {
@@ -95,6 +104,7 @@
       else reveal();
     }).catch(function (err) {
       if (invalidAuth(err)) {
+        if (isLogin() && err.error === 'not_signed_in') { reveal(); return; }
         signingOut = true;
         if (window.TTCRecords) window.TTCRecords.signOut();
         signingOut = false;
@@ -103,7 +113,7 @@
       }
       message('TTC Crew is unavailable', err && err.error === 'not_configured' ?
         'Sign-in has not been configured. Please contact the office.' :
-        'We could not verify your sign-in. Check your connection, then try again.');
+        'We could not verify your sign-in. Check your connection, then try again.', true);
     }).then(function () { checking = null; }, function () { checking = null; });
     return checking;
   }
@@ -113,8 +123,8 @@
   }
 
   window.TTCAuthGate = { safeReturn: safeReturn, completeSignIn: completeSignIn, check: check };
-  window.addEventListener('storage', function (event) { if (event.key === sessionKey) check(true); });
-  window.addEventListener('pageshow', function (event) { if (event.persisted) check(true); });
+  window.addEventListener('storage', function (event) { if (event.key === sessionKey) check(); });
+  window.addEventListener('pageshow', function (event) { if (event.persisted) check(); });
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible' && Date.now() - lastCheck > 30000) check();
   });
