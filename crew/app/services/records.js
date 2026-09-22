@@ -183,7 +183,9 @@
         e.message = (res && res.message) || 'Request failed';
         throw e;
       }
-      if (action !== 'sync_head' && res.sync_revision) sync.lastRevision = String(res.sync_revision);
+      // Do not advance the client's observed head from a write response. A concurrent write from
+      // another device may have landed just before this one; the next head check must still trigger a
+      // complete page refresh so that earlier change cannot be hidden behind our newer revision.
       if (!isWrite && action !== 'sync_head') setSyncStatus('synced', null, true);
       return res;
     });
@@ -237,6 +239,7 @@
     watcher.inFlight = p.then(function (data) {
       var nextFingerprint = (watcher.options.fingerprint || fingerprint)(data);
       var changed = watcher.lastFingerprint === null || watcher.lastFingerprint !== nextFingerprint;
+      watcher.needsRetry = false;
       watcher.lastFingerprint = nextFingerprint;
       if (changed && watcher.apply) watcher.apply(data, { reason: reason });
       if (changed) emit('data', { key: watcher.key, reason: reason, data: data, ts: Date.now() });
@@ -247,6 +250,7 @@
       return data;
     }, function (err) {
       watcher.inFlight = null;
+      watcher.needsRetry = true;
       if (watcher.options.onError) {
         try { watcher.options.onError(err, { reason: reason }); } catch (e) { /* listener isolation */ }
       }
@@ -283,7 +287,8 @@
       sync.lastRevision = revision;
       sync.backoffMs = SYNC_POLL_MS;
       setSyncStatus('synced', null, true);
-      if (changed) return refreshAllWatchers('remote-change');
+      var needsRetry = sync.watchers.some(function (watcher) { return watcher.needsRetry; });
+      if (changed || needsRetry) return refreshAllWatchers(changed ? 'remote-change' : 'retry');
       return null;
     }).then(function () {
       sync.headInFlight = null;
@@ -307,7 +312,7 @@
 
   function watchVisible(key, loader, apply, options) {
     options = options || {};
-    var watcher = { key: key, loader: loader, apply: apply, options: options, lastFingerprint: null, inFlight: null, queued: false, stopped: false };
+    var watcher = { key: key, loader: loader, apply: apply, options: options, lastFingerprint: null, inFlight: null, queued: false, needsRetry: false, stopped: false };
     sync.watchers.push(watcher);
     if (configured() && person()) {
       if (options.initial !== false) runWatcher(watcher, 'initial');
