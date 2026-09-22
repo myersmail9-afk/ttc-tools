@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2a3a25">
+<title>Review Queue — TTC Crew</title>
+<!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ttc-orange:#C9601A; --ttc-green:#4a6741; --ttc-dark:#2a3a25; --ttc-gold:#f0c080;
+    --bg:#f9f6f2; --bg-alt:#f1ece4; --card:#ffffff; --card-2:#fbf9f6;
+    --fg1:#1f2419; --fg2:#5a5f55; --fg3:#8b8f86;
+    --border:rgba(42,58,37,0.14); --border-soft:rgba(42,58,37,0.07);
+    --rail:#e6e0d6;
+    --claim-bg:#faeeda; --claim-fg:#633806; --claim-br:#EF9F27;
+    --ver-bg:#eaf3de;  --ver-fg:#27500A;  --ver-br:#97C459;
+    --ret-bg:#f3ece1;  --ret-fg:#6b4a1f;  --ret-br:#c9a464;
+    --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
+    --fs:16px;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-textsize="big"]{--fs:18.5px}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg1);font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+       font-size:var(--fs);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  a{text-decoration:none;color:inherit} svg{display:block}
+  button{font:inherit;color:inherit}
+  textarea{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ttc-orange);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+          padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));
+          background:var(--ttc-dark);color:#f1eee7}
+  .topbar-back{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto}
+  .topbar-back svg{width:22px;height:22px}
+  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:34px}
+  .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
+
+  .wrap{max-width:760px;margin:0 auto;padding:18px 16px 110px}
+  .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
+  .tabular{font-variant-numeric:tabular-nums}
+  .gate-card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);
+        padding:22px;text-align:center;margin-top:40px}
+  .gate-card a{color:var(--ttc-orange);font-weight:700}
+  .empty-card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);
+        padding:26px;text-align:center;color:var(--fg2)}
+
+  .btn{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:9px;border:1px solid var(--border);
+       background:var(--card);cursor:pointer}
+  .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
+  .btn.good{background:var(--ver-br);border-color:var(--ver-br);color:#12280a}
+  .btn.bad{background:var(--card);border-color:var(--ret-br);color:var(--ret-fg)}
+  .btn.small{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:default}
+
+  /* result banner — the visible audit trail after a batch */
+  .result-banner{border:1px solid var(--ver-br);background:var(--ver-bg);color:var(--ver-fg);border-radius:12px;
+        padding:11px 14px;margin:0 0 16px;display:flex;align-items:center;gap:12px;font-size:13.5px;font-weight:600}
+  .result-banner button{margin-left:auto;background:none;border:0;color:var(--ver-fg);text-decoration:underline;
+        font-weight:700;cursor:pointer;white-space:nowrap}
+
+  /* group (per person) */
+  .grp{border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow);margin:0 0 14px;overflow:hidden}
+  .grp-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card-2);border-bottom:1px solid var(--border-soft)}
+  .grp-check{flex:0 0 auto;width:20px;height:20px}
+  .grp-name{font-weight:800;font-size:14.5px;flex:1}
+  .grp-count{font-size:12px;color:var(--fg3)}
+
+  .entry{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border-bottom:1px solid var(--border-soft);min-height:64px}
+  .entry:last-child{border-bottom:0}
+  .entry-check{flex:0 0 auto;width:20px;height:20px;margin-top:2px}
+  .entry-body{flex:1;min-width:0}
+  .entry-loc{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ttc-orange);margin-bottom:3px}
+  .entry-text{font-size:15.5px;line-height:1.5;color:var(--fg1)}
+  .entry-note{font-size:13px;color:var(--fg2);margin-top:7px;padding:7px 10px;background:var(--bg-alt);border-radius:9px}
+  .entry-meta{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11.5px;color:var(--fg3)}
+  .entry-act{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+  /* sticky action bar */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ttc-dark);color:#f1eee7;
+        padding:11px 16px calc(11px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;
+        box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+  .actionbar[hidden]{display:none}
+  .actionbar-count{font-size:13.5px;font-weight:700;flex:1}
+  .actionbar .btn.primary{background:var(--ttc-gold);border-color:var(--ttc-gold);color:#2a2214}
+
+  /* sheet (send-back reason — a real field, never a prompt) */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(20,20,15,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .sheet-overlay[hidden]{display:none}
+  .sheet{background:var(--card);border-radius:18px 18px 0 0;max-width:480px;width:100%;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+        box-shadow:0 -8px 30px rgba(0,0,0,.25);max-height:80vh;overflow-y:auto}
+  @media(min-width:560px){.sheet-overlay{align-items:center}.sheet{border-radius:18px}}
+  .sheet-title{font-size:16px;font-weight:800;margin-bottom:2px}
+  .sheet-item-text{font-size:13.5px;color:var(--fg2);margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
+  .sheet-close{float:right;background:none;border:0;font-size:20px;color:var(--fg3);cursor:pointer}
+  .field-row{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  .field-row label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3)}
+  .field-row textarea{padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--bg-alt);font-size:15px;min-height:70px}
+  .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../../index.html#/reviews" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">Review Queue</div>
+  <button class="icon-btn" id="bigText" title="Bigger text">Aa</button>
+</div>
+
+<div class="wrap" id="root"><div class="loading">Loading…</div></div>
+
+<div class="actionbar" id="actionbar" hidden>
+  <span class="actionbar-count tabular" id="actionbarCount">0 selected</span>
+  <button class="btn" id="clearSel">Clear</button>
+  <button class="btn primary" id="verifySel">Verify selected</button>
+</div>
+
+<div class="sheet-overlay" id="sheetOverlay" hidden><div class="sheet" id="sheetBody"></div></div>
+
+<script src="../../data/people.js"></script>
+<script src="../../data/passoff.js"></script>
+<script src="../../services/records.js"></script>
+<script>
+(function(){
+  'use strict';
+  var root=document.getElementById('root');
+  var actionbar=document.getElementById('actionbar');
+  var actionbarCount=document.getElementById('actionbarCount');
+  var overlay=document.getElementById('sheetOverlay');
+  var sheetBody=document.getElementById('sheetBody');
+
+  var TS='ttc-textsize';
+  try{ if(localStorage.getItem(TS)==='big') document.documentElement.setAttribute('data-textsize','big'); }catch(e){}
+  document.getElementById('bigText').addEventListener('click',function(){
+    var on=document.documentElement.getAttribute('data-textsize')==='big';
+    if(on) document.documentElement.removeAttribute('data-textsize');
+    else document.documentElement.setAttribute('data-textsize','big');
+    try{ localStorage.setItem(TS,on?'normal':'big'); }catch(e){}
+  });
+
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+  function relTime(ts){ if(!ts) return ''; var days=Math.floor((Date.now()-ts)/86400000);
+    if(days<=0) return 'today'; if(days===1) return '1 day ago'; if(days<30) return days+' days ago';
+    return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+  function exactTime(ts){ return ts?new Date(ts).toLocaleString():''; }
+  function closeSheet(){ overlay.hidden=true; sheetBody.innerHTML=''; }
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) closeSheet(); });
+
+  var QUEUE=[], SELECTED={}; // item key -> true
+
+  function itemKey(it){ return it.person_id+'|'+it.area+'|'+it.item_id; }
+
+  function groupByPerson(items){
+    var order=[], map={};
+    items.forEach(function(it){
+      var key=it.person_id;
+      if(!map[key]){ map[key]={person_id:key, person_name: it.display_name||it.person_name, items:[]}; order.push(map[key]); }
+      map[key].items.push(it);
+    });
+    return order;
+  }
+
+  function renderSignIn(){
+    root.innerHTML='';
+    var wrap=el('div',null);
+    wrap.appendChild(el('h1',null,'Sign in'));
+    var local=!TTCRecords.configured();
+    if(local){
+      wrap.appendChild(el('p',null,"No records backend deployed yet — pick yourself from this device's roster."));
+      var list=el('div',null); list.style.cssText='display:flex;flex-direction:column;gap:8px';
+      TTCRecords.people().forEach(function(p){
+        var b=el('button',null); b.style.cssText='display:flex;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;text-align:left;width:100%';
+        var left=el('span',null,p.display_name+(p.test?' (TEST)':''));
+        var right=el('span',null,p.role); right.style.cssText='color:var(--fg3);font-size:11px;text-transform:uppercase';
+        b.appendChild(left); b.appendChild(right);
+        b.onclick=function(){ TTCRecords.signInAs(p.person_id).then(boot).catch(function(err){ alert(err.message||'Could not sign in.'); }); };
+        list.appendChild(b);
+      });
+      wrap.appendChild(list);
+    } else {
+      wrap.appendChild(el('p',null,'Sign in with your email from the My Profile page first, then come back here.'));
+      var back=el('a',null,'Go to My Profile'); back.href='../me/index.html'; back.style.cssText='color:var(--ttc-orange);font-weight:700';
+      wrap.appendChild(back);
+    }
+    root.appendChild(wrap);
+  }
+
+  function gateCard(){
+    var c=el('div','gate-card');
+    c.appendChild(el('p',null,'This page is for David and the office.'));
+    var back=el('a',null,'← Back'); back.href='../../index.html#/reviews';
+    c.appendChild(back);
+    return c;
+  }
+
+  function updateActionbar(){
+    var n=Object.keys(SELECTED).filter(function(k){return SELECTED[k];}).length;
+    actionbar.hidden = n===0;
+    actionbarCount.textContent = n+' selected';
+  }
+
+  function checkbox(checked, onChange){
+    var c=document.createElement('input'); c.type='checkbox'; c.checked=!!checked;
+    c.onchange=function(){ onChange(c.checked); };
+    return c;
+  }
+
+  function renderQueue(items){
+    root.innerHTML='';
+    if(!items.length){ root.appendChild(el('div','empty-card','Nothing waiting on review.')); actionbar.hidden=true; return; }
+    var groups=groupByPerson(items);
+    groups.forEach(function(g){
+      var box=el('div','grp');
+      var head=el('div','grp-head');
+      var keys=g.items.map(itemKey);
+      var allChecked = keys.every(function(k){return SELECTED[k];});
+      var gc=checkbox(allChecked, function(checked){
+        keys.forEach(function(k){ SELECTED[k]=checked; });
+        renderQueue(QUEUE); // cheap full re-render keeps checkbox state in sync everywhere
+      });
+      gc.className='grp-check'; head.appendChild(gc);
+      head.appendChild(el('div','grp-name',g.person_name));
+      head.appendChild(el('div','grp-count',g.items.length+' waiting'));
+      box.appendChild(head);
+
+      g.items.forEach(function(it){
+        var key=itemKey(it);
+        var entry=el('div','entry');
+        var cb=checkbox(SELECTED[key], function(checked){ SELECTED[key]=checked; updateActionbar(); syncGroupCheckbox(gc, keys); });
+        cb.className='entry-check'; entry.appendChild(cb);
+
+        var body=el('div','entry-body');
+        body.appendChild(el('div','entry-loc', (it.level||'')+(it.section?' — '+it.section:'')));
+        body.appendChild(el('div','entry-text', it.item_label||it.item_id));
+        if(it.note) body.appendChild(el('div','entry-note', it.note));
+        var meta=el('div','entry-meta');
+        var when=el('span',null,'Marked '+relTime(it.ts)); when.title=exactTime(it.ts);
+        meta.appendChild(when);
+        body.appendChild(meta);
+
+        var act=el('div','entry-act');
+        var vBtn=el('button','btn good small','Verify');
+        vBtn.onclick=function(){ verifyOne(it); };
+        act.appendChild(vBtn);
+        var rBtn=el('button','btn bad small','Send back');
+        rBtn.onclick=function(){ openReasonSheet(it); };
+        act.appendChild(rBtn);
+        body.appendChild(act);
+
+        entry.appendChild(body);
+        box.appendChild(entry);
+      });
+      root.appendChild(box);
+    });
+    updateActionbar();
+  }
+  function syncGroupCheckbox(gc, keys){ gc.checked = keys.every(function(k){return SELECTED[k];}); }
+
+  function showResult(msg, onUndo){
+    var banner=el('div','result-banner');
+    banner.appendChild(el('span',null,msg));
+    if(onUndo){ var u=el('button',null,'Undo'); u.onclick=onUndo; banner.appendChild(u); }
+    root.insertBefore(banner, root.firstChild);
+  }
+
+  function verifyOne(it){
+    TTCRecords.recordBatch([{ person_id:it.person_id, area:it.area, item_id:it.item_id, item_label:it.item_label, state:'verified', note:it.note||'' }])
+      .then(function(){ afterAction('Verified 1 item for '+ (it.display_name||it.person_name) + '.', [it], 'claimed'); })
+      .catch(function(err){ alert(err.message||'Could not verify.'); });
+  }
+
+  function openReasonSheet(it){
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title','Send back'));
+    sheetBody.appendChild(el('p','sheet-item-text', it.item_label||it.item_id));
+    var row=el('div','field-row'); row.appendChild(el('label',null,'What still needs doing'));
+    var ta=document.createElement('textarea'); ta.placeholder='Be specific — this is what they’ll see';
+    row.appendChild(ta); sheetBody.appendChild(row);
+    var actions=el('div','sheet-actions');
+    var cancel=el('button','btn','Cancel'); cancel.onclick=closeSheet; actions.appendChild(cancel);
+    var submit=el('button','btn bad','Send back'); submit.disabled=true;
+    ta.addEventListener('input',function(){ submit.disabled=!ta.value.trim(); });
+    submit.onclick=function(){
+      var reason=ta.value.trim(); closeSheet();
+      TTCRecords.recordBatch([{ person_id:it.person_id, area:it.area, item_id:it.item_id, item_label:it.item_label, state:'returned', note:reason }])
+        .then(function(){ afterAction('Sent back 1 item for '+ (it.display_name||it.person_name) + '.', [it], 'claimed'); })
+        .catch(function(err){ alert(err.message||'Could not send back.'); });
+    };
+    actions.appendChild(submit);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+
+  function verifySelected(){
+    var selectedItems = QUEUE.filter(function(it){ return SELECTED[itemKey(it)]; });
+    if(!selectedItems.length) return;
+    var payload = selectedItems.map(function(it){ return { person_id:it.person_id, area:it.area, item_id:it.item_id, item_label:it.item_label, state:'verified', note:it.note||'' }; });
+    TTCRecords.recordBatch(payload).then(function(){
+      // group the confirmation by person, the way David actually reads it
+      var byPerson={};
+      selectedItems.forEach(function(it){ var n=it.display_name||it.person_name; byPerson[n]=(byPerson[n]||0)+1; });
+      var parts=Object.keys(byPerson).map(function(n){ return 'Verified '+byPerson[n]+' item'+(byPerson[n]===1?'':'s')+' for '+n; });
+      SELECTED={};
+      afterAction(parts.join('; ')+' — '+new Date().toLocaleDateString(undefined,{day:'numeric',month:'short'})+'.', selectedItems, 'claimed');
+    }).catch(function(err){ alert(err.message||'Could not verify selected.'); });
+  }
+
+  function afterAction(msg, items, revertState){
+    load().then(function(){
+      showResult(msg, function(){
+        var payload=items.map(function(it){ return { person_id:it.person_id, area:it.area, item_id:it.item_id, item_label:it.item_label, state:revertState, note:it.note||'' }; });
+        TTCRecords.recordBatch(payload).then(load).catch(function(){});
+      });
+    });
+  }
+
+  function load(){
+    return TTCRecords.reviewQueue().then(function(res){
+      QUEUE=res.items||[];
+      renderQueue(QUEUE);
+    });
+  }
+
+  document.getElementById('clearSel').onclick=function(){ SELECTED={}; renderQueue(QUEUE); };
+  document.getElementById('verifySel').onclick=verifySelected;
+
+  function boot(){
+    var self=TTCRecords.person();
+    if(!self){ renderSignIn(); return; }
+    if(!TTCRecords.can('verify_others')){ root.innerHTML=''; root.appendChild(gateCard()); return; }
+    root.innerHTML='<div class="loading">Loading the queue…</div>';
+    load().catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
+  }
+
+  TTCRecords.ready().then(boot);
+})();
+</script>
+</body>
+</html>

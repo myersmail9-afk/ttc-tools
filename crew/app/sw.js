@@ -1,8 +1,11 @@
 // TTC Crew service worker
 //
-// Three buckets:
-//   1. content.js          network-first (3 s timeout), fall back to cache.
-//                          This is why tile edits show up on the next open without a version bump.
+// Four buckets:
+//   1. content.js, crew-api.json, and services/   network-first (3 s timeout), fall back to cache.
+//                          content.js is why tile edits show up on the next open without a version
+//                          bump; crew-api.json + services/records.js get the same treatment so a
+//                          newly-deployed backend URL (or a records.js fix) reaches a phone without
+//                          waiting on a SHELL_CACHE bump.
 //   2. files/ and pages/   never precached; cached on first open, then served from cache.
 //                          Change a file's name (or bump FILES_CACHE) to force a re-download.
 //   3. everything else     the app shell, precached on install, cache-first.
@@ -11,8 +14,8 @@
 // Bump SHELL_CACHE whenever index.html, manifest.json, the logo, or an icon changes.
 // Do NOT bump it for content.js edits.
 
-const SHELL_CACHE = 'ttc-crew-v26';
-const FILES_CACHE = 'ttc-crew-files-v9';
+const SHELL_CACHE = 'ttc-crew-v27';
+const FILES_CACHE = 'ttc-crew-files-v10';
 const SHELL = [
   './',
   './index.html',
@@ -87,7 +90,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;          // Google and other sites: untouched
 
-  if (url.pathname.endsWith('/content.js')) {
+  if (url.pathname.endsWith('/content.js') || url.pathname.endsWith('/crew-api.json') || url.pathname.includes('/services/')) {
     event.respondWith(networkFirst(req, SHELL_CACHE, 3000));
     return;
   }

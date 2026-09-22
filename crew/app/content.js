@@ -36,7 +36,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-18.1",
+    version: "2026-09-22.1",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
@@ -124,7 +124,10 @@ window.TTC_CONTENT = {
         { id: "post-job-walkthrough", label: "Post-Job Walkthrough", desc: "The end-of-job customer walkthrough, step by step", href: "https://myersmail9-afk.github.io/ttc-tools/crew/post-job-walkthrough/", kind: "app", search: "cleanup review ask" },
         { id: "estimator-field-manual", label: "Estimator Field Manual", desc: "Consultations, prescriptive specs, production estimating, and PHC discovery, the field reference", href: "pages/training/estimator-field-manual/", kind: "file", search: "estimator bid consultation specifications production phc" },
         { id: "estimator-pass-off", label: "Qualified Estimator Pass-Off", desc: "The tiered path from Estimator Trainee to independent estimating authority, trackable live", href: "pages/training/estimator-pass-off/", kind: "file", search: "estimator training tier certification pass off" },
-        { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" }
+        { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" },
+        { id: "my-profile", label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
+        { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["office"], search: "roster team insights expiring" },
+        { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["office"], search: "verify batch approve sign off" }
       ]
     },
 
