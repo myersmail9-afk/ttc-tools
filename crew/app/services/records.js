@@ -318,6 +318,7 @@
     return ready().then(function () {
       var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       if (!configured()) {
+        if (pid !== self.id && !can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'You may only view your own records.' });
         ensureFounderPassoff(pid);
         var db = loadLocalDb();
         return (localPerson(db, pid).records || {})[area] || {};
@@ -466,7 +467,7 @@
       var pid = id || self.id;
       if (pid !== self.id && !can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'You may only view your own badges.' });
       if (configured()) {
-        return apiPost('certs_get', pid !== self.id ? { person_id: pid } : {}, true).catch(function () { return localCertsGet(pid); });
+        return apiPost('certs_get', pid !== self.id ? { person_id: pid } : {}, true);
       }
       return localCertsGet(pid);
     });
@@ -503,7 +504,7 @@
       };
       if (configured()) {
         var body = Object.assign({}, payload, targetId !== self.id ? { person_id: targetId } : {});
-        return apiPost('certs_set', body, true).catch(function () { return localCertsSet(targetId, payload, self); });
+        return apiPost('certs_set', body, true);
       }
       return localCertsSet(targetId, payload, self);
     });
