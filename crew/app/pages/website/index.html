@@ -11,6 +11,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style id="ttc-auth-prehide">html:not(.ttc-auth-ready) body > :not(#ttc-auth-gate){visibility:hidden!important}html:not(.ttc-auth-ready) body::before{content:"Opening TTC Crew sign-in… If this stays here, check your connection and reload.";display:block;padding:2rem;font:16px/1.5 system-ui}</style>
+<noscript><style>body::before{content:"Turn on JavaScript to sign in to TTC Crew."!important}</style></noscript>
+<script src="../../shared/auth-gate.js"></script>
 <meta name="robots" content="noindex,nofollow">
 <script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})()</script>
 <title>Website Rebuild — TTC Crew</title>

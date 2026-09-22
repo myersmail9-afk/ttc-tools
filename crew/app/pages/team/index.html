@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style id="ttc-auth-prehide">html:not(.ttc-auth-ready) body > :not(#ttc-auth-gate){visibility:hidden!important}html:not(.ttc-auth-ready) body::before{content:"Opening TTC Crew sign-in… If this stays here, check your connection and reload.";display:block;padding:2rem;font:16px/1.5 system-ui}</style>
+<noscript><style>body::before{content:"Turn on JavaScript to sign in to TTC Crew."!important}</style></noscript>
+<script src="../../shared/auth-gate.js"></script>
 <meta name="theme-color" content="#2a3a25">
 <title>Crew Overview — TTC Crew</title>
 <!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->

@@ -15,6 +15,7 @@
   var initialized = false;
   var signingOut = false;
   var lastCheck = 0;
+  var messageVersion = 0;
 
   document.documentElement.classList.add('ttc-auth-pending');
   document.documentElement.classList.remove('ttc-auth-ready');
@@ -45,13 +46,16 @@
     return candidate.pathname + candidate.search + candidate.hash;
   }
   function reveal() {
+    messageVersion++;
     document.documentElement.classList.remove('ttc-auth-pending');
     document.documentElement.classList.add('ttc-auth-ready');
     var old = document.getElementById('ttc-auth-gate');
     if (old) old.remove();
   }
   function message(title, detail, retry) {
+    var version = ++messageVersion;
     function draw() {
+      if (version !== messageVersion) return;
       var old = document.getElementById('ttc-auth-gate');
       if (old) old.remove();
       var box = document.createElement('div'); box.id = 'ttc-auth-gate';
