@@ -246,7 +246,8 @@
       (L.sections || []).forEach(function (S) { (S.items || []).forEach(function (it) { items.push(it.id); }); });
       // Status choices are a decision, not training work. They must never inflate a tier's
       // denominator or require a reviewer to mark mutually exclusive choices as complete.
-      var signoff = L.signoff && L.signoff.items && L.signoff.items[0];
+      var options = L.signoff && L.signoff.items || [];
+      var signoff = options.filter(function (it) { return /^(pass|ready\b)/i.test(it.text || ''); })[0] || options[0];
       return { id: L.id, title: L.title, order: L.order != null ? L.order : 0,
         items: items, signoffItemId: signoff ? signoff.id : null };
     }).sort(function (a, b) { return a.order - b.order; });

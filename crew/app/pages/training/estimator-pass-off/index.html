@@ -60,7 +60,7 @@
   .crew-sum{font-size:14px;color:var(--fg2);margin:0 0 14px}
   .crew-sum b{color:var(--claim-fg)}
   .crew-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;margin:0 0 8px;
-        border:1px solid var(--border);border-radius:14px;background:var(--card);cursor:pointer}
+        min-height:64px;border:1px solid var(--border);border-radius:14px;background:var(--card);cursor:pointer}
   .crew-row.has-waiting{border-color:var(--claim-br);background:var(--claim-bg)}
   .crew-av{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;overflow:hidden;
         background:var(--bg-alt);color:var(--fg2);font-weight:800;font-size:13px;border:1px solid var(--border)}
@@ -229,7 +229,7 @@
   .item[data-state="returned"] .item-mark svg{opacity:1;color:var(--ret-fg)}
   .item-body{flex:1;min-width:0}
   .item-text{font-size:16px;line-height:1.55;color:var(--fg1)}
-  .more-link{background:none;border:0;color:var(--ttc-orange);font-weight:700;font-size:13px;cursor:pointer;padding:0}
+  .more-link{background:none;border:0;min-height:var(--touch);color:var(--ttc-orange);font-weight:700;font-size:13px;cursor:pointer;padding:7px 0}
   .item-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
   .chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;
         background:var(--open-bg);color:var(--open-fg);white-space:nowrap}
@@ -350,7 +350,7 @@
   @media(min-width:560px){.sheet-overlay{align-items:center}.sheet{border-radius:18px;max-height:80vh}}
   .sheet-title{font-size:16px;font-weight:800;margin-bottom:2px}
   .sheet-item-text{font-size:13.5px;color:var(--fg2);margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
-  .sheet-close{float:right;background:none;border:0;font-size:20px;color:var(--fg3);cursor:pointer}
+  .sheet-close{float:right;min-width:var(--touch);min-height:var(--touch);background:none;border:0;font-size:20px;color:var(--fg3);cursor:pointer}
   .sheet .field-row textarea{min-height:70px;resize:vertical}
   .sheet-photo-preview{width:72px;height:72px;border-radius:10px;object-fit:cover;margin-top:6px;display:block}
   .sheet-photo-note{font-size:11.5px;color:var(--fg3);margin-top:5px}
@@ -358,7 +358,7 @@
 
   /* ---- field action: always in thumb reach, with honest record status ---- */
   .next-action-bar{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:9px 12px calc(9px + env(safe-area-inset-bottom));
-       background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--border);box-shadow:0 -7px 20px rgba(42,58,37,.10);backdrop-filter:blur(12px)}
+       background:var(--card);background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--border);box-shadow:0 -7px 20px rgba(42,58,37,.10);backdrop-filter:blur(12px)}
   .next-action-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:10px}
   .next-action-copy{flex:1;min-width:0}
   .next-action-label{display:block;font-size:12.5px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -375,7 +375,7 @@
         background:var(--ttc-dark);color:#f1eee7;padding:10px 14px;border-radius:11px;font-size:13.5px;
         display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:60;max-width:calc(100vw - 32px)}
   .toast[hidden]{display:none}
-  .toast button{background:none;border:0;color:var(--ttc-gold);font-weight:700;cursor:pointer;white-space:nowrap}
+  .toast button{min-height:var(--touch);background:none;border:0;color:var(--ttc-gold);font-weight:700;cursor:pointer;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1235,7 +1235,10 @@
     (L.sections||[]).forEach(function(s){ (s.items||[]).forEach(function(i){ out.push(i); }); });
     return out;
   }
-  function levelPassItem(L){ return L.signoff&&L.signoff.items&&L.signoff.items[0] || null; }
+  function levelPassItem(L){
+    var options=L.signoff&&L.signoff.items||[];
+    return options.filter(function(it){ return /^(pass|ready\b)/i.test(it.text||''); })[0] || options[0] || null;
+  }
   function signoffPeers(it){
     var peers=[];
     (D.levels||[]).some(function(L){
@@ -1850,7 +1853,7 @@
     }).catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
   }
 
-  TTCRecords.ready().then(boot);
+  TTCRecords.ready().then(function(){ setSaveState(TTCRecords.configured()?'synced':'local'); boot(); });
 })();
 </script>
 <script defer src="../../../shared/profile-button.js"></script>
