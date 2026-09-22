@@ -52,6 +52,10 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }
   :root[data-textsize="big"]{--fs:18.5px}
+  .working-on{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 14px;padding:11px 14px;
+        border-radius:12px;background:var(--claim-bg);color:var(--claim-fg);border:1px solid var(--claim-br);font-size:13.5px}
+  .working-on b{font-weight:800}
+  .working-on-back{margin-left:auto;font-weight:700;text-decoration:underline}
   .sect.is-filtered-out{display:none}
   .filter-empty{margin:18px 0;padding:16px 18px;border:1px dashed var(--border);border-radius:14px;
         background:var(--card);color:var(--fg2);font-size:14px}
@@ -481,8 +485,20 @@
   function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify(UI)); }catch(e){} }
 
   /* ---------- state + counting (reads TTCRecords.records('passoff'), synchronous) ---------- */
-  function itemState(id){ var r=TTCRecords.records('passoff')[id]; return r?r.state:'open'; }
-  function itemRecord(id){ return TTCRecords.records('passoff')[id]||null; }
+  // WHOSE checklist is on screen. Normally your own. A trainer or office person can open
+  // ?person=<id> to work through someone else's — that is how David marks things off for a crew
+  // member without waiting for them to claim it first.
+  var subject=null;            // {id, name} — the person the checklist belongs to
+  var subjectRecords=null;     // their records when it is not you (own records come from the cache)
+  function isOwn(){ return !subject || !TTCRecords.person() || subject.id===TTCRecords.person().id; }
+  function recMap(){ return isOwn() ? TTCRecords.records('passoff') : (subjectRecords||{}); }
+  function itemState(id){ var r=recMap()[id]; return r?r.state:'open'; }
+  function itemRecord(id){ return recMap()[id]||null; }
+  function personNameById(id){
+    var list=(window.TTC_PEOPLE||[]);
+    for(var i=0;i<list.length;i++){ if(list[i].person_id===id) return list[i].display_name; }
+    return id;
+  }
   function levelItems(L){
     var out=[];
     (L.sections||[]).forEach(function(s){ (s.items||[]).forEach(function(i){ out.push(i); }); });
@@ -545,7 +561,17 @@
     var meta=el('div','item-meta');
     var label={open:'Not started',claimed:'Waiting on review',verified:'Verified',returned:'Sent back'}[st];
     var chip=el('span','chip '+(st==='open'?'':st),label); meta.appendChild(chip);
-    if(rec&&rec.ts){ var w=el('span','item-when','Marked '+relTime(rec.ts)); w.title=exactTime(rec.ts); meta.appendChild(w); }
+    if(rec&&rec.ts){
+      // Who did this, not just when. On the crew member's own page this is what tells them
+      // "marked off by David" rather than leaving them wondering how it got ticked.
+      var actor = rec.by_person_id ? personNameById(rec.by_person_id) : '';
+      var self = TTCRecords.person();
+      var byMe = self && rec.by_person_id === self.id;
+      var verb = st==='verified' ? 'Verified' : (st==='returned' ? 'Sent back' : 'Marked');
+      var who  = (!actor || byMe) ? '' : ' by '+actor;
+      var w=el('span','item-when', verb+who+' '+relTime(rec.ts));
+      w.title=exactTime(rec.ts); meta.appendChild(w);
+    }
     body.appendChild(meta);
 
     if(rec&&rec.note){ var n=el('div','item-note');
@@ -566,8 +592,13 @@
       }
     } else {
       if(st==='claimed'||st==='open'){
-        var v=el('button','btn good','Verify');
-        v.onclick=function(){ openEvidenceSheet(it,'verify'); }; act.appendChild(v);
+        // One tap, no form. David watched them do it; making him fill in a sheet to say so is
+        // friction that buys nothing. The note stays available for when he wants to add one.
+        var v=el('button','btn good', st==='claimed' ? 'Verify' : 'Mark off');
+        v.onclick=function(){ writeState(it,'verified','',null, st==='claimed'?'Verified.':'Marked off.'); };
+        act.appendChild(v);
+        var vn=el('button','btn small','Add a note');
+        vn.onclick=function(){ openEvidenceSheet(it,'verify'); }; act.appendChild(vn);
       }
       if(st==='claimed'){
         var r=el('button','btn bad','Send back');
@@ -586,7 +617,10 @@
   function writeState(it, state, note, meta, undoMsg, prevState, prevNote){
     var composed=note||'';
     justChanged[it.id]=true;
-    TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed})
+    TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed},
+                         isOwn() ? null : subject.id)
+      .then(function(){ return isOwn() ? null :
+        TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; }); })
       .then(function(){ refreshAndRerender();
         if(undoMsg) showToast(undoMsg, prevState!=null?function(){ writeState(it, prevState, prevNote||''); }:null);
       })
@@ -774,7 +808,7 @@
   /* ---------- main render ---------- */
   var currentLevelCache=null;
   function refreshAndRerender(){
-    TTCRecords.passoffCurrentLevel(TTCRecords.person().id).then(function(cl){ currentLevelCache=cl; rerender(); });
+    TTCRecords.passoffCurrentLevel(subject?subject.id:TTCRecords.person().id).then(function(cl){ currentLevelCache=cl; rerender(); });
   }
   function rerender(){ render(); }
 
@@ -783,6 +817,14 @@
     if(!D){ var w=el('div','loading');
       w.textContent='The pass-off data file has not been generated yet (data/passoff.js).'; root.appendChild(w); return; }
 
+    if(!isOwn()){
+      var wb=el('div','working-on');
+      wb.appendChild(el('b',null, subject.name));
+      wb.appendChild(document.createTextNode('’s pass-off — anything you mark here is recorded against them, by you.'));
+      var back=el('a','working-on-back','Back to my own →'); back.href='./';
+      wb.appendChild(back);
+      root.appendChild(wb);
+    }
     var h=el('div','doc-head');
     h.appendChild(el('p','doc-eyebrow','Total Tree Care'));
     h.appendChild(el('h1',null,D.title||'Qualified Estimator Pass-Off'));
@@ -905,14 +947,23 @@
   function boot(){
     var self=TTCRecords.person();
     if(!self){ renderSignIn(); return; }
+    var wanted=null;
+    try{ wanted=new URLSearchParams(location.search).get('person'); }catch(e){}
+    if(wanted && wanted!==self.id && !TTCRecords.can('verify_others')){
+      root.innerHTML=''; root.appendChild(el('div','loading','You can only open your own pass-off.')); return;
+    }
+    subject = (wanted && wanted!==self.id)
+      ? { id:wanted, name:personNameById(wanted) }
+      : { id:self.id, name:self.name||self.display_name||'' };
     root.innerHTML='<div class="loading">Loading…</div>';
-    loadUI(self.id);
-    loadFilter(self.id);
+    loadUI(subject.id);
+    loadFilter(subject.id);
     maybeMigrateLegacy(self).then(function(){
-      return TTCRecords.loadRecords('passoff');
+      return isOwn() ? TTCRecords.loadRecords('passoff')
+                     : TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; });
     }).then(function(){
       if(D) setDefaultOpenState();
-      return TTCRecords.passoffCurrentLevel(self.id);
+      return TTCRecords.passoffCurrentLevel(subject.id);
     }).then(function(cl){
       currentLevelCache=cl;
       render();

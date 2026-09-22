@@ -7,7 +7,8 @@
 <title>Crew Overview — TTC Crew</title>
 <!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->
 <script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
-<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}</style>
+<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}  .row-passoff{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ttc-orange);white-space:nowrap;padding-left:10px}
+</style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,6 +208,11 @@
     people.forEach(function(p){
       var row=el('div','row');
       row.onclick=function(){ location.href='../me/index.html?person='+encodeURIComponent(p.person_id); };
+      // Straight into their pass-off, which is where a trainer actually wants to land.
+      var go=document.createElement('a'); go.className='row-passoff'; go.textContent='Pass-off →';
+      go.href='../training/estimator-pass-off/?person='+encodeURIComponent(p.person_id);
+      go.onclick=function(e){ e.stopPropagation(); };
+      row.appendChild(go);
 
       var photo=el('div','row-photo');
       if(p.photo){ var img=document.createElement('img'); img.src=p.photo; photo.appendChild(img); }
