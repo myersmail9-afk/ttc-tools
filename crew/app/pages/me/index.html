@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2a3a25">
+<title>My Profile — TTC Crew</title>
+<!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ttc-orange:#C9601A; --ttc-orange-dk:#a14d14; --ttc-green:#4a6741; --ttc-dark:#2a3a25; --ttc-gold:#f0c080;
+    --bg:#f9f6f2; --bg-alt:#f1ece4; --card:#ffffff; --card-2:#fbf9f6;
+    --fg1:#1f2419; --fg2:#5a5f55; --fg3:#8b8f86;
+    --border:rgba(42,58,37,0.14); --border-soft:rgba(42,58,37,0.07);
+    --rail:#e6e0d6;
+    --claim-bg:#faeeda; --claim-fg:#633806; --claim-br:#EF9F27;
+    --ver-bg:#eaf3de;  --ver-fg:#27500A;  --ver-br:#97C459;
+    --ret-bg:#FCEBEB;  --ret-fg:#791F1F;  --ret-br:#F09595;
+    --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
+    --tier-bronze:#a9672f; --tier-silver:#7c8792; --tier-gold:#c99a2e; --tier-legend:#8a4fbf;
+    --fs:16px;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3e1d1d;  --ret-fg:#f0a5a5;  --ret-br:#8d4141;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --tier-bronze:#c2884f; --tier-silver:#9aa4ad; --tier-gold:#dab548; --tier-legend:#b088e0;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3e1d1d;  --ret-fg:#f0a5a5;  --ret-br:#8d4141;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --tier-bronze:#c2884f; --tier-silver:#9aa4ad; --tier-gold:#dab548; --tier-legend:#b088e0;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-textsize="big"]{--fs:18.5px}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg1);font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+       font-size:var(--fs);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  a{text-decoration:none;color:inherit} svg{display:block}
+  button{font:inherit;color:inherit}
+  input,textarea,select{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ttc-orange);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- top bar ---- */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+          padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));
+          background:var(--ttc-dark);color:#f1eee7}
+  .topbar-back{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto}
+  .topbar-back svg{width:22px;height:22px}
+  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:34px}
+  .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
+
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 90px}
+  .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);
+        padding:16px;margin:0 0 16px}
+  h1{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:0 0 2px}
+  h2.sec-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);font-weight:800;margin:22px 0 10px}
+  .btn{font-size:13px;font-weight:700;padding:8px 13px;border-radius:9px;border:1px solid var(--border);
+       background:var(--card);cursor:pointer}
+  .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
+  .btn.ghost{background:transparent}
+  .btn.small{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:default}
+  .chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;
+        background:var(--bg-alt);color:var(--fg3);white-space:nowrap;display:inline-block}
+  .chip.claimed{background:var(--claim-bg);color:var(--claim-fg)}
+  .chip.verified{background:var(--ver-bg);color:var(--ver-fg)}
+  .chip.returned{background:var(--ret-bg);color:var(--ret-fg)}
+
+  /* ---- sign-in ---- */
+  .signin-wrap{max-width:420px;margin:40px auto;padding:0 16px}
+  .signin-note{font-size:13px;color:var(--fg2);margin:0 0 14px}
+  .signin-list{display:flex;flex-direction:column;gap:8px}
+  .signin-person{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+        border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;text-align:left;width:100%}
+  .signin-person:active{background:var(--bg-alt)}
+  .signin-person-name{font-weight:700;font-size:14.5px}
+  .signin-person-role{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3)}
+  .test-tag{font-size:9.5px;font-weight:800;letter-spacing:.06em;background:var(--claim-bg);color:var(--claim-fg);
+        border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+  .field-row{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  .field-row label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3)}
+  .field-row input{padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--bg-alt);font-size:15px}
+  .signin-status{font-size:13px;color:var(--fg2);min-height:18px;margin:8px 0 0}
+  .signin-status.err{color:var(--ret-fg)}
+
+  /* ---- who ---- */
+  .who{display:flex;gap:14px;align-items:center}
+  .photo-btn{position:relative;flex:0 0 auto;width:64px;height:64px;border-radius:50%;border:0;padding:0;cursor:pointer;overflow:hidden;background:var(--bg-alt)}
+  .photo-btn img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo-btn .ph-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--fg3);background:var(--bg-alt)}
+  .photo-btn .ph-edit{position:absolute;right:0;bottom:0;width:22px;height:22px;border-radius:50%;background:var(--ttc-orange);
+        display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;border:2px solid var(--card)}
+  .who-id{flex:1;min-width:0}
+  .who-name{font-size:17px;font-weight:800}
+  .who-email{font-size:12.5px;color:var(--fg3);word-break:break-all}
+  .who-role{margin-top:4px}
+  .fixed-note{font-size:11px;color:var(--fg3);margin-top:2px}
+
+  .field{margin:14px 0 0}
+  .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:5px}
+  .field input,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--bg-alt);font-size:14.5px;resize:vertical}
+  .field textarea{min-height:64px;line-height:1.5}
+  .save-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .save-status{font-size:12.5px;color:var(--fg3)}
+
+  /* ---- badge wall ---- */
+  .wall-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
+  .wall-count{font-size:26px;font-weight:800;letter-spacing:-.01em}
+  .wall-count small{font-size:13px;font-weight:600;color:var(--fg3)}
+  .wall-sub{font-size:12.5px;color:var(--fg2);margin:2px 0 14px}
+
+  .grp{border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow);margin:0 0 12px;overflow:hidden}
+  .grp-head{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;background:var(--card-2);border:0;
+        cursor:pointer;text-align:left;border-bottom:1px solid var(--border-soft)}
+  .grp[data-open="0"] .grp-head{border-bottom-color:transparent}
+  .grp-titles{flex:1;min-width:0}
+  .grp-title{font-size:14.5px;font-weight:800}
+  .grp-blurb{font-size:12px;color:var(--fg3);margin-top:1px}
+  .grp-count{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--fg2);font-variant-numeric:tabular-nums}
+  .grp-count.all-done{color:var(--ver-fg)}
+  .grp-chev{flex:0 0 auto;color:var(--fg3);transition:transform .18s ease}
+  .grp[data-open="1"] .grp-chev{transform:rotate(90deg)}
+  .grp-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;padding:14px}
+  .grp[data-open="0"] .grp-body{display:none}
+
+  .badge-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:12px;
+        border:2px solid var(--border-soft);background:var(--bg-alt);cursor:pointer;text-align:center}
+  .badge-medal{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+        color:#fff;font-size:17px}
+  .badge-name{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--fg2)}
+  .badge-tile.state-none{opacity:.42}
+  .badge-tile.state-none .badge-medal{background:var(--rail);color:var(--fg3)}
+  .badge-tile.state-in_progress{border-style:dashed}
+  .badge-tile.state-in_progress .badge-medal{background:transparent;border:2.5px dashed currentColor}
+  .badge-tile.state-earned{border-color:transparent}
+  .badge-tile.tier-bronze.state-in_progress .badge-medal,.badge-tile.tier-bronze.state-in_progress{color:var(--tier-bronze)}
+  .badge-tile.tier-silver.state-in_progress .badge-medal,.badge-tile.tier-silver.state-in_progress{color:var(--tier-silver)}
+  .badge-tile.tier-gold.state-in_progress .badge-medal,.badge-tile.tier-gold.state-in_progress{color:var(--tier-gold)}
+  .badge-tile.tier-legend.state-in_progress .badge-medal,.badge-tile.tier-legend.state-in_progress{color:var(--tier-legend)}
+  .badge-tile.tier-bronze.state-earned{background:linear-gradient(160deg,#c98a4d,var(--tier-bronze))}
+  .badge-tile.tier-silver.state-earned{background:linear-gradient(160deg,#b7c0c7,var(--tier-silver))}
+  .badge-tile.tier-gold.state-earned{background:linear-gradient(160deg,#e6c869,var(--tier-gold))}
+  .badge-tile.tier-legend.state-earned{background:linear-gradient(160deg,#c79cf0,var(--tier-legend));
+        box-shadow:0 0 0 1px rgba(138,79,191,.35),0 6px 18px rgba(138,79,191,.35)}
+  .badge-tile.tier-bronze.state-earned .badge-medal{background:rgba(255,255,255,.28)}
+  .badge-tile.tier-silver.state-earned .badge-medal{background:rgba(255,255,255,.32)}
+  .badge-tile.tier-gold.state-earned .badge-medal{background:rgba(255,255,255,.3)}
+  .badge-tile.tier-legend.state-earned .badge-medal{background:rgba(255,255,255,.22)}
+  .badge-tile.state-earned .badge-name{color:#2a2214;font-weight:800}
+  .badge-tile.tier-legend.state-earned .badge-name{color:#2b1642}
+  .badge-flag{position:relative}
+  .badge-flag::after{content:'';position:absolute;top:2px;right:14px;width:9px;height:9px;border-radius:50%}
+  .badge-flag.warn::after{background:var(--claim-br)}
+  .badge-flag.lapsed::after{background:var(--ret-br)}
+
+  /* ---- detail sheet ---- */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(20,20,15,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .sheet-overlay[hidden]{display:none}
+  .sheet{background:var(--card);border-radius:18px 18px 0 0;max-width:480px;width:100%;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+        box-shadow:0 -8px 30px rgba(0,0,0,.25);max-height:82vh;overflow-y:auto}
+  @media(min-width:560px){.sheet-overlay{align-items:center}.sheet{border-radius:18px;max-height:80vh}}
+  .sheet-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+  .sheet-medal{width:46px;height:46px;border-radius:50%;flex:0 0 auto}
+  .sheet-title{font-size:17px;font-weight:800;flex:1}
+  .sheet-tier{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .sheet-close{background:none;border:0;font-size:20px;color:var(--fg3);cursor:pointer;padding:2px 6px}
+  .sheet-about{font-size:14px;color:var(--fg2);margin:10px 0}
+  .sheet-meta{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--fg2);margin:12px 0}
+  .sheet-meta b{color:var(--fg1)}
+  .sheet-warn{border-left:3px solid var(--claim-br);padding:6px 0 6px 10px;font-size:13px;color:var(--claim-fg);margin:10px 0}
+  .sheet-lapsed{border-left:3px solid var(--ret-br);padding:6px 0 6px 10px;font-size:13px;color:var(--ret-fg);margin:10px 0}
+  .sheet-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .sheet-note{font-size:12px;color:var(--fg3);margin-top:10px}
+
+  /* ---- pass-off standing ---- */
+  .standing-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .standing-level{font-size:15px;font-weight:800;color:var(--ttc-orange)}
+  .standing-nums{font-size:13px;color:var(--fg2)}
+  .standing-bar{height:7px;border-radius:99px;background:var(--rail);overflow:hidden;margin:10px 0}
+  .standing-bar i{display:block;height:100%;background:var(--ttc-green);border-radius:99px}
+  .standing-waiting{font-size:12.5px;color:var(--claim-fg);margin-top:6px}
+  .standing-link{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--ttc-orange)}
+
+  .offline-note{font-size:12px;color:var(--fg3);text-align:center;margin:4px 0 14px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../../index.html#/reviews" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">My Profile</div>
+  <button class="icon-btn" id="bigText" title="Bigger text">Aa</button>
+</div>
+
+<div class="wrap" id="root"><div class="loading">Loading…</div></div>
+
+<div class="sheet-overlay" id="sheetOverlay" hidden>
+  <div class="sheet" id="sheetBody"></div>
+</div>
+
+<script src="../../data/people.js"></script>
+<script src="../../data/certifications.js"></script>
+<script src="../../data/passoff.js"></script>
+<script src="../../services/records.js"></script>
+<script>
+(function(){
+  'use strict';
+  var root = document.getElementById('root');
+  var overlay = document.getElementById('sheetOverlay');
+  var sheetBody = document.getElementById('sheetBody');
+
+  /* ---------- text size ---------- */
+  var TS='ttc-textsize';
+  try{ if(localStorage.getItem(TS)==='big') document.documentElement.setAttribute('data-textsize','big'); }catch(e){}
+  document.getElementById('bigText').addEventListener('click',function(){
+    var on=document.documentElement.getAttribute('data-textsize')==='big';
+    if(on) document.documentElement.removeAttribute('data-textsize');
+    else document.documentElement.setAttribute('data-textsize','big');
+    try{ localStorage.setItem(TS,on?'normal':'big'); }catch(e){}
+  });
+
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+  function esc(s){ return String(s==null?'':s); }
+  function closeSheet(){ overlay.hidden=true; sheetBody.innerHTML=''; }
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) closeSheet(); });
+
+  function relTime(iso){
+    if(!iso) return '';
+    var ms = typeof iso==='number'?iso:new Date(iso).getTime();
+    var days = Math.floor((Date.now()-ms)/86400000);
+    if(days<=0) return 'today';
+    if(days===1) return '1 day ago';
+    if(days<30) return days+' days ago';
+    var d=new Date(ms);
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  }
+  function exactTime(iso){ if(!iso) return ''; var ms= typeof iso==='number'?iso:new Date(iso).getTime(); return new Date(ms).toLocaleString(); }
+
+  /* ---------- sign-in screen ---------- */
+  function renderSignIn(){
+    root.innerHTML='';
+    var wrap=el('div','signin-wrap');
+    wrap.appendChild(el('h1',null,'Sign in'));
+    var local = !TTCRecords.configured();
+    if(local){
+      wrap.appendChild(el('p','signin-note','No records backend deployed yet — this device is using its own local copy. Pick yourself from the roster below.'));
+      var list=el('div','signin-list');
+      TTCRecords.people().forEach(function(p){
+        var b=el('button','signin-person'+(p.test?' is-test':''));
+        var left=el('span','signin-person-name'); left.textContent=p.display_name;
+        if(p.test){ var tag=el('span','test-tag','TEST'); left.appendChild(tag); }
+        var right=el('span','signin-person-role',p.role);
+        b.appendChild(left); b.appendChild(right);
+        b.onclick=function(){ TTCRecords.signInAs(p.person_id).then(boot).catch(function(err){ alert(err.message||'Could not sign in.'); }); };
+        list.appendChild(b);
+      });
+      wrap.appendChild(list);
+    } else {
+      wrap.appendChild(el('p','signin-note','Sign in with your email — a 6-digit code will be sent to it.'));
+      var fr1=el('div','field-row'); fr1.appendChild(el('label',null,'Email'));
+      var emailInput=document.createElement('input'); emailInput.type='email'; emailInput.placeholder='you@totaltreecareutah.com';
+      fr1.appendChild(emailInput); wrap.appendChild(fr1);
+      var sendBtn=el('button','btn primary','Send code'); wrap.appendChild(sendBtn);
+      var codeWrap=el('div',null); codeWrap.hidden=true;
+      var fr2=el('div','field-row'); fr2.appendChild(el('label',null,'6-digit code'));
+      var codeInput=document.createElement('input'); codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.maxLength=6;
+      fr2.appendChild(codeInput); codeWrap.appendChild(fr2);
+      var verifyBtn=el('button','btn primary','Verify'); codeWrap.appendChild(verifyBtn);
+      wrap.appendChild(codeWrap);
+      var status=el('p','signin-status'); wrap.appendChild(status);
+      sendBtn.onclick=function(){
+        status.className='signin-status'; status.textContent='Sending…';
+        TTCRecords.signIn(emailInput.value).then(function(){ status.textContent='Code sent — check that inbox.'; codeWrap.hidden=false; })
+          .catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Could not send a code.'; });
+      };
+      verifyBtn.onclick=function(){
+        status.className='signin-status'; status.textContent='Verifying…';
+        TTCRecords.verifyCode(codeInput.value).then(boot).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
+      };
+    }
+    root.appendChild(wrap);
+  }
+
+  /* ---------- photo capture ---------- */
+  function pickPhoto(onDone){
+    var input=document.createElement('input'); input.type='file'; input.accept='image/*';
+    input.onchange=function(){
+      var file=input.files&&input.files[0]; if(!file) return;
+      var img=new Image(); var reader=new FileReader();
+      reader.onload=function(){ img.onload=function(){
+        var c=document.createElement('canvas'); c.width=128; c.height=128;
+        var ctx=c.getContext('2d');
+        var side=Math.min(img.width,img.height);
+        var sx=(img.width-side)/2, sy=(img.height-side)/2;
+        ctx.drawImage(img,sx,sy,side,side,0,0,128,128);
+        onDone(c.toDataURL('image/jpeg',0.7));
+      }; img.src=reader.result; };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  /* ---------- badge helpers ---------- */
+  function badgeById(id){
+    var out=null;
+    (window.TTC_CERTS&&window.TTC_CERTS.groups||[]).forEach(function(g){ g.badges.forEach(function(b){ if(b.id===id) out=b; }); });
+    return out;
+  }
+  function badgeExpiry(badge, row){
+    if(!row) return null;
+    if(row.expires_on) return row.expires_on;
+    if(row.earned_on && badge.renews){
+      var d=new Date(row.earned_on+'T00:00:00');
+      if(!isNaN(d)){ d.setFullYear(d.getFullYear()+badge.renews); return d.toISOString().slice(0,10); }
+    }
+    return null;
+  }
+  function expiryStatus(dateStr){
+    if(!dateStr) return null;
+    var now=new Date(); now.setHours(0,0,0,0);
+    var exp=new Date(dateStr+'T00:00:00');
+    var days=Math.round((exp-now)/86400000);
+    if(days<0) return {level:'lapsed', days:days};
+    if(days<=90) return {level:'warn', days:days};
+    return null;
+  }
+  function medalIcon(){
+    var s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none'); s.setAttribute('stroke','currentColor');
+    s.setAttribute('stroke-width','2'); s.setAttribute('width','20'); s.setAttribute('height','20');
+    s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M12 15a5 5 0 100-10 5 5 0 000 10zM8.5 13.5L6 21l6-3 6 3-2.5-7.5');
+    s.appendChild(p); return s;
+  }
+
+  /* ---------- render ---------- */
+  var CURRENT=null, VIEW_ID=null, READONLY=false;
+  var certsById={};
+
+  function boot(){
+    var self = TTCRecords.person();
+    if(!self){ renderSignIn(); return; }
+    var params = new URLSearchParams(location.search);
+    VIEW_ID = params.get('person') || self.id;
+    READONLY = VIEW_ID !== self.id;
+    if(READONLY && !TTCRecords.can('see_everyone')){
+      root.innerHTML='';
+      var msg=el('div','card');
+      msg.appendChild(el('p',null,"You can only view your own profile."));
+      var back=el('a','standing-link','Back to my profile'); back.href='index.html'; msg.appendChild(back);
+      root.appendChild(msg);
+      return;
+    }
+    root.innerHTML='<div class="loading">Loading your profile…</div>';
+    Promise.all([ TTCRecords.profileGet(READONLY?VIEW_ID:undefined), TTCRecords.certsGet(READONLY?VIEW_ID:undefined) ])
+      .then(function(res){ render(res[0], res[1]); })
+      .catch(function(err){ root.innerHTML=''; root.appendChild(el('div','card','Could not load: '+(err.message||'unknown error'))); });
+  }
+
+  function render(profileRes, certsRes){
+    root.innerHTML='';
+    CURRENT=profileRes;
+    certsById={};
+    (certsRes.items||[]).forEach(function(it){ certsById[it.badge_id]=it; });
+
+    if(!TTCRecords.configured()){
+      root.appendChild(el('p','offline-note','No backend deployed yet — everything here is saved on this device only.'));
+    }
+
+    /* who card */
+    var who=el('div','card');
+    var whoRow=el('div','who');
+    var photoBtn=el('button','photo-btn');
+    var photo = profileRes.profile.photo;
+    if(photo){ var img=document.createElement('img'); img.src=photo; photoBtn.appendChild(img); }
+    else { photoBtn.appendChild(el('div','ph-fallback', (profileRes.person.name||'?').trim().charAt(0).toUpperCase())); }
+    if(!READONLY){ var edit=el('div','ph-edit','+'); photoBtn.appendChild(edit);
+      photoBtn.onclick=function(){ pickPhoto(function(dataUri){
+        photoBtn.querySelector('img,.ph-fallback').remove();
+        var img2=document.createElement('img'); img2.src=dataUri; photoBtn.insertBefore(img2, photoBtn.firstChild);
+        TTCRecords.profileSet({photo:dataUri}).catch(function(){});
+      }); };
+    } else { photoBtn.style.cursor='default'; }
+    whoRow.appendChild(photoBtn);
+    var whoId=el('div','who-id');
+    whoId.appendChild(el('div','who-name',profileRes.person.name+(profileRes.person.test?' (test account)':'')));
+    whoId.appendChild(el('div','who-email',profileRes.person.email||''));
+    var roleChip=el('span','chip','Role: '+profileRes.person.role);
+    var roleRow=el('div','who-role'); roleRow.appendChild(roleChip); whoId.appendChild(roleRow);
+    whoRow.appendChild(whoId);
+    who.appendChild(whoRow);
+    who.appendChild(el('p','fixed-note','Name, email, and role come from the office and can’t be edited here.'));
+
+    var prefField=fieldBlock('Preferred name', profileRes.profile.preferred_name, 'e.g. what you go by on the crew');
+    var aboutField=fieldBlock('About', profileRes.profile.about, 'A line or two about you', true);
+    var certField=fieldBlock('Certifications note', profileRes.profile.certifications, 'Free text — anything not on the badge wall yet');
+    if(!READONLY){
+      who.appendChild(prefField.wrap); who.appendChild(aboutField.wrap); who.appendChild(certField.wrap);
+      var saveRow=el('div','save-row');
+      var saveBtn=el('button','btn primary','Save'); saveRow.appendChild(saveBtn);
+      var status=el('span','save-status',''); saveRow.appendChild(status);
+      saveBtn.onclick=function(){
+        status.textContent='Saving…';
+        TTCRecords.profileSet({
+          preferred_name: prefField.input.value, about: aboutField.input.value, certifications: certField.input.value
+        }).then(function(){ status.textContent = TTCRecords.configured()?'Saved.':'Saved on this device.'; })
+          .catch(function(err){ status.textContent = 'Could not save: '+(err.message||'error'); });
+      };
+      who.appendChild(saveRow);
+    } else {
+      if(profileRes.profile.preferred_name) who.appendChild(readOnlyLine('Preferred name', profileRes.profile.preferred_name));
+      if(profileRes.profile.about) who.appendChild(readOnlyLine('About', profileRes.profile.about));
+      if(profileRes.profile.certifications) who.appendChild(readOnlyLine('Certifications note', profileRes.profile.certifications));
+    }
+    root.appendChild(who);
+
+    /* badge wall */
+    root.appendChild(badgeWall(profileRes.person.id));
+
+    /* pass-off standing */
+    root.appendChild(passoffCard(profileRes));
+
+    if(!READONLY){
+      var signOutRow=el('div',null);
+      var signOutBtn=el('button','btn ghost small','Sign out');
+      signOutBtn.onclick=function(){ TTCRecords.signOut(); boot(); };
+      signOutRow.appendChild(signOutBtn);
+      signOutRow.style.textAlign='center'; signOutRow.style.marginTop='10px';
+      root.appendChild(signOutRow);
+    } else {
+      var back=el('a','standing-link','← Back'); back.href='../team/index.html';
+      back.style.display='block'; back.style.textAlign='center'; back.style.marginTop='10px';
+      root.appendChild(back);
+    }
+  }
+
+  function fieldBlock(label, value, placeholder, big){
+    var wrap=el('div','field');
+    wrap.appendChild(el('label',null,label));
+    var input = big?document.createElement('textarea'):document.createElement('input');
+    if(!big) input.type='text';
+    input.value=value||''; input.placeholder=placeholder||'';
+    wrap.appendChild(input);
+    return {wrap:wrap, input:input};
+  }
+  function readOnlyLine(label, value){
+    var wrap=el('div','field');
+    wrap.appendChild(el('label',null,label));
+    wrap.appendChild(el('p',null,value));
+    return wrap;
+  }
+
+  function badgeWall(personId){
+    var box=document.createDocumentFragment();
+    box.appendChild(el('h2','sec-title','Badge wall'));
+    var D=window.TTC_CERTS;
+    if(!D){ var w=el('div','card','The badge catalog has not loaded (data/certifications.js).'); box.appendChild(w); return box; }
+    var totalBadges=0, totalEarned=0;
+    D.groups.forEach(function(g){ g.badges.forEach(function(b){ totalBadges++; if(certsById[b.id]&&certsById[b.id].state==='earned') totalEarned++; }); });
+
+    var head=el('div','wall-head');
+    var count=el('div','wall-count'); count.appendChild(document.createTextNode(totalEarned+' ')); count.appendChild(el('small',null,'of '+totalBadges));
+    head.appendChild(count);
+    box.appendChild(head);
+    box.appendChild(el('p','wall-sub','Tap a badge to see what it is, when it was earned, and whether it still needs confirming.'));
+
+    var openKey='ttc-badge-open:'+personId;
+    var openState={}; try{ openState=JSON.parse(localStorage.getItem(openKey)||'null')||{}; }catch(e){}
+    var defaultSet=false;
+
+    D.groups.forEach(function(g){
+      var gEarned=0, gTotal=g.badges.length;
+      g.badges.forEach(function(b){ if(certsById[b.id]&&certsById[b.id].state==='earned') gEarned++; });
+      var isOpen;
+      if(Object.prototype.hasOwnProperty.call(openState,g.id)) isOpen=!!openState[g.id];
+      else { isOpen = !defaultSet && gEarned<gTotal; if(isOpen) defaultSet=true; }
+
+      var grp=el('div','grp'); grp.dataset.open=isOpen?'1':'0';
+      var gh=el('button','grp-head'); gh.setAttribute('aria-expanded', isOpen?'true':'false');
+      var gt=el('div','grp-titles'); gt.appendChild(el('div','grp-title',g.title)); gt.appendChild(el('div','grp-blurb',g.blurb||''));
+      gh.appendChild(gt);
+      gh.appendChild(el('div','grp-count'+(gEarned===gTotal?' all-done':''), gEarned+' of '+gTotal));
+      var chev=el('div','grp-chev','›'); gh.appendChild(chev);
+      gh.onclick=function(){
+        var open = grp.dataset.open==='1';
+        grp.dataset.open = open?'0':'1';
+        gh.setAttribute('aria-expanded', open?'false':'true');
+        openState[g.id]=!open;
+        try{ localStorage.setItem(openKey, JSON.stringify(openState)); }catch(e){}
+      };
+      grp.appendChild(gh);
+
+      var body=el('div','grp-body');
+      g.badges.forEach(function(b){ body.appendChild(badgeTile(b)); });
+      grp.appendChild(body);
+      box.appendChild(grp);
+    });
+    return box;
+  }
+
+  function badgeTile(badge){
+    var row=certsById[badge.id];
+    var state = row?row.state:'none';
+    var tile=el('button','badge-tile tier-'+badge.tier+' state-'+state);
+    var exp = badgeExpiry(badge, row);
+    var es = expiryStatus(exp);
+    if(es){ tile.classList.add('badge-flag', es.level==='lapsed'?'lapsed':'warn'); }
+    var medal=el('div','badge-medal'); medal.appendChild(medalIcon()); tile.appendChild(medal);
+    tile.appendChild(el('div','badge-name',badge.name));
+    tile.onclick=function(){ openBadgeSheet(badge); };
+    return tile;
+  }
+
+  function openBadgeSheet(badge){
+    var row=certsById[badge.id];
+    var state=row?row.state:'none';
+    var exp=badgeExpiry(badge,row), es=expiryStatus(exp);
+    sheetBody.innerHTML='';
+    var head=el('div','sheet-head');
+    var medal=el('div','sheet-medal badge-medal tier-'+badge.tier+' state-'+state);
+    if(es) medal.classList.add('badge-flag', es.level==='lapsed'?'lapsed':'warn');
+    medal.appendChild(medalIcon());
+    head.appendChild(medal);
+    var titleWrap=el('div','sheet-title-wrap'); titleWrap.style.flex='1';
+    titleWrap.appendChild(el('div','sheet-title',badge.name));
+    titleWrap.appendChild(el('div','sheet-tier',(window.TTC_CERTS.tiers[badge.tier]||{}).label||badge.tier));
+    head.appendChild(titleWrap);
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; head.appendChild(close);
+    sheetBody.appendChild(head);
+    sheetBody.appendChild(el('p','sheet-about',badge.about||''));
+
+    var meta=el('div','sheet-meta');
+    var stLabel = state==='earned'?'Earned':state==='in_progress'?'In progress':'Not started';
+    var m1=el('div',null); m1.appendChild(document.createTextNode('Status: ')); m1.appendChild(el('b',null,stLabel)); meta.appendChild(m1);
+    if(row && row.earned_on){ var m2=el('div',null); m2.appendChild(document.createTextNode('Earned: ')); m2.appendChild(el('b',null,row.earned_on)); meta.appendChild(m2); }
+    if(exp){ var m3=el('div',null); m3.appendChild(document.createTextNode('Expires: ')); m3.appendChild(el('b',null,exp)); meta.appendChild(m3); }
+    if(row){ var m4=el('div',null); m4.appendChild(document.createTextNode('Verification: '));
+      m4.appendChild(el('b',null,row.verification==='confirmed'?'Confirmed by the office':'Needs confirming')); meta.appendChild(m4); }
+    sheetBody.appendChild(meta);
+
+    if(es){ var warn=el('div', es.level==='lapsed'?'sheet-lapsed':'sheet-warn',
+      es.level==='lapsed' ? 'Lapsed '+Math.abs(es.days)+' day'+(Math.abs(es.days)===1?'':'s')+' ago.' :
+      'Expires in '+es.days+' day'+(es.days===1?'':'s')+'.');
+      sheetBody.appendChild(warn); }
+
+    if(badge.requires && badge.requires.length){
+      var req=el('p','sheet-note','Requires: '+badge.requires.map(function(id){ var b=badgeById(id); return b?b.name:id; }).join(', '));
+      sheetBody.appendChild(req);
+    }
+
+    var actions=el('div','sheet-actions');
+    var self=TTCRecords.person();
+    var isSelf = VIEW_ID===self.id;
+    if(isSelf){
+      if(state!=='in_progress'){
+        var b1=el('button','btn small','Mark in progress');
+        b1.onclick=function(){ setBadge(badge,'in_progress'); }; actions.appendChild(b1);
+      }
+      if(state!=='earned'){
+        var b2=el('button','btn primary small','Mark earned');
+        b2.onclick=function(){
+          var d=prompt('When did you earn this? (YYYY-MM-DD, optional)','')||'';
+          setBadge(badge,'earned', d.trim()||null);
+        }; actions.appendChild(b2);
+      }
+      if(state!=='none'){
+        var b3=el('button','btn small','Not started');
+        b3.onclick=function(){ setBadge(badge,'none'); }; actions.appendChild(b3);
+      }
+      actions.appendChild(el('p','sheet-note','Marking your own badge always saves as “needs confirming” — David or the office confirms it.'));
+    } else if(!READONLY && TTCRecords.can('verify_others')){
+      // (kept for completeness; the profile page itself stays read-only for someone else per house rule —
+      // confirming another person's badge happens from the review/team flow, not here.)
+    }
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+
+  function setBadge(badge, state, earnedOn){
+    TTCRecords.certsSet(badge.id, {state:state, earned_on: state==='earned'?(earnedOn||null):null})
+      .then(function(res){ certsById[badge.id]=res.item; closeSheet(); boot(); })
+      .catch(function(err){ alert(err.message||'Could not save.'); });
+  }
+
+  function passoffCard(profileRes){
+    var card=el('div','card');
+    card.appendChild(el('h2','sec-title','Pass-off standing'));
+    var stats=profileRes.stats.passoff;
+    var row=el('div','standing-row');
+    row.appendChild(el('div','standing-level',stats.level||'Not started'));
+    row.appendChild(el('div','standing-nums',stats.verified+' / '+stats.total+' verified'));
+    card.appendChild(row);
+    var bar=el('div','standing-bar'); var i=el('i'); i.style.width=(stats.total?Math.round(stats.verified/stats.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
+    if(profileRes.stats.items_waiting_review){
+      card.appendChild(el('p','standing-waiting', profileRes.stats.items_waiting_review+' item'+(profileRes.stats.items_waiting_review===1?'':'s')+' waiting on review.'));
+    }
+    if(profileRes.stats.last_sign_in){
+      var ls=el('p','fixed-note'); ls.textContent='Last signed in '+relTime(profileRes.stats.last_sign_in); ls.title=exactTime(profileRes.stats.last_sign_in);
+      card.appendChild(ls);
+    }
+    var link=el('a','standing-link', VIEW_ID===TTCRecords.person().id ? 'Open the pass-off checklist →' : 'Open their pass-off checklist →');
+    link.href='../training/estimator-pass-off/index.html';
+    card.appendChild(link);
+    return card;
+  }
+
+  TTCRecords.ready().then(boot);
+})();
+</script>
+</body>
+</html>
