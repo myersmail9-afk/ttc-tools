@@ -14,16 +14,9 @@
 //     except to decide what the SIGN-IN SCREEN looks like (a people-picker locally, email+code once
 //     the backend is live).
 //
-// Backend shapes match backend/_API-CONTRACT.md + backend/apps-script/Code.gs (2026-09-22, v4.0.0).
-// Two gaps found while wiring this up, left exactly as found (not this file's to fix):
-//   - Code.gs wires up `certs_get` / `certs_set` in its action switch, but never defines
-//     actionCertsGet_ / actionCertsSet_, and setup.gs never creates the "Certs" sheet Code.gs expects.
-//     Calling either action today will 500. This module calls them anyway (future-proof — they'll
-//     start working the day someone finishes them) and falls back to the local cert store on any
-//     failure, so a person's own badge marks are never lost to a half-built endpoint.
-//   - actionProfileGet_ already returns a `photo` field, but actionProfileSet_ never accepts one and
-//     the Profile sheet has no photo column — a photo saved today will not persist against the real
-//     backend once deployed. Flagged, not fixed (backend/** is not this file's to change).
+// Backend shapes match backend/_API-CONTRACT.md + backend/apps-script/Code.gs (2026-09-22, v5.0.0).
+// v5 adds a tiny `sync_head` action. Visible pages poll only its opaque revision every three seconds;
+// real page data is fetched only when that marker changes. Hidden tabs pause and refresh on return.
 (function () {
   'use strict';
 
@@ -33,6 +26,9 @@
   var SESSION_KEY = 'ttc-crew-session:v1';
   var LOCAL_DB_KEY = 'ttc-crew-local-db:v1';
   var APP_SECRET_KEY = 'ttc-crew-app-secret'; // set by hand on a device once a real backend exists; never shipped here
+  var SYNC_META_KEY = 'ttc-crew-sync-meta:v1';
+  var SYNC_POLL_MS = 3000;
+  var SYNC_MAX_BACKOFF_MS = 30000;
 
   var ROLE_CAPS = {
     crew: {},
@@ -59,6 +55,13 @@
   var listeners = {};
   function emit(evt, data) { (listeners[evt] || []).slice().forEach(function (cb) { try { cb(data); } catch (e) { /* a bad listener never breaks the module */ } }); }
 
+  function loadSyncMeta() {
+    try { return JSON.parse(localStorage.getItem(SYNC_META_KEY) || 'null') || {}; } catch (e) { return {}; }
+  }
+  function saveSyncMeta(meta) {
+    try { localStorage.setItem(SYNC_META_KEY, JSON.stringify(meta)); } catch (e) { /* private mode etc. */ }
+  }
+
   // ---------------------------------------------------------------------- storage
 
   function loadSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { return null; } }
@@ -81,6 +84,30 @@
 
   var state = { config: null, session: loadSession(), readyPromise: null };
   var meCache = {}; // { [area]: {itemId: {state,ts,note,by_person_id,by_role}} } — for the CURRENT person only
+  var savedSyncMeta = loadSyncMeta();
+  var sync = {
+    status: 'local', lastSuccess: savedSyncMeta.lastSuccess || null, lastError: null,
+    activeWrites: 0, lastRevision: null, watchers: [], timer: null, headInFlight: null,
+    backoffMs: SYNC_POLL_MS, wakeAt: 0, queuedAfterWrite: false
+  };
+
+  function syncSnapshot() {
+    return {
+      status: sync.status, lastSuccess: sync.lastSuccess, lastError: sync.lastError,
+      activeWrites: sync.activeWrites, configured: configured()
+    };
+  }
+
+  function setSyncStatus(status, err, quiet) {
+    var changed = sync.status !== status || (!!err && err !== sync.lastError);
+    sync.status = status;
+    sync.lastError = err || null;
+    if (status === 'synced') {
+      sync.lastSuccess = Date.now();
+      saveSyncMeta({ lastSuccess: sync.lastSuccess });
+    }
+    if (!quiet || changed) emit('syncstate', syncSnapshot());
+  }
 
   // ---------------------------------------------------------------------- config + ready()
 
@@ -100,7 +127,11 @@
 
   function ready() {
     if (state.readyPromise) return state.readyPromise;
-    state.readyPromise = fetchConfig().then(function (cfg) { state.config = cfg && typeof cfg === 'object' ? cfg : { url: null }; return null; });
+    state.readyPromise = fetchConfig().then(function (cfg) {
+      state.config = cfg && typeof cfg === 'object' ? cfg : { url: null };
+      setSyncStatus(configured() ? 'idle' : 'local', null, false);
+      return null;
+    });
     return state.readyPromise;
   }
 
@@ -108,13 +139,32 @@
 
   // ---------------------------------------------------------------------- transport (remote)
 
+  var WRITE_ACTIONS = ['record', 'record_batch', 'set_catalog', 'people_admin', 'profile_set', 'certs_set'];
+
+  function beginWrite() {
+    sync.activeWrites++;
+    setSyncStatus('saving', null, false);
+  }
+
+  function endWrite(ok, err) {
+    sync.activeWrites = Math.max(0, sync.activeWrites - 1);
+    if (ok) setSyncStatus('synced', null, false);
+    else setSyncStatus((typeof navigator !== 'undefined' && navigator.onLine === false) ? 'offline' : 'error', err && (err.message || String(err)), false);
+    if (sync.activeWrites === 0 && sync.queuedAfterWrite) {
+      sync.queuedAfterWrite = false;
+      refreshAllWatchers('after-write');
+    }
+  }
+
   function apiPost(action, fields, needsToken) {
+    var isWrite = WRITE_ACTIONS.indexOf(action) !== -1;
     var payload = Object.assign({ action: action, app_secret: getAppSecret() }, fields || {});
     if (needsToken) {
       if (!state.session || !state.session.token) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       payload.token = state.session.token;
     }
-    return fetch(state.config.url, {
+    if (isWrite) beginWrite();
+    var request = fetch(state.config.url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
@@ -129,8 +179,149 @@
         e.message = (res && res.message) || 'Request failed';
         throw e;
       }
+      if (action !== 'sync_head' && res.sync_revision) sync.lastRevision = String(res.sync_revision);
+      if (!isWrite && action !== 'sync_head') setSyncStatus('synced', null, true);
       return res;
     });
+    if (!isWrite) {
+      return request.catch(function (err) {
+        setSyncStatus((typeof navigator !== 'undefined' && navigator.onLine === false) ? 'offline' : 'error', err && (err.message || String(err)), false);
+        throw err;
+      });
+    }
+    return request.then(function (res) {
+      endWrite(true, null);
+      return res;
+    }, function (err) {
+      endWrite(false, err);
+      throw err;
+    });
+  }
+
+  // ---------------------------------------------------------------------- visible-page auto-sync
+
+  function stablePayload(value) {
+    if (Array.isArray(value)) return value.map(stablePayload);
+    if (!value || typeof value !== 'object') return value;
+    var out = {};
+    Object.keys(value).sort().forEach(function (key) {
+      if (key === 'server_time' || key === 'token_refreshed' || key === 'expires' || key === 'sync_revision') return;
+      out[key] = stablePayload(value[key]);
+    });
+    return out;
+  }
+
+  function fingerprint(value) {
+    try { return JSON.stringify(stablePayload(value)); } catch (e) { return String(Date.now()); }
+  }
+
+  function runWatcher(watcher, reason) {
+    if (!watcher || watcher.stopped) return Promise.resolve(null);
+    if (sync.activeWrites > 0) {
+      watcher.queued = true;
+      sync.queuedAfterWrite = true;
+      return Promise.resolve(null);
+    }
+    if (watcher.inFlight) {
+      watcher.queued = true;
+      return watcher.inFlight;
+    }
+    watcher.queued = false;
+    var p;
+    try { p = Promise.resolve(watcher.loader(reason)); }
+    catch (err) { p = Promise.reject(err); }
+    watcher.inFlight = p.then(function (data) {
+      var nextFingerprint = (watcher.options.fingerprint || fingerprint)(data);
+      var changed = watcher.lastFingerprint === null || watcher.lastFingerprint !== nextFingerprint;
+      watcher.lastFingerprint = nextFingerprint;
+      if (changed && watcher.apply) watcher.apply(data, { reason: reason });
+      if (changed) emit('data', { key: watcher.key, reason: reason, data: data, ts: Date.now() });
+      return data;
+    }).then(function (data) {
+      watcher.inFlight = null;
+      if (watcher.queued) runWatcher(watcher, 'queued');
+      return data;
+    }, function (err) {
+      watcher.inFlight = null;
+      if (watcher.options.onError) {
+        try { watcher.options.onError(err, { reason: reason }); } catch (e) { /* listener isolation */ }
+      }
+      if (watcher.queued) runWatcher(watcher, 'queued');
+      return null;
+    });
+    return watcher.inFlight;
+  }
+
+  function refreshAllWatchers(reason) {
+    if (!configured() || !person()) return Promise.resolve([]);
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden' && reason === 'remote-change') return Promise.resolve([]);
+    return Promise.all(sync.watchers.slice().map(function (watcher) { return runWatcher(watcher, reason); }));
+  }
+
+  function scheduleHeadPoll(delay) {
+    if (sync.timer) clearTimeout(sync.timer);
+    sync.timer = setTimeout(pollHead, delay == null ? SYNC_POLL_MS : delay);
+  }
+
+  function pollHead() {
+    sync.timer = null;
+    if (!sync.watchers.length || !configured() || !person()) return;
+    if ((typeof document !== 'undefined' && document.visibilityState === 'hidden') || sync.activeWrites > 0) {
+      scheduleHeadPoll(sync.activeWrites > 0 ? 500 : SYNC_POLL_MS);
+      return;
+    }
+    if (sync.headInFlight) { scheduleHeadPoll(500); return; }
+    sync.headInFlight = apiPost('sync_head', {}, true).then(function (res) {
+      var revision = String(res.revision || '0');
+      var changed = sync.lastRevision !== null && revision !== sync.lastRevision;
+      sync.lastRevision = revision;
+      sync.backoffMs = SYNC_POLL_MS;
+      setSyncStatus('synced', null, true);
+      if (changed) return refreshAllWatchers('remote-change');
+      return null;
+    }).then(function () {
+      sync.headInFlight = null;
+      scheduleHeadPoll(SYNC_POLL_MS);
+    }, function () {
+      sync.headInFlight = null;
+      sync.backoffMs = Math.min(SYNC_MAX_BACKOFF_MS, Math.max(SYNC_POLL_MS, sync.backoffMs * 2));
+      scheduleHeadPoll(sync.backoffMs);
+    });
+  }
+
+  function wakeSync(reason) {
+    if (!configured() || !person()) return;
+    var now = Date.now();
+    if ((now - sync.wakeAt) < 1200) return;
+    sync.wakeAt = now;
+    refreshAllWatchers(reason || 'focus');
+    scheduleHeadPoll(0);
+  }
+
+  function watchVisible(key, loader, apply, options) {
+    options = options || {};
+    var watcher = { key: key, loader: loader, apply: apply, options: options, lastFingerprint: null, inFlight: null, queued: false, stopped: false };
+    sync.watchers.push(watcher);
+    if (configured() && person()) {
+      if (options.initial !== false) runWatcher(watcher, 'initial');
+      scheduleHeadPoll(0);
+    }
+    return function () {
+      watcher.stopped = true;
+      var idx = sync.watchers.indexOf(watcher);
+      if (idx !== -1) sync.watchers.splice(idx, 1);
+      if (!sync.watchers.length && sync.timer) { clearTimeout(sync.timer); sync.timer = null; }
+    };
+  }
+
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') wakeSync('visible');
+  });
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', function () { wakeSync('focus'); });
+    window.addEventListener('pageshow', function () { wakeSync('pageshow'); });
+    window.addEventListener('online', function () { wakeSync('online'); });
+    window.addEventListener('offline', function () { setSyncStatus('offline', 'No network connection.', false); });
   }
 
   // ---------------------------------------------------------------------- people (local sign-in roster)
