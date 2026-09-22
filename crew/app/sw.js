@@ -14,7 +14,7 @@
 // Bump SHELL_CACHE whenever index.html, manifest.json, the logo, or an icon changes.
 // Do NOT bump it for content.js edits.
 
-const SHELL_CACHE = 'ttc-crew-v33';
+const SHELL_CACHE = 'ttc-crew-v34';
 const FILES_CACHE = 'ttc-crew-files-v18';
 const SHELL = [
   './',
@@ -55,23 +55,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-function networkFirst(req, cacheName, timeoutMs) {
-  return new Promise((resolve) => {
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      caches.match(req).then((c) => resolve(c || fetch(req)));
-    }, timeoutMs);
-    fetch(req)
-      .then((res) => {
-        if (res && res.ok) caches.open(cacheName).then((c) => c.put(req, res.clone()));
-        if (!settled) { settled = true; clearTimeout(timer); resolve(res); }
-      })
-      .catch(() => {
-        if (!settled) { settled = true; clearTimeout(timer); caches.match(req).then((c) => resolve(c || Response.error())); }
-      });
+function networkFirst(req, cacheName, timeoutMs, event) {
+  // The timeout may return cached content before a slow GitHub Pages response arrives. Keep the
+  // service worker alive until that newer response is safely cached; otherwise the browser may
+  // terminate the worker as soon as the cached response resolves and serve the stale script forever.
+  const networkTask = fetch(req).then((res) => {
+    if (!res || !res.ok) return res;
+    return caches.open(cacheName)
+      .then((c) => c.put(req, res.clone()))
+      .catch(() => {})
+      .then(() => res);
   });
+  if (event) event.waitUntil(networkTask.then(() => {}, () => {}));
+
+  const networkResponse = networkTask.catch(() =>
+    caches.match(req).then((cached) => cached || Response.error())
+  );
+  const timeoutResponse = new Promise((resolve) => {
+    setTimeout(() => {
+      caches.match(req).then((cached) => resolve(cached || networkResponse));
+    }, timeoutMs);
+  });
+  return Promise.race([networkResponse, timeoutResponse]);
 }
 
 function cacheFirst(req, cacheName) {
@@ -92,7 +97,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return;          // Google and other sites: untouched
 
   if (url.pathname.endsWith('/content.js') || url.pathname.endsWith('/crew-api.json') || url.pathname.includes('/services/')) {
-    event.respondWith(networkFirst(req, SHELL_CACHE, 3000));
+    event.respondWith(networkFirst(req, SHELL_CACHE, 3000, event));
     return;
   }
   if (url.pathname.includes('/files/') || url.pathname.includes('/pages/')) {
