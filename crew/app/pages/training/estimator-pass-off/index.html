@@ -52,6 +52,29 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }
   :root[data-textsize="big"]{--fs:18.5px}
+  /* David's front door: his crew, not the document */
+  .crew-head{margin:4px 0 14px}
+  .crew-sum{font-size:14px;color:var(--fg2);margin:0 0 14px}
+  .crew-sum b{color:var(--claim-fg)}
+  .crew-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;margin:0 0 8px;
+        border:1px solid var(--border);border-radius:14px;background:var(--card);cursor:pointer}
+  .crew-row.has-waiting{border-color:var(--claim-br);background:var(--claim-bg)}
+  .crew-av{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;overflow:hidden;
+        background:var(--bg-alt);color:var(--fg2);font-weight:800;font-size:13px;border:1px solid var(--border)}
+  .crew-av img{width:100%;height:100%;object-fit:cover}
+  .crew-mid{flex:1;min-width:0}
+  .crew-name{font-weight:700;font-size:15px}
+  .crew-row.has-waiting .crew-name{color:var(--claim-fg)}
+  .crew-tier{font-size:12.5px;color:var(--fg3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .crew-bar{height:5px;border-radius:99px;background:var(--rail);overflow:hidden;margin-top:7px}
+  .crew-bar i{display:block;height:100%;background:var(--ttc-green);border-radius:99px}
+  .crew-right{flex:0 0 auto;text-align:right}
+  .crew-wait{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+        padding:4px 9px;border-radius:99px;background:var(--claim-br);color:#3a2a10;white-space:nowrap}
+  .crew-count{font-size:12.5px;color:var(--fg3);font-variant-numeric:tabular-nums;margin-top:4px}
+  .crew-quiet{font-size:12.5px;color:var(--fg3)}
+  .crew-links{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 0;font-size:13.5px}
+  .crew-links a{color:var(--ttc-orange);font-weight:700}
   .working-on{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 14px;padding:11px 14px;
         border-radius:12px;background:var(--claim-bg);color:var(--claim-fg);border:1px solid var(--claim-br);font-size:13.5px}
   .working-on b{font-weight:800}
@@ -944,11 +967,71 @@
     saveUI();
   }
 
+  // A reviewer opening the pass-off gets their CREW, not a 127-item document. Anyone with items
+  // waiting on them is highlighted and sorted to the top; tapping a person opens their checklist.
+  function renderCrewList(){
+    root.innerHTML='';
+    var head=el('div','crew-head');
+    head.appendChild(el('p','doc-eyebrow','Qualified Estimator Pass-Off'));
+    head.appendChild(el('h1',null,'Your crew'));
+    root.appendChild(head);
+    var sum=el('p','crew-sum','Loading…'); root.appendChild(sum);
+    var list=el('div'); root.appendChild(list);
+
+    var links=el('div','crew-links');
+    var mine=el('a',null,'Open my own pass-off →'); mine.href='?person='+encodeURIComponent(TTCRecords.person().id);
+    links.appendChild(mine);
+    var doc=el('a',null,'Read the whole document →'); doc.href='?doc=1'; links.appendChild(doc);
+    root.appendChild(links);
+
+    TTCRecords.insights().then(function(res){
+      var people=(res.people||[]).filter(function(p){ return p.role==='crew'||p.role==='trainer'; });
+      var waiting=people.filter(function(p){ return p.items_waiting_review>0; });
+      sum.innerHTML='';
+      if(waiting.length){
+        var n=waiting.reduce(function(a,p){ return a+p.items_waiting_review; },0);
+        sum.appendChild(el('b',null, n+(n===1?' item':' items')+' from '+waiting.length+
+          (waiting.length===1?' person':' people')+' waiting on you.'));
+        sum.appendChild(document.createTextNode(' Tap a name to verify them.'));
+      } else {
+        sum.textContent='Nothing waiting on you. Tap a name to mark items off for someone.';
+      }
+      people.forEach(function(p){
+        var row=el('button','crew-row'+(p.items_waiting_review>0?' has-waiting':''));
+        var av=el('div','crew-av');
+        if(p.photo){ var im=document.createElement('img'); im.src=p.photo; im.alt=''; av.appendChild(im); }
+        else av.textContent=(p.name||'').split(/\s+/).map(function(x){return x[0];}).slice(0,2).join('').toUpperCase();
+        row.appendChild(av);
+        var mid=el('div','crew-mid');
+        mid.appendChild(el('div','crew-name',p.name));
+        mid.appendChild(el('div','crew-tier', p.currentLevel || p.level || 'Not started'));
+        var bar=el('div','crew-bar'), fill=el('i');
+        fill.style.width=(p.passoff_total?Math.round(p.passoff_verified/p.passoff_total*100):0)+'%';
+        bar.appendChild(fill); mid.appendChild(bar);
+        row.appendChild(mid);
+        var right=el('div','crew-right');
+        if(p.items_waiting_review>0){
+          right.appendChild(el('span','crew-wait', p.items_waiting_review+' waiting'));
+          if(p.oldest_waiting_days>0) right.appendChild(el('div','crew-count','oldest '+p.oldest_waiting_days+'d'));
+        } else {
+          right.appendChild(el('span','crew-quiet','up to date'));
+        }
+        right.appendChild(el('div','crew-count', p.passoff_verified+'/'+p.passoff_total+' verified'));
+        row.appendChild(right);
+        row.onclick=function(){ location.href='?person='+encodeURIComponent(p.person_id); };
+        list.appendChild(row);
+      });
+      if(!people.length) list.appendChild(el('p','crew-quiet','No crew members found.'));
+    }).catch(function(err){ sum.textContent='Could not load the crew: '+(err.message||'unknown error'); });
+  }
+
   function boot(){
     var self=TTCRecords.person();
     if(!self){ renderSignIn(); return; }
-    var wanted=null;
-    try{ wanted=new URLSearchParams(location.search).get('person'); }catch(e){}
+    var wanted=null, wantDoc=false;
+    try{ var qs=new URLSearchParams(location.search); wanted=qs.get('person'); wantDoc=qs.get('doc')==='1'; }catch(e){}
+    // A reviewer with no person chosen lands on their crew list, not on the document.
+    if(!wanted && !wantDoc && TTCRecords.can('verify_others')){ renderCrewList(); return; }
     if(wanted && wanted!==self.id && !TTCRecords.can('verify_others')){
       root.innerHTML=''; root.appendChild(el('div','loading','You can only open your own pass-off.')); return;
     }
