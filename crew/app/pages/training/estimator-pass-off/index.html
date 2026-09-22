@@ -794,6 +794,16 @@
     var locks=computeLevelLocks(levels);
     var canVerify=TTCRecords.can('verify_others');
 
+    // One honest line when a chosen filter matches nothing, instead of a page of empty sections.
+    if(filter!=='all' && countMatching(filter)===0){
+      var em=el('div','filter-empty');
+      em.appendChild(el('b',null,'Nothing is “'+FILTER_LABELS[filter]+'” right now. '));
+      em.appendChild(document.createTextNode(
+        filter==='claimed' ? 'When someone marks an item done it lands here for review.'
+        : 'Switch the filter above to see the rest of the pass-off.'));
+      root.appendChild(em);
+    }
+
     levels.forEach(function(L){
       var items=levelItems(L), cnt=countOf(items);
       var lockTitle = locks[L.id];
