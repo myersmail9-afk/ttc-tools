@@ -453,7 +453,22 @@
         sessionError.error = 'not_signed_in';
         throw sessionError;
       }
-      return apiPost('sync_head', {}, true).then(function () { return state.session.person; });
+      return apiPost('profile_get', {}, true).then(function (res) {
+        // Refresh mutable roster facts on every entrance. In particular, a role change must take
+        // effect before any page renders; authenticate_ also rejects people who are now inactive.
+        var fresh = res && res.person;
+        if (!fresh || !fresh.id || !fresh.role) {
+          var invalid = new Error('The signed-in person could not be verified.');
+          invalid.error = 'invalid_session';
+          throw invalid;
+        }
+        state.session.person = {
+          id: fresh.id, name: fresh.name, role: fresh.role,
+          email: fresh.email || state.session.person.email || '', test: !!fresh.test
+        };
+        saveSession(state.session);
+        return state.session.person;
+      });
     });
   }
 

@@ -13,6 +13,7 @@
   var checking = null;
   var loadedRecords = null;
   var initialized = false;
+  var signingOut = false;
   var lastCheck = 0;
 
   document.documentElement.classList.add('ttc-auth-pending');
@@ -23,7 +24,7 @@
     '@media(prefers-color-scheme:dark){#ttc-auth-gate{background:#1b2218;color:#f1eee7}#ttc-auth-gate p{color:#b9bcb2}}';
   (document.head || document.documentElement).appendChild(style);
 
-  function isLogin() { return location.pathname === loginUrl.pathname || location.pathname === new URL('index.html', root).pathname && false; }
+  function isLogin() { return location.pathname === loginUrl.pathname || location.pathname === loginUrl.pathname.replace(/index\.html$/, ''); }
   function signinTarget(returnValue) {
     var target = new URL(loginUrl.href);
     target.searchParams.set('signin', '1');
@@ -76,7 +77,7 @@
     if (isLogin()) { reveal(); return; }
     location.replace(signinTarget(currentReturn()));
   }
-  function invalidAuth(err) { return err && (err.error === 'not_signed_in' || err.error === 'invalid_token' || err.error === 'expired_token' || err.error === 'forbidden'); }
+  function invalidAuth(err) { return err && ['not_signed_in', 'bad_token', 'invalid_token', 'invalid_session', 'expired_token', 'unknown_person', 'forbidden'].indexOf(err.error) !== -1; }
   function check(force) {
     if (checking && !force) return checking;
     lastCheck = Date.now();
@@ -84,7 +85,7 @@
       return records.ready().then(function () {
         if (!initialized) {
           initialized = true;
-          records.on('signout', function () { goToSignIn(); });
+          records.on('signout', function () { if (!signingOut) goToSignIn(); });
         }
         return records.requireSession();
       });
@@ -94,7 +95,9 @@
       else reveal();
     }).catch(function (err) {
       if (invalidAuth(err)) {
+        signingOut = true;
         if (window.TTCRecords) window.TTCRecords.signOut();
+        signingOut = false;
         goToSignIn();
         return;
       }
