@@ -14,7 +14,7 @@
 //     except to decide what the SIGN-IN SCREEN looks like (a people-picker locally, email+code once
 //     the backend is live).
 //
-// Backend shapes match backend/_API-CONTRACT.md + backend/apps-script/Code.gs (2026-09-22, v5.0.0).
+// Backend shapes match backend/_API-CONTRACT.md + backend/apps-script/Code.gs (2026-09-22, v5.1.0).
 // v5 adds a tiny `sync_head` action. Visible pages poll only its opaque revision every three seconds;
 // real page data is fetched only when that marker changes. Hidden tabs pause and refresh on return.
 (function () {
