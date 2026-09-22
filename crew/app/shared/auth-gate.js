@@ -107,6 +107,12 @@
       if (params.get('signin') === '1') location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
       else reveal();
     }).catch(function (err) {
+      if (err && err.error === 'session_changed') {
+        // Another tab replaced or refreshed the session during validation. The persisted replacement
+        // is authoritative; let this check unwind, then validate it without deleting it.
+        setTimeout(check, 0);
+        return;
+      }
       if (invalidAuth(err)) {
         if (isLogin() && err.error === 'not_signed_in') { reveal(); return; }
         signingOut = true;
