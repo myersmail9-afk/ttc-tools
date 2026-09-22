@@ -471,6 +471,52 @@
     });
   }
 
+  // ---------------------------------------------------------------------- expiring certifications (team overview panel)
+
+  function badgeCatalogById(id) {
+    var out = null;
+    (window.TTC_CERTS && window.TTC_CERTS.groups || []).forEach(function (g) { g.badges.forEach(function (b) { if (b.id === id) out = b; }); });
+    return out;
+  }
+  function badgeExpiryInfo(badge, row) {
+    if (!row) return null;
+    var dateStr = row.expires_on;
+    if (!dateStr && row.earned_on && badge.renews) {
+      var d = new Date(row.earned_on + 'T00:00:00');
+      if (!isNaN(d)) { d.setFullYear(d.getFullYear() + badge.renews); dateStr = d.toISOString().slice(0, 10); }
+    }
+    if (!dateStr) return null;
+    var now = new Date(); now.setHours(0, 0, 0, 0);
+    var exp = new Date(dateStr + 'T00:00:00');
+    var days = Math.round((exp - now) / 86400000);
+    return { date: dateStr, days: days };
+  }
+
+  // Every certification lapsing within 90 days, or already lapsed, across the whole roster — the
+  // report the office actually needs, surfaced once instead of found one profile at a time.
+  var CERTS_EXPIRING_WINDOW_DAYS = 90;
+  function certsExpiring() {
+    return ready().then(function () {
+      if (!can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'This page is for David and the office.' });
+      var roster = people().filter(function (p) { return !p.test; });
+      var out = [];
+      function fromRows(p, rows) {
+        rows.forEach(function (row) {
+          var badge = badgeCatalogById(row.badge_id); if (!badge) return;
+          var info = badgeExpiryInfo(badge, row);
+          if (info && info.days <= CERTS_EXPIRING_WINDOW_DAYS) out.push({ person_id: p.person_id, name: p.display_name, badge_id: row.badge_id, badge_name: badge.name, tier: badge.tier, expires_on: info.date, days: info.days });
+        });
+      }
+      if (!configured()) {
+        roster.forEach(function (p) { fromRows(p, localCertsGet(p.person_id).items); });
+        out.sort(function (a, b) { return a.days - b.days; });
+        return { ok: true, items: out, server_time: Date.now() };
+      }
+      return Promise.all(roster.map(function (p) { return certsGet(p.person_id).then(function (res) { fromRows(p, res.items || []); }).catch(function () {}); }))
+        .then(function () { out.sort(function (a, b) { return a.days - b.days; }); return { ok: true, items: out, server_time: Date.now() }; });
+    });
+  }
+
   // ---------------------------------------------------------------------- insights (team overview)
 
   function insights() {
@@ -482,10 +528,20 @@
         var passoff = computePassoffStats(p.person_id);
         var claimed = countOwnClaimed(p.person_id);
         var lp = db.people[p.person_id] || {};
+        ensureLocalCertsSeed(p.person_id);
+        var lp2 = localPerson(loadLocalDb(), p.person_id);
+        var badgeEarned = 0, badgeTotal = 0;
+        (window.TTC_CERTS && window.TTC_CERTS.groups || []).forEach(function (g) { g.badges.forEach(function (b) {
+          badgeTotal++; if (lp2.certs && lp2.certs[b.id] && lp2.certs[b.id].state === 'earned') badgeEarned++;
+        }); });
+        var recMap = (lp.records && lp.records.passoff) || {};
         return {
           person_id: p.person_id, name: p.display_name, role: p.role, test: !!p.test,
+          photo: (lp.profile && lp.profile.photo) || '',
           ever_signed_in: !!lp.last_sign_in, last_sign_in: lp.last_sign_in || null,
           passoff_verified: passoff.verified, passoff_total: passoff.total, level: passoff.level,
+          currentLevel: computeCurrentLevel(recMap),
+          badge_earned: badgeEarned, badge_total: badgeTotal,
           items_waiting_review: claimed.count, oldest_waiting_days: claimed.oldestDays
         };
       });
@@ -611,7 +667,7 @@
     signIn: signIn, verifyCode: verifyCode, signInAs: signInAs, signOut: signOut,
     person: person, role: role, can: can,
     profileGet: profileGet, profileSet: profileSet,
-    certsGet: certsGet, certsSet: certsSet,
+    certsGet: certsGet, certsSet: certsSet, certsExpiring: certsExpiring,
     insights: insights, reviewQueue: reviewQueue,
     recordBatch: recordBatch, recordSet: recordSet,
     records: records, loadRecords: loadRecords,
