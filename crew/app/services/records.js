@@ -306,19 +306,22 @@
   // Raw per-item passoff records for ANY person (self or, for a trainer/office viewer, someone else),
   // local or remote — the one place both the profile page and the pass-off page get "what state is
   // item X in for person Y" without duplicating the local/remote branch everywhere.
-  function passoffRecordsFor(pid) {
+  function recordsFor(pid, area) {
+    area = area || 'passoff';
     return ready().then(function () {
       var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       if (!configured()) {
         ensureFounderPassoff(pid);
         var db = loadLocalDb();
-        return (localPerson(db, pid).records || {}).passoff || {};
+        return (localPerson(db, pid).records || {})[area] || {};
       }
-      if (pid === self.id) return apiPost('me', { area: 'passoff' }, true).then(function (r) { return (r.records && r.records.passoff) || {}; });
+      if (pid === self.id) return apiPost('me', { area: area }, true).then(function (r) { return (r.records && r.records[area]) || {}; });
       if (!can('see_everyone')) return Promise.reject({ error: 'forbidden', message: 'You may only view your own records.' });
-      return apiPost('person', { person_id: pid, area: 'passoff' }, true).then(function (r) { return (r.records && r.records.passoff) || {}; });
+      return apiPost('person', { person_id: pid, area: area }, true).then(function (r) { return (r.records && r.records[area]) || {}; });
     });
   }
+
+  function passoffRecordsFor(pid) { return recordsFor(pid, 'passoff'); }
 
   function passoffCurrentLevel(pid) {
     return passoffRecordsFor(pid).then(function (recMap) { return computeCurrentLevel(recMap); });
@@ -710,7 +713,7 @@
     insights: insights, reviewQueue: reviewQueue,
     recordBatch: recordBatch, recordSet: recordSet,
     records: records, loadRecords: loadRecords,
-    passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor,
+    passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor, recordsFor: recordsFor,
     passoffLevelsFlat: passoffLevelsFlat, passoffCatalog: flattenPassoffCatalog,
     on: on
   };
