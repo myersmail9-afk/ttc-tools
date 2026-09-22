@@ -629,7 +629,7 @@
       card.appendChild(ls);
     }
     var link=el('a','standing-link', VIEW_ID===TTCRecords.person().id ? 'Open the pass-off checklist →' : 'Open their pass-off checklist →');
-    link.href='../training/estimator-pass-off/index.html';
+    link.href='../training/estimator-pass-off/index.html'+(READONLY?'?person='+encodeURIComponent(VIEW_ID):'');
     card.appendChild(link);
     return card;
   }
