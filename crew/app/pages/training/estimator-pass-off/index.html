@@ -559,6 +559,432 @@
     t.appendChild(tb); w.appendChild(t); return w;
   }
 
+  /* ================================================================================
+     INTERACTIVE APPENDICES — Appendix A (client-visit scoring), B (estimate audit),
+     C (authority record). Every word of every behaviour, measure and tier below comes
+     straight out of passoff.js, which came straight out of David's .docx. Nothing here
+     rewrites, shortens or re-orders his wording; the only thing added is the ability to
+     tap it, score it, and keep it.
+
+     A and B are REPEATABLE — one saved sheet per visit or per job — and every save is
+     kept under the person being scored, so their whole history is on their own page.
+     Storage: records area 'passoff-forms', one record per saved sheet, the filled-in
+     values carried as JSON in the record's note field. No schema change on the backend.
+     ================================================================================ */
+  var FORMS_AREA='passoff-forms';
+  var formsRecords={};          // item_id -> record, for the person whose page is open
+  var formDrafts={};            // appendix id -> in-progress values, so a half-filled sheet survives a re-render
+  var formOpenSaved={};         // appendix id -> item_id of a saved sheet being viewed, or null for a new one
+
+  function todayISOForm(){ return todayISO(); }
+  function canVerifyForms(){ return TTCRecords.can('verify_others'); }
+  function subjectId(){ return subject ? subject.id : (TTCRecords.person()||{}).id; }
+
+  // A saved sheet is stored by whoever it is ABOUT. Crew may only write their own and only as
+  // 'claimed' (the server enforces this too) — a scoring sheet a trainer fills in lands 'verified'.
+  function formStateForWriter(){ return canVerifyForms() ? 'verified' : 'claimed'; }
+
+  function parseFormNote(rec){
+    if(!rec||!rec.note) return null;
+    try{ var o=JSON.parse(rec.note); return (o&&o.v)?o:null; }catch(e){ return null; }
+  }
+  function savedFormsOf(appendixId){
+    var out=[];
+    Object.keys(formsRecords).forEach(function(id){
+      if(id.indexOf(appendixId+':')!==0) return;
+      var data=parseFormNote(formsRecords[id]);
+      if(data) out.push({id:id, rec:formsRecords[id], data:data});
+    });
+    out.sort(function(a,b){ return (b.rec.ts||0)-(a.rec.ts||0); });
+    return out;
+  }
+  function newFormId(appendixId){
+    return appendixId+':'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  }
+  // A Jobber job number, whether typed bare or pasted as a whole Jobber URL.
+  function jobNumberFrom(raw){
+    var t=String(raw||'').trim(); if(!t) return '';
+    var m=t.match(/(?:jobs?|work_orders?)\/(\d+)/i) || t.match(/#?\s*(\d{3,})\s*$/);
+    return m ? m[1] : t;
+  }
+
+  function saveForm(appendixId, itemId, label, data, doneMsg){
+    var pid=subjectId();
+    data.v=1; data.form=appendixId;
+    data.saved_at=new Date().toISOString();
+    var me=TTCRecords.person()||{};
+    data.saved_by=me.id||''; data.saved_by_name=me.name||me.display_name||'';
+    return TTCRecords.recordSet(FORMS_AREA,
+        {item_id:itemId, item_label:label, state:formStateForWriter(), note:JSON.stringify(data)},
+        pid===((TTCRecords.person()||{}).id) ? null : pid)
+      .then(function(){ return TTCRecords.recordsFor(pid, FORMS_AREA); })
+      .then(function(m){ formsRecords=m||{}; refreshAndRerender(); if(doneMsg) showToast(doneMsg, null); })
+      .catch(function(err){ alert(err.message||'Could not save this sheet.'); });
+  }
+
+  /* ---------- shared header: who was estimating, which job, when ---------- */
+  function formHeader(appendixId, draft, fields){
+    var wrap=el('div','fm-head');
+    fields.forEach(function(f){
+      var d=el('div','fm-f'); d.appendChild(el('label',null,f.label));
+      var input;
+      if(f.type==='person'){
+        input=document.createElement('select');
+        var list=(window.TTC_PEOPLE||[]).filter(function(p){ return !p.test; });
+        list.forEach(function(p){
+          var o=document.createElement('option'); o.value=p.person_id; o.textContent=p.display_name;
+          input.appendChild(o);
+        });
+        input.value=draft[f.key]||subjectId();
+        // Crew may only record against themselves, so the picker is theirs alone.
+        if(!canVerifyForms()){ input.value=(TTCRecords.person()||{}).id; input.disabled=true; }
+      } else {
+        input=document.createElement('input'); input.type=f.type||'text';
+        if(f.placeholder) input.placeholder=f.placeholder;
+        input.value=draft[f.key]||'';
+      }
+      input.onchange=function(){ draft[f.key]=input.value; };
+      input.oninput=function(){ draft[f.key]=input.value; };
+      if(f.readonly) input.disabled=true;
+      d.appendChild(input);
+      if(f.hint) d.appendChild(el('p','fm-hint',f.hint));
+      wrap.appendChild(d);
+    });
+    return wrap;
+  }
+
+  function savedList(appendixId, title, renderCard){
+    var saved=savedFormsOf(appendixId);
+    if(!saved.length) return null;
+    var box=el('div','fm-saved');
+    box.appendChild(el('div','fm-saved-h', title+' — '+saved.length+(saved.length===1?' saved':' saved')));
+    saved.forEach(function(sv){
+      var card=el('button','fm-card');
+      renderCard(card, sv);
+      card.onclick=function(){ formOpenSaved[appendixId]=sv.id; formDrafts[appendixId]=null; refreshAndRerender(); };
+      box.appendChild(card);
+    });
+    return box;
+  }
+
+  function statePill(rec){
+    var st=rec&&rec.state;
+    var p=el('span','pill'+(st==='verified'?' ok':(st==='claimed'?' wait':'')),
+             st==='verified'?'Verified':(st==='claimed'?'Waiting':'Saved'));
+    return p;
+  }
+
+  /* ---------- Appendix A — Client Visit Scoring Sheet ---------- */
+  function renderAppendixA(A, host){
+    var behaviours=[], note=null, scoreLine=null;
+    (A.blocks||[]).forEach(function(b){
+      if(b.type==='note') note=b.text;
+      else if(b.type==='table'){
+        var rows=b.rows||[]; if(b.header) rows=rows.slice(1);
+        rows.forEach(function(r){ behaviours.push(r[0]); });
+      } else if(b.type==='p') scoreLine=b.text;
+    });
+    if(note) host.appendChild(el('p','note-block',note));
+
+    var openId=formOpenSaved['appendix-a'];
+    var openRec=openId?formsRecords[openId]:null;
+    var openData=openRec?parseFormNote(openRec):null;
+    var readOnly=!!openData;
+
+    var draft=formDrafts['appendix-a'];
+    if(!draft){
+      draft = openData
+        ? {estimator:openData.estimator, job:openData.job, date:openData.date, answers:(openData.answers||[]).slice()}
+        : {estimator:subjectId(), job:'', date:todayISOForm(), answers:[]};
+      formDrafts['appendix-a']=draft;
+    }
+    if(!draft.answers) draft.answers=[];
+
+    host.appendChild(formHeader('appendix-a', draft, [
+      {key:'estimator', label:'Estimator', type:'person'},
+      {key:'job', label:'Client / Job', type:'text', placeholder:'Name, or a Jobber job # / link',
+       hint:'Paste a Jobber link and the job number is kept.'},
+      {key:'date', label:'Date of visit', type:'date'}
+    ]));
+
+    var rowsBox=el('div','fm-rows');
+    var scoreBox=el('div','fm-score');
+    function paintScore(){
+      var yes=0, applicable=0;
+      draft.answers.forEach(function(a){ if(a==='yes'){yes++;applicable++;} else if(a==='no'){applicable++;} });
+      var pct = applicable ? Math.round(yes/applicable*100) : null;
+      scoreBox.innerHTML='';
+      // David's own sentence, with the blanks filled in as they are tapped.
+      scoreBox.appendChild(document.createTextNode('Score: '));
+      scoreBox.appendChild(el('span','n', String(yes)));
+      scoreBox.appendChild(document.createTextNode(' / '));
+      scoreBox.appendChild(el('span','n', String(applicable)));
+      scoreBox.appendChild(document.createTextNode(' applicable = '));
+      scoreBox.appendChild(el('span','n', pct==null?'—':String(pct)));
+      scoreBox.appendChild(document.createTextNode(' %'));
+      var unanswered = behaviours.length - draft.answers.filter(function(a){ return !!a; }).length;
+      if(unanswered>0){
+        scoreBox.appendChild(el('span','pending', '   ·   '+unanswered+' still to score'));
+      }
+      draft._yes=yes; draft._applicable=applicable; draft._pct=pct;
+    }
+
+    behaviours.forEach(function(text, i){
+      var row=el('div','fm-row'); row.appendChild(el('div','fm-row-text', text));
+      var seg=el('div','fm-seg');
+      [['yes','Yes'],['no','No'],['na','N/A']].forEach(function(pair){
+        var b=el('button','' + pair[0], pair[1]);
+        b.type='button';
+        function paint(){
+          var on = draft.answers[i]===pair[0];
+          b.setAttribute('aria-pressed', on?'true':'false');
+          row.classList.toggle('answered', !!draft.answers[i]);
+        }
+        b.onclick=function(){
+          if(readOnly) return;
+          draft.answers[i] = (draft.answers[i]===pair[0]) ? '' : pair[0];
+          Array.prototype.forEach.call(seg.children, function(c){ c._paint && c._paint(); });
+          paintScore();
+        };
+        b._paint=paint; paint();
+        if(readOnly) b.disabled=true;
+        seg.appendChild(b);
+      });
+      row.appendChild(seg); rowsBox.appendChild(row);
+    });
+    host.appendChild(rowsBox);
+    paintScore();
+    host.appendChild(scoreBox);
+
+    // Trainer and Date, the other two blanks on David's score line, are not typed — they are
+    // who saved it and when, which is the whole point of keeping the sheet.
+    var me=TTCRecords.person()||{};
+    var whoLine = openData
+      ? 'Trainer: '+(openData.saved_by_name||personNameById(openData.saved_by||''))+'   ·   Date: '+String(openData.saved_at||'').slice(0,10)
+      : 'Trainer: '+(me.name||me.display_name||'')+'   ·   Date: '+todayISOForm();
+    host.appendChild(el('p','fm-hint', whoLine));
+
+    var acts=el('div','fm-actions');
+    if(readOnly){
+      var back=el('button','btn primary','Score a new visit');
+      back.onclick=function(){ formOpenSaved['appendix-a']=null; formDrafts['appendix-a']=null; refreshAndRerender(); };
+      acts.appendChild(back);
+      var again=el('button','btn','Copy into a new sheet');
+      again.onclick=function(){
+        formOpenSaved['appendix-a']=null;
+        formDrafts['appendix-a']={estimator:draft.estimator, job:draft.job, date:todayISOForm(), answers:[]};
+        refreshAndRerender();
+      };
+      acts.appendChild(again);
+    } else {
+      var save=el('button','btn primary','Save this scoring sheet');
+      save.onclick=function(){
+        if(!draft._applicable && !draft.answers.some(function(a){return a==='na';})){
+          alert('Score at least one behaviour before saving.'); return;
+        }
+        var job=jobNumberFrom(draft.job);
+        var payload={estimator:draft.estimator, job:job, date:draft.date||todayISOForm(),
+                     answers:draft.answers.slice(), behaviours:behaviours.length,
+                     yes:draft._yes, applicable:draft._applicable, pct:draft._pct};
+        var label='Client visit — '+(job||personNameById(draft.estimator))+' — '+
+                  (draft._pct==null?'not scored':draft._pct+'%');
+        formDrafts['appendix-a']=null;
+        saveForm('appendix-a', newFormId('appendix-a'), label, payload, 'Scoring sheet saved.');
+      };
+      acts.appendChild(save);
+      var clear=el('button','btn','Clear');
+      clear.onclick=function(){ formDrafts['appendix-a']=null; refreshAndRerender(); };
+      acts.appendChild(clear);
+    }
+    host.appendChild(acts);
+
+    var list=savedList('appendix-a','Scored visits', function(card, sv){
+      var d=sv.data;
+      card.appendChild(el('span','pct', d.pct==null?'—':d.pct+'%'));
+      var meta=el('div','meta');
+      meta.appendChild(el('b', (d.job?('Job '+d.job):personNameById(d.estimator||''))));
+      meta.appendChild(el('span', (d.date||String(d.saved_at||'').slice(0,10))+' · '+d.yes+' of '+d.applicable+' applicable · scored by '+(d.saved_by_name||personNameById(d.saved_by||''))));
+      card.appendChild(meta);
+      card.appendChild(statePill(sv.rec));
+    });
+    if(list) host.appendChild(list);
+  }
+
+  /* ---------- Appendix B — Estimate / Production Audit ---------- */
+  // "Variance" is computed, not typed, wherever both numbers are numbers — that is the only
+  // column on this sheet whose value is arithmetic rather than judgement.
+  function numOf(raw){
+    var t=String(raw==null?'':raw).replace(/[^0-9.\-]/g,'');
+    if(!t || t==='-' || t==='.') return null;
+    var n=parseFloat(t); return isFinite(n)?n:null;
+  }
+  function renderAppendixB(A, host){
+    var measures=[], headers=['Measure','Estimate','Actual / Senior Benchmark','Variance / Notes'], leads=[];
+    (A.blocks||[]).forEach(function(b){
+      if(b.type==='p') leads.push(b.text);
+      else if(b.type==='table'){
+        var rows=b.rows||[];
+        if(b.header&&rows.length){ headers=rows[0]; rows=rows.slice(1); }
+        rows.forEach(function(r){ measures.push(r[0]); });
+      }
+    });
+
+    var openId=formOpenSaved['appendix-b'];
+    var openRec=openId?formsRecords[openId]:null;
+    var openData=openRec?parseFormNote(openRec):null;
+    var readOnly=!!openData;
+
+    var draft=formDrafts['appendix-b'];
+    if(!draft){
+      draft = openData
+        ? {estimator:openData.estimator, job:openData.job, date_estimated:openData.date_estimated,
+           date_completed:openData.date_completed, rows:(openData.rows||[]).map(function(r){ return r.slice(); })}
+        : {estimator:subjectId(), job:'', date_estimated:todayISOForm(), date_completed:'', rows:[]};
+      formDrafts['appendix-b']=draft;
+    }
+    if(!draft.rows) draft.rows=[];
+    measures.forEach(function(_,i){ if(!draft.rows[i]) draft.rows[i]=['','','']; });
+
+    // David's three header lines are the fields — same labels, now typed into.
+    leads.forEach(function(t){ if(t && !/^(Estimator|Client|Date)/.test(t)) host.appendChild(el('p',null,t)); });
+
+    host.appendChild(formHeader('appendix-b', draft, [
+      {key:'estimator', label:'Estimator', type:'person'},
+      {key:'job', label:'Client / Job', type:'text', placeholder:'Name, or a Jobber job # / link'},
+      {key:'date_estimated', label:'Date Estimated', type:'date'},
+      {key:'date_completed', label:'Date Completed', type:'date',
+       hint:'Set to today by “Mark completed today”.'}
+    ]));
+
+    if(!readOnly){
+      var fill=el('button','btn small','Mark completed today');
+      fill.onclick=function(){ draft.date_completed=todayISOForm(); refreshAndRerender(); };
+      var fw=el('div','fm-actions'); fw.appendChild(fill); host.appendChild(fw);
+    }
+
+    var wrap=el('div','fm-tablewrap'), t=el('table','fm-table');
+    var th=el('thead'), htr=el('tr');
+    headers.forEach(function(h){ htr.appendChild(el('th',null,h)); });
+    th.appendChild(htr); t.appendChild(th);
+    var tb=el('tbody');
+    measures.forEach(function(m,i){
+      var tr=el('tr');
+      tr.appendChild(el('td','m',m));
+      var varCell=el('td','var-auto');
+      function paintVar(){
+        varCell.innerHTML='';
+        var e=numOf(draft.rows[i][0]), a=numOf(draft.rows[i][1]);
+        if(e!=null && a!=null){
+          var diff=a-e, pct = e!==0 ? Math.round(diff/Math.abs(e)*100) : null;
+          var cls = diff>0?'up':(diff<0?'down':'flat');
+          var sign = diff>0?'+':'';
+          var txt = sign+(Math.round(diff*100)/100) + (pct==null?'':'  ('+sign+pct+'%)');
+          varCell.appendChild(el('span',cls,txt));
+          draft.rows[i][2]=txt;
+        } else {
+          var inp=document.createElement('input'); inp.type='text'; inp.placeholder='Notes';
+          inp.value=draft.rows[i][2]||'';
+          inp.oninput=function(){ draft.rows[i][2]=inp.value; };
+          if(readOnly) inp.disabled=true;
+          varCell.appendChild(inp);
+        }
+      }
+      [0,1].forEach(function(col){
+        var td=el('td');
+        var inp=document.createElement('input'); inp.type='text';
+        inp.value=draft.rows[i][col]||'';
+        inp.oninput=function(){ draft.rows[i][col]=inp.value; paintVar(); };
+        if(readOnly) inp.disabled=true;
+        td.appendChild(inp); tr.appendChild(td);
+      });
+      paintVar();
+      tr.appendChild(varCell); tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); host.appendChild(wrap);
+
+    var acts=el('div','fm-actions');
+    if(readOnly){
+      var nb=el('button','btn primary','Audit another job');
+      nb.onclick=function(){ formOpenSaved['appendix-b']=null; formDrafts['appendix-b']=null; refreshAndRerender(); };
+      acts.appendChild(nb);
+    } else {
+      var save=el('button','btn primary','Save this audit');
+      save.onclick=function(){
+        var any=draft.rows.some(function(r){ return (r[0]||'').trim()||(r[1]||'').trim(); });
+        if(!any){ alert('Fill in at least one measure before saving.'); return; }
+        var job=jobNumberFrom(draft.job);
+        var payload={estimator:draft.estimator, job:job, date_estimated:draft.date_estimated,
+                     date_completed:draft.date_completed, measures:measures.slice(),
+                     rows:draft.rows.map(function(r){ return r.slice(); })};
+        var label='Estimate audit — '+(job||personNameById(draft.estimator));
+        formDrafts['appendix-b']=null;
+        saveForm('appendix-b', newFormId('appendix-b'), label, payload, 'Audit saved.');
+      };
+      acts.appendChild(save);
+      var clear=el('button','btn','Clear');
+      clear.onclick=function(){ formDrafts['appendix-b']=null; refreshAndRerender(); };
+      acts.appendChild(clear);
+    }
+    host.appendChild(acts);
+
+    var list=savedList('appendix-b','Audited jobs', function(card, sv){
+      var d=sv.data, filled=(d.rows||[]).filter(function(r){ return (r[0]||'').trim()||(r[1]||'').trim(); }).length;
+      card.appendChild(el('span','pct', String(filled)));
+      var meta=el('div','meta');
+      meta.appendChild(el('b', d.job?('Job '+d.job):personNameById(d.estimator||'')));
+      meta.appendChild(el('span', (d.date_completed?('completed '+d.date_completed):('estimated '+(d.date_estimated||'—')))+
+                        ' · '+filled+' of '+(d.measures||[]).length+' measures · by '+(d.saved_by_name||personNameById(d.saved_by||''))));
+      card.appendChild(meta);
+      card.appendChild(statePill(sv.rec));
+    });
+    if(list) host.appendChild(list);
+  }
+
+  /* ---------- Appendix C — Authority Record ---------- */
+  // One record per tier line, for the person whose page is open. A trainer or office person
+  // taps to grant; crew tapping their own marks it claimed for David to confirm.
+  function renderAppendixC(A, host){
+    var rows=[];
+    (A.blocks||[]).forEach(function(b){
+      if(b.type==='table') (b.rows||[]).forEach(function(r){ rows.push(r); });
+      else if(b.type==='p'||b.type==='note') host.appendChild(el('p',b.type==='note'?'note-block':null,b.text||''));
+    });
+    // The .docx repeats "Tier 1 — Routine Residential" as both a stray first line and its real
+    // row. Keep one line per distinct tier, in David's order, without editing any wording.
+    var seen={}, lines=[];
+    rows.forEach(function(r){ var k=r[0]; if(!k||seen[k]) return; seen[k]=true; lines.push(r); });
+
+    var box=el('div','fm-rows fm-auth');
+    lines.forEach(function(r){
+      var id='appendix-c:'+r[0].toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      var rec=formsRecords[id], on=rec&&(rec.state==='verified'||rec.state==='claimed');
+      var row=el('div','fm-row');
+      var bx=el('div','box'+(on?' on':'')); bx.appendChild(tick()); row.appendChild(bx);
+      var txt=el('div','fm-row-text'); txt.appendChild(document.createTextNode(r[0]));
+      if(r[2]) txt.appendChild(el('div','sub', r[2]));
+      if(r[3]) txt.appendChild(el('div','sub', r[3]));
+      if(rec){
+        txt.appendChild(el('div','sub', (rec.state==='verified'?'Granted by ':'Claimed by ')+
+          personNameById(rec.by_person_id||'')+' '+when(new Date(rec.ts||Date.now()).toISOString())));
+      }
+      row.appendChild(txt);
+      row.onclick=function(){
+        var next = on ? 'open' : formStateForWriter();
+        var pid=subjectId();
+        TTCRecords.recordSet(FORMS_AREA, {item_id:id, item_label:r[0], state:next, note:''},
+                             pid===((TTCRecords.person()||{}).id)?null:pid)
+          .then(function(){ return TTCRecords.recordsFor(pid, FORMS_AREA); })
+          .then(function(m){ formsRecords=m||{}; refreshAndRerender(); })
+          .catch(function(err){ alert(err.message||'Could not save.'); });
+      };
+      box.appendChild(row);
+    });
+    host.appendChild(box);
+  }
+
+  var APPENDIX_FORMS={'appendix-a':renderAppendixA,'appendix-b':renderAppendixB,'appendix-c':renderAppendixC};
+  var APPX_OPEN={};   // a save re-renders the page; an open appendix must not snap shut under the user
+
   /* ---------- open/closed persistence, per signed-in person ---------- */
   var UI=null, UI_KEY=null;
   function loadUI(personId){
@@ -999,7 +1425,12 @@
       root.appendChild(el('h2','part','Appendices'));
       D.appendices.forEach(function(A){
         var d=el('details','appx'), s=el('summary',null,A.title); d.appendChild(s);
-        var bb=el('div','appx-body blocks'); blocks(A.blocks,bb); d.appendChild(bb); root.appendChild(d);
+        var bb=el('div','appx-body blocks');
+        var form=APPENDIX_FORMS[A.id];
+        if(form){ d.open = !!APPX_OPEN[A.id]; form(A,bb); }
+        else blocks(A.blocks,bb);
+        d.addEventListener('toggle',function(){ APPX_OPEN[A.id]=d.open; });
+        d.appendChild(bb); root.appendChild(d);
       });
     }
 
@@ -1109,6 +1540,11 @@
     maybeMigrateLegacy(self).then(function(){
       return isOwn() ? TTCRecords.loadRecords('passoff')
                      : TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; });
+    }).then(function(){
+      // Saved scoring sheets and audits belong to the person whose page is open, not the viewer.
+      return TTCRecords.recordsFor(subject.id, FORMS_AREA)
+        .then(function(m){ formsRecords=m||{}; })
+        .catch(function(){ formsRecords={}; });   // a missing area is an empty history, never a dead page
     }).then(function(){
       if(D) setDefaultOpenState();
       return TTCRecords.passoffCurrentLevel(subject.id);
