@@ -762,22 +762,11 @@
       row.appendChild(seg); segs.push(seg); rowsBox.appendChild(row);
     });
 
-    // Most observed visits come back clean, so the fast path is "all Yes, then fix the exceptions"
-    // rather than thirteen separate taps. Nothing is saved until the sheet is saved.
+    // No bulk "Yes to all" here, deliberately. David's own instruction is that a mark means the
+    // employee demonstrated the standard, not that they were taught it — a one-tap all-yes on an
+    // observation rubric quietly turns scoring into signing. Clearing is the only bulk action.
     if(!readOnly){
       var quick=el('div','fm-actions');
-      var allYes=el('button','btn small','Yes to all');
-      allYes.onclick=function(){
-        behaviours.forEach(function(_,i){ draft.answers[i]='yes'; });
-        repaintAll(); paintScore();
-      };
-      quick.appendChild(allYes);
-      var restYes=el('button','btn small','Fill the rest Yes');
-      restYes.onclick=function(){
-        behaviours.forEach(function(_,i){ if(!draft.answers[i]) draft.answers[i]='yes'; });
-        repaintAll(); paintScore();
-      };
-      quick.appendChild(restYes);
       var none=el('button','btn small','Clear all');
       none.onclick=function(){ draft.answers=[]; repaintAll(); paintScore(); };
       quick.appendChild(none);
