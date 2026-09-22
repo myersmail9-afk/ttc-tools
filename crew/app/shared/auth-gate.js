@@ -10,6 +10,15 @@
   var recordsUrl = new URL('services/records.js', root).href;
   var loginUrl = new URL('pages/me/index.html', root);
   var sessionKey = 'ttc-crew-session:v1';
+  // Validating the session costs a full Apps Script round trip, which is seconds, not milliseconds.
+  // Doing that on EVERY page open put a "Checking your sign-in…" screen in front of every tap —
+  // opening the pass-off felt like signing in again. Remember that this exact token was validated
+  // recently, show the page straight away, and re-validate quietly in the background.
+  // Safe because this gate is UI, not the boundary: the records backend still refuses every
+  // request without a valid token. The cost is that a role change or a deactivation takes up to
+  // VALID_FOR_MS to change what the UI offers, while the data itself is refused immediately.
+  var validKey = 'ttc-crew-auth-ok:v1';
+  var VALID_FOR_MS = 10 * 60 * 1000;
   var checking = null;
   var loadedRecords = null;
   var initialized = false;
@@ -25,6 +34,25 @@
     '#ttc-auth-gate>div{max-width:420px}#ttc-auth-gate h1{font-size:22px;margin:0 0 8px}#ttc-auth-gate p{margin:0 0 16px;color:#5a5f55}#ttc-auth-gate button{border:0;border-radius:9px;padding:10px 18px;background:#c9601a;color:white;font:700 15px inherit;cursor:pointer}' +
     '@media(prefers-color-scheme:dark){#ttc-auth-gate{background:#1b2218;color:#f1eee7}#ttc-auth-gate p{color:#b9bcb2}}';
   (document.head || document.documentElement).appendChild(style);
+
+  function storedToken() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(sessionKey) || 'null');
+      return (raw && raw.mode === 'remote' && raw.token) ? String(raw.token) : null;
+    } catch (e) { return null; }
+  }
+  function markValidated(token) {
+    if (!token) return;
+    try { localStorage.setItem(validKey, JSON.stringify({ token: token, at: Date.now() })); } catch (e) { /* private mode */ }
+  }
+  function clearValidated() { try { localStorage.removeItem(validKey); } catch (e) { /* ignore */ } }
+  function recentlyValidated(token) {
+    if (!token) return false;
+    try {
+      var mark = JSON.parse(localStorage.getItem(validKey) || 'null');
+      return !!mark && mark.token === token && (Date.now() - Number(mark.at || 0)) < VALID_FOR_MS;
+    } catch (e) { return false; }
+  }
 
   function normalizedPath(pathname) { return pathname.replace(/index\.html$/, '').replace(/\/+$/, ''); }
   function isLogin() { return normalizedPath(location.pathname) === normalizedPath(loginUrl.pathname); }
@@ -88,21 +116,30 @@
     location.replace(signinTarget(currentReturn()));
   }
   function invalidAuth(err) { return err && ['not_signed_in', 'bad_token', 'invalid_token', 'invalid_session', 'session_changed', 'expired_token', 'unknown_person', 'forbidden'].indexOf(err.error) !== -1; }
-  function check() {
+  function check(opts) {
+    opts = opts || {};
     if (checking) return checking;
     lastCheck = Date.now();
-    document.documentElement.classList.remove('ttc-auth-ready');
-    document.documentElement.classList.add('ttc-auth-pending');
-    message('Checking your sign-in…', 'One moment while TTC Crew verifies this device.', false);
+    // Straight in when this device validated this same token minutes ago. The check still runs,
+    // just behind the page instead of in front of it.
+    var quiet = !opts.force && recentlyValidated(storedToken()) && !isLogin();
+    if (quiet) {
+      reveal();
+    } else {
+      document.documentElement.classList.remove('ttc-auth-ready');
+      document.documentElement.classList.add('ttc-auth-pending');
+      message('Checking your sign-in…', 'One moment while TTC Crew verifies this device.', false);
+    }
     checking = loadRecords().then(function (records) {
       return records.ready().then(function () {
         if (!initialized) {
           initialized = true;
-          records.on('signout', function () { if (!signingOut) goToSignIn(); });
+          records.on('signout', function () { clearValidated(); if (!signingOut) goToSignIn(); });
         }
         return records.requireSession();
       });
     }).then(function () {
+      markValidated(storedToken());
       var params = new URLSearchParams(location.search);
       if (params.get('signin') === '1') location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
       else reveal();
@@ -110,10 +147,11 @@
       if (err && err.error === 'session_changed') {
         // Another tab replaced or refreshed the session during validation. The persisted replacement
         // is authoritative; let this check unwind, then validate it without deleting it.
-        setTimeout(check, 0);
+        setTimeout(function () { check(opts); }, 0);
         return;
       }
       if (invalidAuth(err)) {
+        clearValidated();
         if (isLogin() && err.error === 'not_signed_in') { reveal(); return; }
         signingOut = true;
         if (window.TTCRecords) window.TTCRecords.signOut();
@@ -121,6 +159,9 @@
         goToSignIn();
         return;
       }
+      // A quiet re-validation that cannot reach the network must never blank a page the person is
+      // already reading. The records service shows its own offline state; leave the page alone.
+      if (quiet) return;
       message('TTC Crew is unavailable', err && err.error === 'not_configured' ?
         'Sign-in has not been configured. Please contact the office.' :
         'We could not verify your sign-in. Check your connection, then try again.', true);
@@ -133,10 +174,10 @@
   }
 
   window.TTCAuthGate = { safeReturn: safeReturn, completeSignIn: completeSignIn, check: check };
-  window.addEventListener('storage', function (event) { if (event.key === sessionKey) check(); });
+  window.addEventListener('storage', function (event) { if (event.key === sessionKey) check({ force: true }); });
   window.addEventListener('pageshow', function (event) { if (event.persisted) check(); });
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible' && Date.now() - lastCheck > 30000) check();
+    if (document.visibilityState === 'visible' && Date.now() - lastCheck > VALID_FOR_MS) check();
   });
   check();
 })();
