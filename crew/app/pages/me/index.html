@@ -386,6 +386,8 @@
   function render(profileRes, certsRes){
     root.innerHTML='';
     CURRENT=profileRes;
+    var title=document.querySelector('.topbar-title');
+    if(title) title.textContent=READONLY ? profileRes.person.name+' Profile' : 'My Profile';
     certsById={};
     (certsRes.items||[]).forEach(function(it){ certsById[it.badge_id]=it; });
 
