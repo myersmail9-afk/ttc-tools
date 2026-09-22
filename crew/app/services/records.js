@@ -193,9 +193,15 @@
     });
   }
 
-  function apiBodyError(bad) {
+  function apiBodyError(bad, action) {
     var e = new Error('');
-    if (bad.bouncedToGet) {
+    if (bad.bouncedToGet && action === 'signin_start') {
+      // The server already ran before the redirect bounced, so the code really was emailed.
+      // Telling someone "it failed" when the code is sitting in their inbox is the worse error.
+      e.error = 'redirect_blocked_after_send';
+      e.message = 'Your code was sent — check your email. This browser blocked part of the reply, ' +
+                  'so if sign-in keeps failing, open the app in Chrome.';
+    } else if (bad.bouncedToGet) {
       e.error = 'redirect_blocked';
       e.message = 'Your browser blocked the records service redirect. Open the app in Chrome, ' +
                   'or turn off Prevent Cross-Site Tracking for this site, then try again.';
@@ -232,7 +238,7 @@
       }).then(readApiBody).then(function (body) {
         if (body.ok) return body.json;
         if (attempt === 0 && mayRetry) return send(attempt + 1);
-        throw apiBodyError(body);
+        throw apiBodyError(body, action);
       });
     }
 
