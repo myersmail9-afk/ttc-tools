@@ -305,6 +305,16 @@
   td.var-auto{font-weight:700;font-size:13.5px}
   td.var-auto .up{color:var(--no-fg)} td.var-auto .down{color:var(--ver-fg)} td.var-auto .flat{color:var(--fg3)}
 
+  .fm-tally{margin-top:14px;padding:12px 13px;border:1px dashed var(--border);border-radius:12px;background:var(--card-2)}
+  .fm-tally-h{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:800}
+  .fm-tally-note{font-size:11.5px;color:var(--fg3);margin:3px 0 9px;line-height:1.5}
+  .fm-tally-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+  .fm-tally-out{margin-top:9px;font-size:14px;font-weight:700}
+  .fm-tally-out .dim{font-weight:600;color:var(--fg3)}
+  .fm-run{margin-top:12px;padding:12px 13px;border:1px solid var(--border);border-radius:12px;background:var(--card-2)}
+  .fm-run-h{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:800;margin-bottom:6px}
+  .fm-run-line{font-size:14px;line-height:1.7}
+  .fm-run-line b{font-size:15.5px}
   .fm-saved{margin-top:16px;padding-top:12px;border-top:1px solid var(--border-soft)}
   .fm-saved-h{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:800;margin-bottom:7px}
   .fm-card{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);
@@ -319,7 +329,6 @@
   .fm-card .pill.wait{background:var(--claim-bg);border-color:var(--claim-br);color:var(--claim-fg)}
 
   .fm-auth{margin-top:4px}
-  .fm-auth .fm-row{cursor:pointer}
   .fm-auth .box{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--border);
     display:flex;align-items:center;justify-content:center;color:transparent}
   .fm-auth .box.on{background:var(--ver-bg);border-color:var(--ver-br);color:var(--ver-fg)}
@@ -700,7 +709,8 @@
     var draft=formDrafts['appendix-a'];
     if(!draft){
       draft = openData
-        ? {estimator:openData.estimator, job:openData.job, date:openData.date, answers:(openData.answers||[]).slice()}
+        ? {estimator:openData.estimator, job:openData.job, date:openData.date, answers:(openData.answers||[]).slice(),
+           items_proposed:openData.items_proposed, items_explained:openData.items_explained}
         : {estimator:subjectId(), job:'', date:todayISOForm(), answers:[]};
       formDrafts['appendix-a']=draft;
     }
@@ -777,6 +787,44 @@
     paintScore();
     host.appendChild(scoreBox);
 
+    // ---- work-item count (NOT part of David's thirteen-behaviour rubric) ----------------
+    // The rubric scores behaviours once per visit. Three of his standards count WORK ITEMS
+    // instead — "explain both the recommendation and the reason for it on >= 90% of proposed
+    // work items" has a different denominator than "Yes divided by applicable behaviours", so
+    // the rubric alone can never answer it. These two figures are the missing denominator and
+    // numerator, captured per visit and totalled under the saved sheets. David's rubric above
+    // is untouched; this block is clearly marked as an addition.
+    var tally=el('div','fm-tally');
+    tally.appendChild(el('div','fm-tally-h','Work items on this visit'));
+    tally.appendChild(el('p','fm-tally-note',
+      'Counted separately from the behaviour rubric above, because the tier standards about '+
+      'recommendation and reason are measured per work item, not per visit. Leave blank if you '+
+      'are not counting items on this visit.'));
+    var tg=el('div','fm-tally-grid');
+    var tallyOut=el('div','fm-tally-out');
+    function paintTally(){
+      var prop=parseInt(draft.items_proposed,10), expl=parseInt(draft.items_explained,10);
+      tallyOut.innerHTML='';
+      if(isFinite(prop) && prop>0 && isFinite(expl)){
+        if(expl>prop){ tallyOut.appendChild(el('span','dim','More explained than proposed — check the two numbers.')); return; }
+        var pc=Math.round(expl/prop*100);
+        tallyOut.appendChild(document.createTextNode(expl+' of '+prop+' work items = '+pc+'%'));
+      } else {
+        tallyOut.appendChild(el('span','dim','Not counted on this visit.'));
+      }
+    }
+    [['items_proposed','Work items proposed'],['items_explained','Recommendation and reason both given']].forEach(function(pair){
+      var d=el('div','fm-f'); d.appendChild(el('label',null,pair[1]));
+      var inp=document.createElement('input');
+      inp.type='number'; inp.min='0'; inp.inputMode='numeric'; inp.placeholder='—';
+      inp.value=draft[pair[0]]==null?'':draft[pair[0]];
+      inp.oninput=function(){ draft[pair[0]]=inp.value; paintTally(); };
+      if(readOnly) inp.disabled=true;
+      d.appendChild(inp); tg.appendChild(d);
+    });
+    tally.appendChild(tg); paintTally(); tally.appendChild(tallyOut);
+    host.appendChild(tally);
+
     // Trainer and Date, the other two blanks on David's score line, are not typed — they are
     // who saved it and when, which is the whole point of keeping the sheet.
     var me=TTCRecords.person()||{};
@@ -793,7 +841,7 @@
       var again=el('button','btn','Copy into a new sheet');
       again.onclick=function(){
         formOpenSaved['appendix-a']=null;
-        formDrafts['appendix-a']={estimator:draft.estimator, job:draft.job, date:todayISOForm(), answers:[]};
+        formDrafts['appendix-a']={estimator:draft.estimator, job:draft.job, date:todayISOForm(), answers:[]};  // figures start clean
         refreshAndRerender();
       };
       acts.appendChild(again);
@@ -804,9 +852,12 @@
           alert('Score at least one behaviour before saving.'); return;
         }
         var job=jobNumberFrom(draft.job);
+        var prop=parseInt(draft.items_proposed,10), expl=parseInt(draft.items_explained,10);
+        var haveItems = isFinite(prop) && prop>0 && isFinite(expl) && expl<=prop;
         var payload={estimator:draft.estimator, job:job, date:draft.date||todayISOForm(),
                      answers:draft.answers.slice(), behaviours:behaviours.length,
-                     yes:draft._yes, applicable:draft._applicable, pct:draft._pct};
+                     yes:draft._yes, applicable:draft._applicable, pct:draft._pct,
+                     items_proposed: haveItems?prop:null, items_explained: haveItems?expl:null};
         var label='Client visit — '+(job||personNameById(draft.estimator))+' — '+
                   (draft._pct==null?'not scored':draft._pct+'%');
         formDrafts['appendix-a']=null;
@@ -819,12 +870,54 @@
     }
     host.appendChild(acts);
 
+    // One sheet answers nothing. Every standard these sheets feed is worded across a run of
+    // appointments — a communication-rubric score over fifteen visits, work items over ten.
+    // These are those running totals, so the figure is read rather than counted by hand.
+    var saved=savedFormsOf('appendix-a');
+    if(saved.length){
+      var run=el('div','fm-run');
+      run.appendChild(el('div','fm-run-h','Running totals across '+saved.length+(saved.length===1?' scored visit':' scored visits')));
+
+      var scored=saved.filter(function(sv){ return sv.data.pct!=null; });
+      var l1=el('div','fm-run-line');
+      if(scored.length){
+        var totYes=0, totApp=0;
+        scored.forEach(function(sv){ totYes+=(sv.data.yes||0); totApp+=(sv.data.applicable||0); });
+        var avg=scored.reduce(function(a,sv){ return a+sv.data.pct; },0)/scored.length;
+        l1.appendChild(document.createTextNode('Communication rubric: '));
+        l1.appendChild(el('b',null, Math.round(avg)+'%'));
+        l1.appendChild(el('span','dim',' average across '+scored.length+
+          (scored.length===1?' visit':' visits')+' · '+totYes+' of '+totApp+' applicable behaviours'));
+      } else {
+        l1.appendChild(el('span','dim','Communication rubric: nothing scored yet.'));
+      }
+      run.appendChild(l1);
+
+      var counted=saved.filter(function(sv){ return sv.data.items_proposed; });
+      var l2=el('div','fm-run-line');
+      if(counted.length){
+        var prop=0, expl=0;
+        counted.forEach(function(sv){ prop+=sv.data.items_proposed; expl+=(sv.data.items_explained||0); });
+        l2.appendChild(document.createTextNode('Recommendation and reason: '));
+        l2.appendChild(el('b',null, Math.round(expl/prop*100)+'%'));
+        l2.appendChild(el('span','dim',' of work items · '+expl+' of '+prop+' across '+counted.length+
+          (counted.length===1?' visit':' visits')));
+      } else {
+        l2.appendChild(el('span','dim','Recommendation and reason: no work items counted yet.'));
+      }
+      run.appendChild(l2);
+      host.appendChild(run);
+    }
+
     var list=savedList('appendix-a','Scored visits', function(card, sv){
       var d=sv.data;
       card.appendChild(el('span','pct', d.pct==null?'—':d.pct+'%'));
       var meta=el('div','meta');
       meta.appendChild(el('b', null, (d.job?('Job '+d.job):personNameById(d.estimator||''))));
-      meta.appendChild(el('span', null, (d.date||String(d.saved_at||'').slice(0,10))+' · '+d.yes+' of '+d.applicable+' applicable · scored by '+(d.saved_by_name||personNameById(d.saved_by||''))));
+      var sub=(d.date||String(d.saved_at||'').slice(0,10))+' · '+d.yes+' of '+d.applicable+' applicable';
+      if(d.items_proposed) sub+=' · '+d.items_explained+'/'+d.items_proposed+' work items';
+      sub+=' · scored by '+(d.saved_by_name||personNameById(d.saved_by||''));
+      meta.appendChild(el('span', null, sub));
       card.appendChild(meta);
       card.appendChild(statePill(sv.rec));
     });
@@ -962,8 +1055,24 @@
   }
 
   /* ---------- Appendix C — Authority Record ---------- */
-  // One record per tier line, for the person whose page is open. A trainer or office person
-  // taps to grant; crew tapping their own marks it claimed for David to confirm.
+  // DERIVED, never tapped. Appendix C's six lines are the same six levels as the ladder above
+  // it, so letting it be ticked on its own created two sources of truth for one fact: a person
+  // could hold "Tier 2" here while Tier 2's items sat unverified. Authority is now read from the
+  // ladder — a tier shows as held only when every one of its items is verified.
+  var AUTHORITY_LEVEL={
+    'estimator trainee':'trainee',
+    'tier 1':'tier1',
+    'tier 2':'tier2',
+    'tier 3':'tier3',
+    'phc specialty':'phc',
+    'complex removals':'rigging'
+  };
+  function levelForAuthorityLine(label){
+    var l=String(label||'').toLowerCase();
+    var keys=Object.keys(AUTHORITY_LEVEL);
+    for(var i=0;i<keys.length;i++){ if(l.indexOf(keys[i])===0) return AUTHORITY_LEVEL[keys[i]]; }
+    return null;
+  }
   function renderAppendixC(A, host){
     var rows=[];
     (A.blocks||[]).forEach(function(b){
@@ -975,31 +1084,38 @@
     var seen={}, lines=[];
     rows.forEach(function(r){ var k=r[0]; if(!k||seen[k]) return; seen[k]=true; lines.push(r); });
 
+    host.appendChild(el('p','fm-tally-note',
+      'Read from the ladder above. A line is held once every item in that level is verified, so '+
+      'this record and the checklist can never disagree.'));
+
+    var byId={}; (D.levels||[]).forEach(function(L){ byId[L.id]=L; });
     var box=el('div','fm-rows fm-auth');
     lines.forEach(function(r){
-      var id='appendix-c:'+r[0].toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-      var rec=formsRecords[id], on=rec&&(rec.state==='verified'||rec.state==='claimed');
+      var lid=levelForAuthorityLine(r[0]), L=lid?byId[lid]:null;
+      var counts=L?countOf(levelItems(L)):null;
+      var held=!!(counts && counts.total>0 && counts.verified===counts.total);
+
       var row=el('div','fm-row');
-      var bx=el('div','box'+(on?' on':'')); bx.appendChild(tick()); row.appendChild(bx);
+      var bx=el('div','box'+(held?' on':'')); bx.appendChild(tick()); row.appendChild(bx);
       var txt=el('div','fm-row-text'); txt.appendChild(document.createTextNode(r[0]));
       if(r[2]) txt.appendChild(el('div','sub', r[2]));
       if(r[3]) txt.appendChild(el('div','sub', r[3]));
-      // Only a live grant or claim carries attribution. A row toggled back off is just off —
-      // showing "Claimed by David" under an empty box was the bug this replaces.
-      if(rec && (rec.state==='verified' || rec.state==='claimed')){
-        txt.appendChild(el('div','sub', (rec.state==='verified'?'Granted by ':'Claimed by ')+
-          personNameById(rec.by_person_id||'')+' '+when(new Date(rec.ts||Date.now()).toISOString())));
+
+      if(!counts){
+        txt.appendChild(el('div','sub','No matching level in the ladder.'));
+      } else if(held){
+        // Attribution comes from the last item verified in that level — the real grant moment.
+        var newest=null, recs=recMap();
+        levelItems(L).forEach(function(i){ var rec=recs[i.id];
+          if(rec && rec.state==='verified' && (!newest || (rec.ts||0)>(newest.ts||0))) newest=rec; });
+        txt.appendChild(el('div','sub','Held — all '+counts.total+' items verified'+
+          (newest&&newest.by_person_id ? ', last signed off by '+personNameById(newest.by_person_id)+
+            ' '+when(new Date(newest.ts).toISOString()) : '')));
+      } else {
+        var waiting = counts.claimed ? ', '+counts.claimed+' waiting on review' : '';
+        txt.appendChild(el('div','sub', counts.verified+' of '+counts.total+' items verified'+waiting));
       }
       row.appendChild(txt);
-      row.onclick=function(){
-        var next = on ? 'open' : formStateForWriter();
-        var pid=subjectId();
-        TTCRecords.recordSet(FORMS_AREA, {item_id:id, item_label:r[0], state:next, note:''},
-                             pid===((TTCRecords.person()||{}).id)?null:pid)
-          .then(function(){ return TTCRecords.recordsFor(pid, FORMS_AREA); })
-          .then(function(m){ formsRecords=m||{}; refreshAndRerender(); })
-          .catch(function(err){ alert(err.message||'Could not save.'); });
-      };
       box.appendChild(row);
     });
     host.appendChild(box);
