@@ -130,6 +130,18 @@
     if (state.readyPromise) return state.readyPromise;
     state.readyPromise = fetchConfig().then(function (cfg) {
       state.config = cfg && typeof cfg === 'object' ? cfg : { url: null };
+      // First live launch migration: demo mode stored `local-*` tokens that are deliberately not
+      // valid server credentials. Do not let an old device present one to the new backend and get
+      // stranded on "Malformed token." Keep its local demo records intact, but discard the obsolete
+      // demo identity so every former tester lands on the real email-code sign-in screen once.
+      if (configured() && state.session &&
+          (state.session.mode !== 'remote' || /^local-/.test(String(state.session.token || '')))) {
+        var stalePerson = state.session.person || null;
+        state.session = null;
+        saveSession(null);
+        meCache = {};
+        emit('signout', stalePerson);
+      }
       setSyncStatus(configured() ? 'idle' : 'local', null, false);
       return null;
     });
