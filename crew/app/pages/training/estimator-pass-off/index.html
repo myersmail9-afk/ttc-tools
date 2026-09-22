@@ -520,8 +520,12 @@
     });
     return n;
   }
-  function setFilter(f){ filter=f; try{ localStorage.setItem(FILTER_KEY,f); }catch(e){} }
+  function setFilter(f){ filter=f; justChanged={}; try{ localStorage.setItem(FILTER_KEY,f); }catch(e){} }
   var FILTER_LABELS={ all:'All', open:'Not started', claimed:'Waiting on review', verified:'Verified', returned:'Sent back' };
+  // Item ids changed during this visit — kept visible regardless of the active filter (see the
+  // filter predicate below). Cleared when the person changes the filter by hand, since at that
+  // point they have explicitly asked to see a particular slice.
+  var justChanged={};
 
   /* ---------- item row ---------- */
   function itemRow(it, levelLockTitle){
@@ -577,6 +581,7 @@
 
   function writeState(it, state, note, meta, undoMsg, prevState, prevNote){
     var composed=note||'';
+    justChanged[it.id]=true;
     TTCRecords.recordSet('passoff', {item_id:it.id, item_label:it.text, state:state, note:composed})
       .then(function(){ refreshAndRerender();
         if(undoMsg) showToast(undoMsg, prevState!=null?function(){ writeState(it, prevState, prevNote||''); }:null);
@@ -686,7 +691,10 @@
     var shown=0;
     items.forEach(function(i){
       var st=itemState(i.id);
-      if(filter!=='all' && st!==filter) return;
+      // Never let the thing you just acted on disappear. Marking an item done changes its state,
+      // and under a "Not started" filter that would hide it the instant you saved — which reads as
+      // nothing having happened. Anything touched this session stays visible until the next reload.
+      if(filter!=='all' && st!==filter && !justChanged[it.id]) return;
       shown++;
       body.appendChild(itemRow(i, levelLockTitle));
     });
