@@ -715,6 +715,8 @@
 
     var rowsBox=el('div','fm-rows');
     var scoreBox=el('div','fm-score');
+    var segs=[];   // one per behaviour, so a bulk action can repaint every row at once
+    function repaintAll(){ segs.forEach(function(seg){ Array.prototype.forEach.call(seg.children, function(c){ c._paint && c._paint(); }); }); }
     function paintScore(){
       var yes=0, applicable=0;
       draft.answers.forEach(function(a){ if(a==='yes'){yes++;applicable++;} else if(a==='no'){applicable++;} });
@@ -750,14 +752,38 @@
           if(readOnly) return;
           draft.answers[i] = (draft.answers[i]===pair[0]) ? '' : pair[0];
           Array.prototype.forEach.call(seg.children, function(c){ c._paint && c._paint(); });
+          row.classList.toggle('answered', !!draft.answers[i]);
           paintScore();
         };
         b._paint=paint; paint();
         if(readOnly) b.disabled=true;
         seg.appendChild(b);
       });
-      row.appendChild(seg); rowsBox.appendChild(row);
+      row.appendChild(seg); segs.push(seg); rowsBox.appendChild(row);
     });
+
+    // Most observed visits come back clean, so the fast path is "all Yes, then fix the exceptions"
+    // rather than thirteen separate taps. Nothing is saved until the sheet is saved.
+    if(!readOnly){
+      var quick=el('div','fm-actions');
+      var allYes=el('button','btn small','Yes to all');
+      allYes.onclick=function(){
+        behaviours.forEach(function(_,i){ draft.answers[i]='yes'; });
+        repaintAll(); paintScore();
+      };
+      quick.appendChild(allYes);
+      var restYes=el('button','btn small','Fill the rest Yes');
+      restYes.onclick=function(){
+        behaviours.forEach(function(_,i){ if(!draft.answers[i]) draft.answers[i]='yes'; });
+        repaintAll(); paintScore();
+      };
+      quick.appendChild(restYes);
+      var none=el('button','btn small','Clear all');
+      none.onclick=function(){ draft.answers=[]; repaintAll(); paintScore(); };
+      quick.appendChild(none);
+      host.appendChild(quick);
+    }
+
     host.appendChild(rowsBox);
     paintScore();
     host.appendChild(scoreBox);
@@ -1490,9 +1516,16 @@
         var d=el('details','appx'), s=el('summary',null,A.title); d.appendChild(s);
         var bb=el('div','appx-body blocks');
         var form=APPENDIX_FORMS[A.id];
-        if(form){ d.open = !!APPX_OPEN[A.id]; form(A,bb); }
+        if(form){
+          d.open = !!APPX_OPEN[A.id];
+          form(A,bb);
+          // Anything tapped inside a form re-renders the page; the appendix it happened in must
+          // still be open afterwards. Capture-phase, so it runs before the handler that re-renders.
+          bb.addEventListener('click', function(){ APPX_OPEN[A.id]=true; }, true);
+        }
         else blocks(A.blocks,bb);
-        d.addEventListener('toggle',function(){ APPX_OPEN[A.id]=d.open; });
+        s.addEventListener('click',function(){ APPX_OPEN[A.id]=!d.open; });   // fires before the state flips
+        d.addEventListener('toggle',function(){ APPX_OPEN[A.id]=d.open; });    // and covers keyboard/programmatic opens
         d.appendChild(bb); root.appendChild(d);
       });
     }
