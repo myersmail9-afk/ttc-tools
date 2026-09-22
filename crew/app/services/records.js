@@ -20,6 +20,10 @@
 (function () {
   'use strict';
 
+  // auth-gate.js may load this file before a page's legacy footer include reaches it. Keep the
+  // second include inert so it cannot replace the live session, listeners, caches, or sync loop.
+  if (window.TTCRecords) return;
+
   var SELF_SRC = document.currentScript && document.currentScript.src;
   var CONFIG_URL = SELF_SRC ? new URL('../crew-api.json', SELF_SRC).href : '../crew-api.json';
   var CONFIG_CACHE_KEY = 'ttc-crew-api-config:v1';
@@ -432,6 +436,25 @@
     saveSession(null);
     meCache = {};
     emit('signout', p);
+  }
+
+  // The app entrance gate uses the cheapest authenticated endpoint to prove that a saved remote
+  // token is still accepted. A configured backend is mandatory here: local demo identities are
+  // useful in development screens, but are never authorization for the published app gate.
+  function requireSession() {
+    return ready().then(function () {
+      if (!configured()) {
+        var configError = new Error('TTC Crew sign-in is not configured.');
+        configError.error = 'not_configured';
+        throw configError;
+      }
+      if (!state.session || state.session.mode !== 'remote' || !state.session.token || !state.session.person) {
+        var sessionError = new Error('Please sign in to TTC Crew.');
+        sessionError.error = 'not_signed_in';
+        throw sessionError;
+      }
+      return apiPost('sync_head', {}, true).then(function () { return state.session.person; });
+    });
   }
 
   // ---------------------------------------------------------------------- passoff helpers (shared local math)
@@ -933,7 +956,7 @@
     ready: ready,
     configured: configured,
     people: people,
-    signIn: signIn, verifyCode: verifyCode, signInAs: signInAs, signOut: signOut,
+    signIn: signIn, verifyCode: verifyCode, signInAs: signInAs, signOut: signOut, requireSession: requireSession,
     person: person, role: role, can: can,
     profileGet: profileGet, profileSet: profileSet,
     certsGet: certsGet, certsSet: certsSet, certsExpiring: certsExpiring,

@@ -1,0 +1,119 @@
+// TTC Crew — shared entrance gate. This hides static UI until a saved remote session is validated.
+// It is an access-control UI for a public static site; the records backend remains the data boundary.
+(function () {
+  'use strict';
+  if (window.TTCAuthGate) return;
+
+  var script = document.currentScript;
+  var scriptUrl = new URL(script && script.src || 'shared/auth-gate.js', location.href);
+  var root = new URL('../', scriptUrl);
+  var recordsUrl = new URL('services/records.js', root).href;
+  var loginUrl = new URL('pages/me/index.html', root);
+  var sessionKey = 'ttc-crew-session:v1';
+  var checking = null;
+  var loadedRecords = null;
+  var initialized = false;
+  var lastCheck = 0;
+
+  document.documentElement.classList.add('ttc-auth-pending');
+  var style = document.createElement('style');
+  style.textContent = 'html.ttc-auth-pending body>*:not(#ttc-auth-gate){visibility:hidden!important}' +
+    '#ttc-auth-gate{visibility:visible!important;position:fixed;z-index:2147483647;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:#f9f6f2;color:#1f2419;font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center}' +
+    '#ttc-auth-gate>div{max-width:420px}#ttc-auth-gate h1{font-size:22px;margin:0 0 8px}#ttc-auth-gate p{margin:0 0 16px;color:#5a5f55}#ttc-auth-gate button{border:0;border-radius:9px;padding:10px 18px;background:#c9601a;color:white;font:700 15px inherit;cursor:pointer}' +
+    '@media(prefers-color-scheme:dark){#ttc-auth-gate{background:#1b2218;color:#f1eee7}#ttc-auth-gate p{color:#b9bcb2}}';
+  (document.head || document.documentElement).appendChild(style);
+
+  function isLogin() { return location.pathname === loginUrl.pathname || location.pathname === new URL('index.html', root).pathname && false; }
+  function signinTarget(returnValue) {
+    var target = new URL(loginUrl.href);
+    target.searchParams.set('signin', '1');
+    if (returnValue) target.searchParams.set('return', returnValue);
+    return target.href;
+  }
+  function currentReturn() { return location.pathname + location.search + location.hash; }
+  function safeReturn(value) {
+    if (!value || typeof value !== 'string') return null;
+    var candidate;
+    try { candidate = new URL(value, location.origin); } catch (e) { return null; }
+    if (candidate.origin !== location.origin || candidate.username || candidate.password) return null;
+    var rootPath = root.pathname.replace(/\/+$/, '/') ;
+    if (candidate.pathname.indexOf(rootPath) !== 0) return null;
+    if (candidate.pathname === loginUrl.pathname || candidate.pathname === loginUrl.pathname.replace(/index\.html$/, '')) return null;
+    return candidate.pathname + candidate.search + candidate.hash;
+  }
+  function reveal() {
+    document.documentElement.classList.remove('ttc-auth-pending');
+    var old = document.getElementById('ttc-auth-gate');
+    if (old) old.remove();
+  }
+  function message(title, detail) {
+    function draw() {
+      var old = document.getElementById('ttc-auth-gate');
+      if (old) old.remove();
+      var box = document.createElement('div'); box.id = 'ttc-auth-gate';
+      var inner = document.createElement('div');
+      var h = document.createElement('h1'); h.textContent = title;
+      var p = document.createElement('p'); p.textContent = detail;
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Try again';
+      b.addEventListener('click', function () { check(true); });
+      inner.appendChild(h); inner.appendChild(p); inner.appendChild(b); box.appendChild(inner);
+      document.body.appendChild(box);
+    }
+    if (document.body) draw(); else document.addEventListener('DOMContentLoaded', draw, { once: true });
+  }
+  function loadRecords() {
+    if (window.TTCRecords) return Promise.resolve(window.TTCRecords);
+    if (loadedRecords) return loadedRecords;
+    loadedRecords = new Promise(function (resolve, reject) {
+      var tag = document.createElement('script'); tag.src = recordsUrl; tag.async = false;
+      tag.onload = function () { window.TTCRecords ? resolve(window.TTCRecords) : reject(new Error('Records service did not start.')); };
+      tag.onerror = function () { reject(new Error('Could not load the sign-in service.')); };
+      (document.head || document.documentElement).appendChild(tag);
+    });
+    return loadedRecords;
+  }
+  function goToSignIn() {
+    if (isLogin()) { reveal(); return; }
+    location.replace(signinTarget(currentReturn()));
+  }
+  function invalidAuth(err) { return err && (err.error === 'not_signed_in' || err.error === 'invalid_token' || err.error === 'expired_token' || err.error === 'forbidden'); }
+  function check(force) {
+    if (checking && !force) return checking;
+    lastCheck = Date.now();
+    checking = loadRecords().then(function (records) {
+      return records.ready().then(function () {
+        if (!initialized) {
+          initialized = true;
+          records.on('signout', function () { goToSignIn(); });
+        }
+        return records.requireSession();
+      });
+    }).then(function () {
+      var params = new URLSearchParams(location.search);
+      if (params.get('signin') === '1') location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
+      else reveal();
+    }).catch(function (err) {
+      if (invalidAuth(err)) {
+        if (window.TTCRecords) window.TTCRecords.signOut();
+        goToSignIn();
+        return;
+      }
+      message('TTC Crew is unavailable', err && err.error === 'not_configured' ?
+        'Sign-in has not been configured. Please contact the office.' :
+        'We could not verify your sign-in. Check your connection, then try again.');
+    }).then(function () { checking = null; }, function () { checking = null; });
+    return checking;
+  }
+  function completeSignIn() {
+    var params = new URLSearchParams(location.search);
+    location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
+  }
+
+  window.TTCAuthGate = { safeReturn: safeReturn, completeSignIn: completeSignIn, check: check };
+  window.addEventListener('storage', function (event) { if (event.key === sessionKey) check(true); });
+  window.addEventListener('pageshow', function (event) { if (event.persisted) check(true); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && Date.now() - lastCheck > 30000) check();
+  });
+  check();
+})();
