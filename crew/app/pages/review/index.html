@@ -179,6 +179,7 @@
   overlay.addEventListener('click',function(e){ if(e.target===overlay) closeSheet(); });
 
   var QUEUE=[], SELECTED={}; // item key -> true
+  var stopVisibleWatch=null;
 
   function itemKey(it){ return it.person_id+'|'+it.area+'|'+it.item_id; }
 
@@ -347,22 +348,27 @@
     });
   }
 
-  function load(){
-    return TTCRecords.reviewQueue().then(function(res){
+  function loadReviewBundle(){ return TTCRecords.reviewQueue(); }
+  function applyReviewBundle(res){
       QUEUE=res.items||[];
       renderQueue(QUEUE);
-    });
+  }
+  function load(){
+    return loadReviewBundle().then(applyReviewBundle);
   }
 
   document.getElementById('clearSel').onclick=function(){ SELECTED={}; renderQueue(QUEUE); };
   document.getElementById('verifySel').onclick=verifySelected;
 
   function boot(){
+    if(stopVisibleWatch){ stopVisibleWatch(); stopVisibleWatch=null; }
     var self=TTCRecords.person();
     if(!self){ renderSignIn(); return; }
     if(!TTCRecords.can('verify_others')){ root.innerHTML=''; root.appendChild(gateCard()); return; }
     root.innerHTML='<div class="loading">Loading the queue…</div>';
-    load().catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
+    load().then(function(){
+      stopVisibleWatch=TTCRecords.watchVisible('review-queue', loadReviewBundle, applyReviewBundle, {initial:false});
+    }).catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
   }
 
   TTCRecords.ready().then(boot);

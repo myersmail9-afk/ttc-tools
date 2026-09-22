@@ -263,16 +263,26 @@
       frag.appendChild(el('h2','sec-title','Expiring soon')); frag.appendChild(c); return frag; }
   }
 
+  var stopVisibleWatch=null;
+  function loadTeamBundle(){
+    return Promise.all([ TTCRecords.insights(), TTCRecords.certsExpiring() ]);
+  }
+  function applyTeamBundle(res){
+    root.innerHTML='';
+    root.appendChild(renderExpiring(res[1].items||[]));
+    root.appendChild(el('h2','sec-title','Crew — longest waiting first'));
+    root.appendChild(renderRoster(res[0].people||[]));
+  }
+
   function boot(){
+    if(stopVisibleWatch){ stopVisibleWatch(); stopVisibleWatch=null; }
     var self=TTCRecords.person();
     if(!self){ renderSignIn(); return; }
     if(!TTCRecords.can('see_everyone')){ root.innerHTML=''; root.appendChild(gateCard()); return; }
     root.innerHTML='<div class="loading">Loading the crew…</div>';
-    Promise.all([ TTCRecords.insights(), TTCRecords.certsExpiring() ]).then(function(res){
-      root.innerHTML='';
-      root.appendChild(renderExpiring(res[1].items||[]));
-      root.appendChild(el('h2','sec-title','Crew — longest waiting first'));
-      root.appendChild(renderRoster(res[0].people||[]));
+    loadTeamBundle().then(function(res){
+      applyTeamBundle(res);
+      stopVisibleWatch=TTCRecords.watchVisible('team-overview', loadTeamBundle, applyTeamBundle, {initial:false});
     }).catch(function(err){
       root.innerHTML='';
       root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error')));

@@ -365,7 +365,7 @@
   .save-state{display:inline-flex;align-items:center;gap:5px;margin-top:2px;font-size:11.5px;color:var(--fg3)}
   .save-state::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ver-br)}
   .save-state[data-state="saving"]::before{background:var(--ttc-gold);animation:pulse 1s infinite}
-  .save-state[data-state="error"]::before{background:var(--no-br)}
+  .save-state[data-state="offline"]::before,.save-state[data-state="error"]::before{background:var(--no-br)}
   .next-action-bar .btn{flex:0 0 auto;white-space:nowrap}
   @keyframes pulse{50%{opacity:.35}}
   @media(max-width:390px){.next-action-copy{max-width:52vw}.next-action-bar .btn{padding-left:11px;padding-right:11px}}
@@ -438,8 +438,8 @@
   var toastTimer=null;
   var saveState='local';
   function saveStateText(){
-    return saveState==='saving' ? 'Saving…' : saveState==='synced' ? 'Synced' :
-      saveState==='error' ? 'Not saved' : 'Saved on this device';
+    return saveState==='saving' ? 'Saving…' : saveState==='synced' ? 'Live · Synced' :
+      saveState==='offline' ? 'Offline · Retrying' : saveState==='error' ? 'Not synced' : 'Saved on this device';
   }
   function setSaveState(next){
     saveState=next;
@@ -1751,7 +1751,7 @@
 
   // A reviewer opening the pass-off gets their CREW, not a 127-item document. Anyone with items
   // waiting on them is highlighted and sorted to the top; tapping a person opens their checklist.
-  function renderCrewList(){
+  function renderCrewList(prefetched){
     root.innerHTML='';
     var head=el('div','crew-head');
     head.appendChild(el('p','doc-eyebrow','Qualified Estimator Pass-Off'));
@@ -1766,7 +1766,7 @@
     var doc=el('a',null,'Read the whole document →'); doc.href='?doc=1'; links.appendChild(doc);
     root.appendChild(links);
 
-    TTCRecords.insights().then(function(res){
+    (prefetched ? Promise.resolve(prefetched) : TTCRecords.insights()).then(function(res){
       var people=(res.people||[]).filter(function(p){ return p.role==='crew'||p.role==='trainer'; });
       var waiting=people.filter(function(p){ return p.items_waiting_review>0; });
       sum.innerHTML='';
@@ -1820,13 +1820,43 @@
     }).catch(function(err){ sum.textContent='Could not load the crew: '+(err.message||'unknown error'); });
   }
 
+  var stopAutoSync=null;
+
+  function stopWatching(){
+    if(stopAutoSync){ stopAutoSync(); stopAutoSync=null; }
+  }
+
+  function loadSubjectBundle(){
+    var passoff=isOwn() ? TTCRecords.loadRecords('passoff') : TTCRecords.passoffRecordsFor(subject.id);
+    return Promise.all([
+      passoff,
+      TTCRecords.recordsFor(subject.id, FORMS_AREA).catch(function(){ return {}; })
+    ]).then(function(res){ return { passoff:res[0]||{}, forms:res[1]||{} }; });
+  }
+
+  function applySubjectBundle(bundle){
+    if(!isOwn()) subjectRecords=bundle.passoff;
+    formsRecords=bundle.forms;
+    currentLevelCache=TTCRecords.currentLevelFromRecords(bundle.passoff);
+    if(D) setDefaultOpenState();
+    setSaveState(TTCRecords.configured()?'synced':'local');
+    render();
+  }
+
   function boot(){
+    stopWatching();
     var self=TTCRecords.person();
     if(!self){ renderSignIn(); return; }
     var wanted=null, wantDoc=false;
     try{ var qs=new URLSearchParams(location.search); wanted=qs.get('person'); wantDoc=qs.get('doc')==='1'; }catch(e){}
     // A reviewer with no person chosen lands on their crew list, not on the document.
-    if(!wanted && !wantDoc && TTCRecords.can('verify_others')){ renderCrewList(); return; }
+    if(!wanted && !wantDoc && TTCRecords.can('verify_others')){
+      root.innerHTML='<div class="loading">Loading the crew…</div>';
+      stopAutoSync=TTCRecords.watchVisible('passoff-crew', TTCRecords.insights, function(res){ renderCrewList(res); }, {
+        onError:function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load the crew: '+(err.message||'unknown error'))); }
+      });
+      return;
+    }
     if(wanted && wanted!==self.id && !TTCRecords.can('verify_others')){
       root.innerHTML=''; root.appendChild(el('div','loading','You can only open your own pass-off.')); return;
     }
@@ -1837,22 +1867,22 @@
     loadUI(subject.id);
     loadFilter(subject.id);
     maybeMigrateLegacy(self).then(function(){
-      return isOwn() ? TTCRecords.loadRecords('passoff')
-                     : TTCRecords.passoffRecordsFor(subject.id).then(function(m){ subjectRecords=m; });
-    }).then(function(){
-      // Saved scoring sheets and audits belong to the person whose page is open, not the viewer.
-      return TTCRecords.recordsFor(subject.id, FORMS_AREA)
-        .then(function(m){ formsRecords=m||{}; })
-        .catch(function(){ formsRecords={}; });   // a missing area is an empty history, never a dead page
-    }).then(function(){
-      if(D) setDefaultOpenState();
-      return TTCRecords.passoffCurrentLevel(subject.id);
-    }).then(function(cl){
-      currentLevelCache=cl;
-      render();
+      return loadSubjectBundle();
+    }).then(function(bundle){
+      applySubjectBundle(bundle);
+      stopAutoSync=TTCRecords.watchVisible('passoff:'+subject.id, loadSubjectBundle, applySubjectBundle, {initial:false,
+        onError:function(){ setSaveState('offline'); }
+      });
     }).catch(function(err){ root.innerHTML=''; root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error'))); });
   }
 
+  TTCRecords.on('syncstate',function(s){
+    if(!s.configured) setSaveState('local');
+    else if(s.status==='saving') setSaveState('saving');
+    else if(s.status==='offline') setSaveState('offline');
+    else if(s.status==='error') setSaveState('error');
+    else if(s.status==='synced') setSaveState('synced');
+  });
   TTCRecords.ready().then(function(){ setSaveState(TTCRecords.configured()?'synced':'local'); boot(); });
 })();
 </script>

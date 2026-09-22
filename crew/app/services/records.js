@@ -924,6 +924,7 @@
     recordBatch: recordBatch, recordSet: recordSet,
     records: records, loadRecords: loadRecords,
     passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor, recordsFor: recordsFor,
+    currentLevelFromRecords: computeCurrentLevel,
     passoffLevelsFlat: passoffLevelsFlat, passoffCatalog: flattenPassoffCatalog,
     watchVisible: watchVisible,
     refreshVisible: function () { return refreshAllWatchers('manual'); },

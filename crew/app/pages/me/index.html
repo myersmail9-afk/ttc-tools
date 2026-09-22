@@ -360,10 +360,11 @@
   }
 
   /* ---------- render ---------- */
-  var CURRENT=null, VIEW_ID=null, READONLY=false;
+  var CURRENT=null, VIEW_ID=null, READONLY=false, stopVisibleWatch=null;
   var certsById={};
 
   function boot(){
+    if(stopVisibleWatch){ stopVisibleWatch(); stopVisibleWatch=null; }
     var self = TTCRecords.person();
     if(!self){ renderSignIn(); return; }
     var params = new URLSearchParams(location.search);
@@ -378,8 +379,15 @@
       return;
     }
     root.innerHTML='<div class="loading">Loading your profile…</div>';
-    Promise.all([ TTCRecords.profileGet(READONLY?VIEW_ID:undefined), TTCRecords.certsGet(READONLY?VIEW_ID:undefined) ])
-      .then(function(res){ render(res[0], res[1]); })
+    function loadProfileBundle(){
+      return Promise.all([ TTCRecords.profileGet(READONLY?VIEW_ID:undefined), TTCRecords.certsGet(READONLY?VIEW_ID:undefined) ]);
+    }
+    function applyProfileBundle(res){ render(res[0], res[1]); }
+    loadProfileBundle()
+      .then(function(res){
+        applyProfileBundle(res);
+        stopVisibleWatch=TTCRecords.watchVisible('profile-'+VIEW_ID, loadProfileBundle, applyProfileBundle, {initial:false});
+      })
       .catch(function(err){ root.innerHTML=''; root.appendChild(el('div','card','Could not load: '+(err.message||'unknown error'))); });
   }
 
