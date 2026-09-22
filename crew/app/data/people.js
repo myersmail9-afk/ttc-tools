@@ -10,7 +10,7 @@ window.TTC_PEOPLE = [
   { person_id: "david-thunell",   display_name: "David Thunell",   email: "david@totaltreecareutah.com",  role: "office"  },
   { person_id: "matthew-gil",     display_name: "Matthew Gil",     email: "matthewbgil@gmail.com",        role: "crew"    },
   { person_id: "braxton-whitney", display_name: "Braxton Whitney", email: "whitneybraxton0@gmail.com",    role: "crew"    },
-  { person_id: "joseph-myers",    display_name: "Joseph Myers",    email: "joseph@totaltreecareutah.com", role: "office"  },
+  { person_id: "joseph-myers",    display_name: "Joseph Myers",    email: "myersmail9@gmail.com",        role: "office"  },
   { person_id: "trevor-stevens",  display_name: "Trevor Stevens",  email: "tlstevens.07@gmail.com",       role: "trainer" },
   { person_id: "tyler-montoya",   display_name: "Tyler Montoya",   email: "tylermontoya2015@gmail.com",   role: "crew"    },
   { person_id: "cole-cook",       display_name: "Cole Cook",       email: "colecook0810@gmail.com",       role: "crew"    },
