@@ -629,7 +629,16 @@
       var pid = forPersonId || self.id;
       var payload = [{ person_id: pid, area: area, item_id: item.item_id, item_label: item.item_label || '', state: item.state, note: item.note || '', ts: item.ts }];
       return recordBatch(payload).then(function (res) {
-        if (pid === self.id) meCache[area] = (res.records && res.records[pid] && res.records[pid][area]) || meCache[area];
+        // MERGE, never replace. A write response carries only the items in that batch, so assigning
+        // it over meCache would wipe the state of every item not in this call — which looked, on the
+        // page, like only one item could ever be marked done at a time (2026-09-22).
+        if (pid === self.id) {
+          var fresh = res.records && res.records[pid] && res.records[pid][area];
+          if (fresh) {
+            meCache[area] = meCache[area] || {};
+            for (var k in fresh) { if (Object.prototype.hasOwnProperty.call(fresh, k)) meCache[area][k] = fresh[k]; }
+          }
+        }
         return res;
       });
     });
