@@ -173,19 +173,70 @@
     }
   }
 
+  // A POST to an Apps Script /exec never answers directly: it 302s to a one-time
+  // script.googleusercontent.com echo URL that carries the result. When a browser will not
+  // complete that hop — Safari's tracking prevention, blocked third-party cookies, a private
+  // window — the redirect lands back on /exec as a GET, which returns doGet's plain-text banner.
+  // r.json() then died with "Unexpected token 'T', \"TTC Crew R\"...", which tells a crew member
+  // nothing. Read the body as text, decide what actually came back, and say so.
+  var API_BANNER = 'TTC Crew Records API';
+
+  function readApiBody(r) {
+    return r.text().then(function (text) {
+      try { return { ok: true, json: JSON.parse(text) }; }
+      catch (e) {
+        var head = String(text || '').trim().slice(0, 200);
+        var bouncedToGet = head.indexOf(API_BANNER) === 0;
+        var looksLikeHtml = head.charAt(0) === '<';
+        return { ok: false, bouncedToGet: bouncedToGet, looksLikeHtml: looksLikeHtml, head: head, status: r.status };
+      }
+    });
+  }
+
+  function apiBodyError(bad) {
+    var e = new Error('');
+    if (bad.bouncedToGet) {
+      e.error = 'redirect_blocked';
+      e.message = 'Your browser blocked the records service redirect. Open the app in Chrome, ' +
+                  'or turn off Prevent Cross-Site Tracking for this site, then try again.';
+    } else if (bad.looksLikeHtml) {
+      e.error = 'not_json';
+      e.message = 'The records service returned a web page instead of data. It may be redeploying — try again in a minute.';
+    } else {
+      e.error = 'not_json';
+      e.message = 'The records service sent an unreadable reply (HTTP ' + bad.status + ').';
+    }
+    return e;
+  }
+
   function apiPost(action, fields, needsToken) {
     var isWrite = WRITE_ACTIONS.indexOf(action) !== -1;
+    // Only a read may be retried. The server runs the action BEFORE issuing its redirect, so a
+    // bounced reply still means it happened — retrying signin_start would send a second code and
+    // retrying a write would append a second row.
+    var mayRetry = !isWrite && action !== 'signin_start' && action !== 'signin_verify';
     var payload = Object.assign({ action: action }, fields || {});
     if (needsToken) {
       if (!state.session || !state.session.token) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       payload.token = state.session.token;
     }
     if (isWrite) beginWrite();
-    var request = fetch(state.config.url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    }).then(function (r) { return r.json(); }).then(function (res) {
+
+    function send(attempt) {
+      var url = state.config.url;
+      if (attempt > 0) url += (url.indexOf('?') === -1 ? '?' : '&') + 'r=' + Date.now();
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).then(readApiBody).then(function (body) {
+        if (body.ok) return body.json;
+        if (attempt === 0 && mayRetry) return send(attempt + 1);
+        throw apiBodyError(body);
+      });
+    }
+
+    var request = send(0).then(function (res) {
       // Do not apply a late refresh to a session that was signed out or replaced while this request
       // was in flight. The request token identifies the exact session the response belongs to.
       var storedForRefresh = res && res.token_refreshed ? loadSession() : null;
