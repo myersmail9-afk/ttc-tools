@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2a3a25">
+<title>Crew Overview — TTC Crew</title>
+<!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ttc-orange:#C9601A; --ttc-green:#4a6741; --ttc-dark:#2a3a25; --ttc-gold:#f0c080;
+    --bg:#f9f6f2; --bg-alt:#f1ece4; --card:#ffffff; --card-2:#fbf9f6;
+    --fg1:#1f2419; --fg2:#5a5f55; --fg3:#8b8f86;
+    --border:rgba(42,58,37,0.14); --border-soft:rgba(42,58,37,0.07);
+    --rail:#e6e0d6;
+    --claim-bg:#faeeda; --claim-fg:#633806; --claim-br:#EF9F27;
+    --ver-bg:#eaf3de;  --ver-fg:#27500A;  --ver-br:#97C459;
+    --ret-bg:#f3ece1;  --ret-fg:#6b4a1f;  --ret-br:#c9a464;
+    --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
+    --fs:16px;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08); --rail:#36432d;
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-textsize="big"]{--fs:18.5px}
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg1);font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+       font-size:var(--fs);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  a{text-decoration:none;color:inherit} svg{display:block}
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ttc-orange);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+          padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));
+          background:var(--ttc-dark);color:#f1eee7}
+  .topbar-back{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto}
+  .topbar-back svg{width:22px;height:22px}
+  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:34px}
+  .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
+
+  .wrap{max-width:760px;margin:0 auto;padding:18px 16px 90px}
+  .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
+  .tabular{font-variant-numeric:tabular-nums}
+  .gate-card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);
+        padding:22px;text-align:center;margin-top:40px}
+  .gate-card a{color:var(--ttc-orange);font-weight:700}
+
+  h2.sec-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);font-weight:800;margin:0 0 10px}
+
+  /* ---- expiring panel ---- */
+  .expire-card{border:1px solid var(--claim-br);background:var(--claim-bg);border-radius:14px;padding:4px 14px;margin:0 0 20px}
+  .expire-card.empty{border-color:var(--border);background:var(--card)}
+  .expire-row{display:flex;align-items:baseline;gap:8px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+  .expire-row:last-child{border-bottom:0}
+  .expire-name{font-weight:800;font-size:13.5px;color:var(--claim-fg)}
+  .expire-badge{font-size:13px;color:var(--claim-fg);flex:1}
+  .expire-days{font-size:12.5px;font-weight:700;color:var(--claim-fg);white-space:nowrap}
+  .expire-row.lapsed .expire-days,.expire-row.lapsed .expire-name,.expire-row.lapsed .expire-badge{color:var(--ret-fg)}
+  .expire-card.lapsed-any{border-color:var(--ret-br)}
+
+  /* ---- roster ledger ---- */
+  .roster{border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-soft);
+       cursor:pointer;min-height:64px}
+  .row:last-child{border-bottom:0}
+  .row:active{background:var(--bg-alt)}
+  .row-photo{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:var(--bg-alt);display:flex;align-items:center;
+        justify-content:center;font-weight:800;color:var(--fg3);overflow:hidden}
+  .row-photo img{width:100%;height:100%;object-fit:cover}
+  .row-id{flex:0 0 auto;width:118px;min-width:0}
+  .row-name{font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-role{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg3)}
+  .row-mid{flex:1;min-width:0}
+  .row-level{font-size:12px;font-weight:700;color:var(--fg1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-bar{height:5px;border-radius:99px;background:var(--rail);overflow:hidden;margin-top:4px}
+  .row-bar i{display:block;height:100%;background:var(--ttc-green);border-radius:99px}
+  .row-badges{flex:0 0 auto;width:52px;text-align:center;font-size:13px;font-weight:700}
+  .row-badges small{display:block;font-size:9.5px;font-weight:700;color:var(--fg3);text-transform:uppercase}
+  .row-wait{flex:0 0 auto;width:78px;text-align:right;font-size:12.5px}
+  .row-wait b{display:block;font-size:14px}
+  .row-wait.none{color:var(--fg3)}
+  .row-wait.has{color:var(--claim-fg)}
+  .row-signin{flex:0 0 auto;width:74px;text-align:right;font-size:11px;color:var(--fg3)}
+  @media (max-width:620px){
+    .row{flex-wrap:wrap}
+    .row-id{width:auto;flex:1 1 120px}
+    .row-mid{order:4;flex:1 1 100%;margin-top:2px}
+    .row-badges{width:auto;order:2}
+    .row-wait{width:auto;order:3}
+    .row-signin{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../../index.html#/reviews" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">Crew Overview</div>
+  <button class="icon-btn" id="bigText" title="Bigger text">Aa</button>
+</div>
+
+<div class="wrap" id="root"><div class="loading">Loading…</div></div>
+
+<script src="../../data/people.js"></script>
+<script src="../../data/certifications.js"></script>
+<script src="../../data/passoff.js"></script>
+<script src="../../services/records.js"></script>
+<script>
+(function(){
+  'use strict';
+  var root=document.getElementById('root');
+
+  var TS='ttc-textsize';
+  try{ if(localStorage.getItem(TS)==='big') document.documentElement.setAttribute('data-textsize','big'); }catch(e){}
+  document.getElementById('bigText').addEventListener('click',function(){
+    var on=document.documentElement.getAttribute('data-textsize')==='big';
+    if(on) document.documentElement.removeAttribute('data-textsize');
+    else document.documentElement.setAttribute('data-textsize','big');
+    try{ localStorage.setItem(TS,on?'normal':'big'); }catch(e){}
+  });
+
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+  function relTime(ts){ if(!ts) return 'never'; var days=Math.floor((Date.now()-ts)/86400000);
+    if(days<=0) return 'today'; if(days===1) return '1 day ago'; if(days<30) return days+' days ago';
+    return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  function exactTime(ts){ return ts?new Date(ts).toLocaleString():''; }
+
+  function renderSignIn(){
+    root.innerHTML='';
+    var wrap=el('div',null);
+    wrap.appendChild(el('h1',null,'Sign in'));
+    var local=!TTCRecords.configured();
+    if(local){
+      wrap.appendChild(el('p',null,"No records backend deployed yet — pick yourself from this device's roster."));
+      var list=el('div',null); list.style.display='flex'; list.style.flexDirection='column'; list.style.gap='8px';
+      TTCRecords.people().forEach(function(p){
+        var b=el('button',null); b.style.cssText='display:flex;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;text-align:left;width:100%';
+        var left=el('span',null,p.display_name+(p.test?' (TEST)':''));
+        var right=el('span',null,p.role); right.style.color='var(--fg3)'; right.style.fontSize='11px'; right.style.textTransform='uppercase';
+        b.appendChild(left); b.appendChild(right);
+        b.onclick=function(){ TTCRecords.signInAs(p.person_id).then(boot).catch(function(err){ alert(err.message||'Could not sign in.'); }); };
+        list.appendChild(b);
+      });
+      wrap.appendChild(list);
+    } else {
+      wrap.appendChild(el('p',null,'Sign in with your email from the My Profile page first, then come back here.'));
+      var back=el('a',null,'Go to My Profile'); back.href='../me/index.html'; back.style.color='var(--ttc-orange)'; back.style.fontWeight='700';
+      wrap.appendChild(back);
+    }
+    root.appendChild(wrap);
+  }
+
+  function gateCard(){
+    var c=el('div','gate-card');
+    c.appendChild(el('p',null,'This page is for David and the office.'));
+    var back=el('a',null,'← Back'); back.href='../../index.html#/reviews';
+    c.appendChild(back);
+    return c;
+  }
+
+  function badgeStr(p){ return p.badge_total!=null ? (p.badge_earned+' / '+p.badge_total) : '—'; }
+
+  function levelBlock(p){
+    var wrap=el('div','row-mid');
+    var cl=p.currentLevel;
+    if(cl){
+      wrap.appendChild(el('div','row-level', cl.allDone?'All verified':cl.title));
+      var bar=el('div','row-bar'); var i=el('i'); i.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(i); wrap.appendChild(bar);
+    } else {
+      wrap.appendChild(el('div','row-level', p.level||'—'));
+      var bar2=el('div','row-bar'); wrap.appendChild(bar2);
+    }
+    return wrap;
+  }
+
+  function renderRoster(people){
+    var box=el('div','roster');
+    people.forEach(function(p){
+      var row=el('div','row');
+      row.onclick=function(){ location.href='../me/index.html?person='+encodeURIComponent(p.person_id); };
+
+      var photo=el('div','row-photo');
+      if(p.photo){ var img=document.createElement('img'); img.src=p.photo; photo.appendChild(img); }
+      else photo.textContent=(p.name||'?').trim().charAt(0).toUpperCase();
+      row.appendChild(photo);
+
+      var idBox=el('div','row-id');
+      idBox.appendChild(el('div','row-name',p.name));
+      idBox.appendChild(el('div','row-role',p.role));
+      row.appendChild(idBox);
+
+      row.appendChild(levelBlock(p));
+
+      var badges=el('div','row-badges tabular'); badges.appendChild(document.createTextNode(badgeStr(p)));
+      badges.appendChild(el('small',null,'badges'));
+      row.appendChild(badges);
+
+      var wait=el('div','row-wait tabular '+(p.items_waiting_review?'has':'none'));
+      if(p.items_waiting_review){
+        wait.appendChild(el('b',null,String(p.items_waiting_review)));
+        wait.appendChild(document.createTextNode((p.oldest_waiting_days!=null?p.oldest_waiting_days+'d oldest':'waiting')));
+      } else {
+        wait.appendChild(el('b',null,'0'));
+        wait.appendChild(document.createTextNode('waiting'));
+      }
+      row.appendChild(wait);
+
+      var signin=el('div','row-signin'); signin.textContent=relTime(p.last_sign_in); signin.title=exactTime(p.last_sign_in);
+      row.appendChild(signin);
+
+      box.appendChild(row);
+    });
+    return box;
+  }
+
+  function renderExpiring(items){
+    var card=el('div','expire-card'+(items.length?'':' empty')+(items.some(function(i){return i.days<0;})?' lapsed-any':''));
+    if(!items.length){ card.appendChild(el('p',null,'Nothing expiring in the next 90 days.')); return withHeading(card); }
+    items.forEach(function(it){
+      var row=el('div','expire-row'+(it.days<0?' lapsed':''));
+      row.appendChild(el('span','expire-name',it.name));
+      row.appendChild(el('span','expire-badge',it.badge_name));
+      row.appendChild(el('span','expire-days tabular', it.days<0 ? ('Lapsed '+Math.abs(it.days)+'d ago') : ('In '+it.days+'d')));
+      card.appendChild(row);
+    });
+    return withHeading(card);
+    function withHeading(c){ var frag=document.createDocumentFragment();
+      frag.appendChild(el('h2','sec-title','Expiring soon')); frag.appendChild(c); return frag; }
+  }
+
+  function boot(){
+    var self=TTCRecords.person();
+    if(!self){ renderSignIn(); return; }
+    if(!TTCRecords.can('see_everyone')){ root.innerHTML=''; root.appendChild(gateCard()); return; }
+    root.innerHTML='<div class="loading">Loading the crew…</div>';
+    Promise.all([ TTCRecords.insights(), TTCRecords.certsExpiring() ]).then(function(res){
+      root.innerHTML='';
+      root.appendChild(renderExpiring(res[1].items||[]));
+      root.appendChild(el('h2','sec-title','Crew — longest waiting first'));
+      root.appendChild(renderRoster(res[0].people||[]));
+    }).catch(function(err){
+      root.innerHTML='';
+      root.appendChild(el('div','loading','Could not load: '+(err.message||'unknown error')));
+    });
+  }
+
+  TTCRecords.ready().then(boot);
+})();
+</script>
+</body>
+</html>
