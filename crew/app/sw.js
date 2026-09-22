@@ -14,8 +14,8 @@
 // Bump SHELL_CACHE whenever index.html, manifest.json, the logo, or an icon changes.
 // Do NOT bump it for content.js edits.
 
-const SHELL_CACHE = 'ttc-crew-v37';
-const FILES_CACHE = 'ttc-crew-files-v21';
+const SHELL_CACHE = 'ttc-crew-v38';
+const FILES_CACHE = 'ttc-crew-files-v22';
 const SHELL = [
   './',
   './index.html',

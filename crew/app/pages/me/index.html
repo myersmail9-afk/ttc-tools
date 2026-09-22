@@ -300,8 +300,13 @@
       verifyBtn.onclick=function(){
         status.className='signin-status'; status.textContent='Verifying…';
         TTCRecords.verifyCode(codeInput.value).then(function(){
-          if(window.TTCAuthGate && new URLSearchParams(location.search).get('signin')==='1') return TTCAuthGate.completeSignIn();
-          boot();
+          // Signing in always lands on the home screen, or on the page you were trying to reach
+          // when the gate stopped you. Previously this only happened when the gate had added
+          // ?signin=1; opening this page directly left you sitting on your own profile, which is
+          // not where anyone wants to start. completeSignIn() already falls back to the home
+          // screen when there is no safe return target, so it is right in both cases.
+          if(window.TTCAuthGate) return TTCAuthGate.completeSignIn();
+          boot();   // gate not loaded (a bare page open) — at least show the signed-in profile
         }).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
       };
     }
