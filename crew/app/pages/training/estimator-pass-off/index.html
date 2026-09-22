@@ -726,14 +726,14 @@
   }
 
   /* ---------- filters bar ---------- */
+  // No document-wide counts on these chips, deliberately — a global number here is exactly the
+  // 127-item denominator the ladder is designed never to show. These just narrow what's visible
+  // inside whichever sections are open; the counts that DO show are always per-gate (level/section).
   function filterBar(){
-    var counts={all:0,open:0,claimed:0,verified:0,returned:0};
-    (D.levels||[]).forEach(function(L){ levelItems(L).forEach(function(i){ counts.all++; counts[itemState(i.id)]++; }); });
     var bar=el('div','filters'); bar.setAttribute('role','tablist');
     ['open','claimed','verified','returned','all'].forEach(function(f){
       var chip=el('button','filter-chip'); chip.setAttribute('role','tab'); chip.setAttribute('aria-pressed', filter===f?'true':'false');
       chip.appendChild(document.createTextNode(FILTER_LABELS[f]));
-      chip.appendChild(el('span','n','('+counts[f]+')'));
       chip.onclick=function(){ setFilter(f); rerender(); };
       bar.appendChild(chip);
     });
