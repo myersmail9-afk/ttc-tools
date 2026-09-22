@@ -25,7 +25,6 @@
   var CONFIG_CACHE_KEY = 'ttc-crew-api-config:v1';
   var SESSION_KEY = 'ttc-crew-session:v1';
   var LOCAL_DB_KEY = 'ttc-crew-local-db:v1';
-  var APP_SECRET_KEY = 'ttc-crew-app-secret'; // set by hand on a device once a real backend exists; never shipped here
   var SYNC_META_KEY = 'ttc-crew-sync-meta:v1';
   var SYNC_POLL_MS = 3000;
   var SYNC_MAX_BACKOFF_MS = 30000;
@@ -79,8 +78,6 @@
     if (!db.people[id]) db.people[id] = { profile: {}, certs: {}, records: {}, last_sign_in: null, certsSeeded: false };
     return db.people[id];
   }
-
-  function getAppSecret() { try { return localStorage.getItem(APP_SECRET_KEY) || ''; } catch (e) { return ''; } }
 
   var state = { config: null, session: loadSession(), readyPromise: null };
   var meCache = {}; // { [area]: {itemId: {state,ts,note,by_person_id,by_role}} } — for the CURRENT person only
@@ -162,7 +159,7 @@
 
   function apiPost(action, fields, needsToken) {
     var isWrite = WRITE_ACTIONS.indexOf(action) !== -1;
-    var payload = Object.assign({ action: action, app_secret: getAppSecret() }, fields || {});
+    var payload = Object.assign({ action: action }, fields || {});
     if (needsToken) {
       if (!state.session || !state.session.token) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       payload.token = state.session.token;
