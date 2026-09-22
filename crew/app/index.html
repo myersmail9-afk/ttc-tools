@@ -237,8 +237,10 @@
   .topbar-back svg { width: 22px; height: 22px; }
   .topbar-title {
     flex: 1; text-align: center; font-weight: 600; font-size: 17px;
-    padding-right: 48px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0; padding-right: 56px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .topbar--home .topbar-title { text-align: left; padding-left: 20px; }
+  .topbar > .ttc-pb { margin-right: 8px; }
 
   /* ---- Search ---- */
   .search-wrap {
@@ -427,9 +429,10 @@
 
   /* ---- Theme toggle (fixed, every screen: home, category, gate) ---- */
   .theme-fab {
-    position: fixed; top: calc(10px + env(safe-area-inset-top)); right: 12px; z-index: 20;
+    position: fixed; top: calc(6px + env(safe-area-inset-top));
+    right: max(60px, calc((100vw - 640px) / 2 + 60px)); z-index: 20;
     display: flex; align-items: center; justify-content: center;
-    width: 40px; height: 40px; border-radius: 50%;
+    width: 44px; height: 44px; border-radius: 50%;
     background: rgba(20,23,20,.4); border: 1px solid rgba(255,255,255,.22);
     color: var(--fg-on-dark); cursor: pointer; padding: 0;
   }
@@ -865,6 +868,14 @@
   // ---- Home ----
   function renderHome() {
     clear(app);
+
+    var topbar = document.createElement('div');
+    topbar.className = 'topbar topbar--home';
+    var topbarTitle = document.createElement('div');
+    topbarTitle.className = 'topbar-title';
+    topbarTitle.textContent = 'TTC Crew';
+    topbar.appendChild(topbarTitle);
+    app.appendChild(topbar);
 
     var header = document.createElement('header');
     header.className = 'header';
