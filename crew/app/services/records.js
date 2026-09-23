@@ -33,11 +33,16 @@
   var SYNC_POLL_MS = 3000;
   var SYNC_MAX_BACKOFF_MS = 30000;
 
-  var ROLE_CAPS = {
-    crew: {},
-    trainer: { verify_others: true, see_everyone: true },
-    office: { verify_others: true, see_everyone: true, admin_people: true }
-  };
+  // Seeing and changing OTHER people's progress belongs to a named pair, not to a role (Joseph,
+  // 2026-09-22): David and Joseph. The server is the authority — it refuses every cross-person read
+  // and write from anyone else — and says so on the signed-in person as `supervisor`. This list only
+  // covers a session saved before the server started sending that flag, and the local demo mode.
+  var SUPERVISOR_IDS = ['david-thunell', 'joseph-myers'];
+  function isSupervisorPerson(p) {
+    if (!p) return false;
+    if (typeof p.supervisor === 'boolean') return p.supervisor;
+    return SUPERVISOR_IDS.indexOf(p.id) !== -1;
+  }
 
   var PROFILE_FORBIDDEN = ['email', 'role', 'person_id', 'active'];
   var PROFILE_LIMITS = { preferred_name: 40, about: 280, certifications: 200, phone_optional: 25 };
@@ -430,10 +435,15 @@
 
   function person() { return state.session ? state.session.person : null; }
   function role() { var p = person(); return p ? p.role : null; }
-  function can(cap) { var r = role(); return !!(r && ROLE_CAPS[r] && ROLE_CAPS[r][cap]); }
+  function can(cap) {
+    var p = person(); if (!p) return false;
+    if (cap === 'see_everyone' || cap === 'verify_others') return isSupervisorPerson(p);
+    if (cap === 'admin_people') return p.role === 'office';
+    return false;
+  }
 
   function completeSignIn(mode, p, token) {
-    state.session = { mode: mode, token: token, person: { id: p.id, name: p.name, email: p.email || '', role: p.role, test: !!p.test } };
+    state.session = { mode: mode, token: token, person: { id: p.id, name: p.name, email: p.email || '', role: p.role, supervisor: isSupervisorPerson(p), test: !!p.test } };
     saveSession(state.session);
     if (mode === 'local') {
       var db = loadLocalDb();
@@ -468,7 +478,7 @@
         var email = state.session && state.session.pendingEmail;
         if (!email) return Promise.reject({ error: 'bad_request', message: 'Start sign-in first.' });
         return apiPost('signin_verify', { email: email, code: code }).then(function (res) {
-          completeSignIn('remote', { id: res.person.id, name: res.person.name, role: res.person.role, email: email }, res.token);
+          completeSignIn('remote', { id: res.person.id, name: res.person.name, role: res.person.role, supervisor: res.person.supervisor, email: email }, res.token);
           return { ok: true, person: person() };
         });
       }
@@ -541,7 +551,7 @@
           throw invalid;
         }
         var nextPerson = {
-          id: fresh.id, name: fresh.name, role: fresh.role,
+          id: fresh.id, name: fresh.name, role: fresh.role, supervisor: isSupervisorPerson(fresh),
           email: fresh.email || persisted.person.email || '', test: !!fresh.test
         };
         state.session = persisted;
@@ -983,7 +993,7 @@
       var self = person(); if (!self) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
       for (var i = 0; i < items.length; i++) {
         var it = items[i];
-        if (self.role === 'crew') {
+        if (!can('verify_others')) {
           if (it.person_id !== self.id) return Promise.reject({ error: 'forbidden', message: "crew may not batch-verify another person's item." });
           if (it.state !== 'claimed') return Promise.reject({ error: 'forbidden', message: 'crew may only set state to claimed.' });
         }

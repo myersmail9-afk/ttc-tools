@@ -20,7 +20,8 @@
 //   desc    one line under the label (optional)
 //   href    where it goes
 //   kind    sheet | form | doc | pdf | app | link | file   (drives the small badge and open behavior)
-//   roles   optional; defaults to the section's roles. "crew" = everyone, "office" = unlocked phones only
+//   roles   optional; defaults to the section's roles. "crew" = everyone, "office" = office role,
+//           "supervisor" = David and Joseph only (see other people's progress)
 //   search  optional extra keywords for the search box
 //   group   optional sub-heading string; the category view prints it when it differs from the
 //           previous tile's group (used today only for the office section's "Hiring paperwork" set)
@@ -126,8 +127,8 @@ window.TTC_CONTENT = {
         { id: "estimator-pass-off", label: "Qualified Estimator Pass-Off", desc: "The tiered path from Estimator Trainee to independent estimating authority, trackable live", href: "pages/training/estimator-pass-off/index.html", kind: "file", search: "estimator training tier certification pass off" },
         { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" },
         { id: "my-profile", label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
-        { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["office"], search: "roster team insights expiring" },
-        { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["office"], search: "verify batch approve sign off" }
+        { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["supervisor"], search: "roster team insights expiring" },
+        { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["supervisor"], search: "verify batch approve sign off" }
       ]
     },
 

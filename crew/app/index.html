@@ -503,15 +503,19 @@
     } catch (e) {}
   })();
 
-  var ROLE_KEY = 'ttc-crew-roles';
+  // Which tiles show is decided by WHO IS SIGNED IN — the whole app sits behind sign-in now, so the
+  // old ?office=1 device switch is gone. "crew" is everyone; "office" is the office role; "supervisor"
+  // is David and Joseph, the only people who can open other crew members' progress.
   function loadRoles() {
-    var q = new URLSearchParams(location.search);
     var roles = ['crew'];
-    try { roles = JSON.parse(localStorage.getItem(ROLE_KEY) || '["crew"]'); } catch (e) {}
-    if (q.get('office') === '1') roles = ['crew', 'office'];
-    if (q.get('office') === '0') roles = ['crew'];
-    try { localStorage.setItem(ROLE_KEY, JSON.stringify(roles)); } catch (e) {}
-    if (q.has('office')) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
+    try {
+      var sess = JSON.parse(localStorage.getItem('ttc-crew-session:v1') || 'null');
+      var p = sess && sess.person;
+      if (p && p.role === 'office') roles.push('office');
+      var sup = p && (typeof p.supervisor === 'boolean' ? p.supervisor : ['david-thunell', 'joseph-myers'].indexOf(p.id) !== -1);
+      if (sup) roles.push('supervisor');
+    } catch (e) { /* no session: the gate is already sending this person to sign in */ }
+    try { localStorage.removeItem('ttc-crew-roles'); } catch (e) {}
     return roles;
   }
   var can = function (item, fallbackRoles, roles) {
