@@ -339,34 +339,18 @@
   'use strict';
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec';
-  var CODE_KEY = 'ttc-crew-code';
+  // Access is the crew app's email sign-in (Joseph, 2026-09-23). The shared crew code is gone:
+  // this page sends the signed-in person's token, and the contacts server checks it with the
+  // records server. Any code a phone still remembers is dropped.
   var CACHE_KEY = 'ttc-crew-contacts-cache';
-
   var main = document.getElementById('main');
   function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); node.className = ''; }
-
-  // ---- ?k= convenience: read it, store it, then strip it from the URL bar ----
-  (function pickUpQueryCode() {
+  try { localStorage.removeItem('ttc-crew-code'); } catch (e) {}
+  function getToken() {
     try {
-      var q = new URLSearchParams(location.search);
-      var k = q.get('k');
-      if (k && /^[0-9]+$/.test(k)) {
-        localStorage.setItem(CODE_KEY, k);
-        q.delete('k');
-        var rest = q.toString();
-        history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
-      }
-    } catch (e) {}
-  })();
-
-  function getStoredCode() {
-    try { return localStorage.getItem(CODE_KEY) || ''; } catch (e) { return ''; }
-  }
-  function storeCode(code) {
-    try { localStorage.setItem(CODE_KEY, code); } catch (e) {}
-  }
-  function clearCode() {
-    try { localStorage.removeItem(CODE_KEY); } catch (e) {}
+      var sess = JSON.parse(localStorage.getItem('ttc-crew-session:v1') || 'null');
+      return (sess && sess.mode === 'remote' && sess.token) ? String(sess.token) : '';
+    } catch (e) { return ''; }
   }
   function getCache() {
     try {
@@ -419,81 +403,29 @@
 
   // ================= Views =================
 
-  function renderGate(errorMsg) {
+  // Reached only when the server says the sign-in is no longer valid (revoked, deactivated, or a
+  // very old token). Signing out lands on the app's email sign-in and comes back here afterwards.
+  function renderGate() {
     clear(main);
     var card = document.createElement('div');
     card.className = 'glass-card gate';
-
     var h2 = document.createElement('h2');
-    h2.textContent = 'Enter the crew code';
+    h2.textContent = 'Sign in again to see contacts';
     card.appendChild(h2);
-
     var hint = document.createElement('p');
     hint.className = 'gate-hint';
-    hint.textContent = 'Ask Joseph or David for it. Your phone remembers it after the first time.';
+    hint.textContent = 'Your sign-in on this phone is no longer valid. It takes one emailed code.';
     card.appendChild(hint);
-
-    var input = document.createElement('input');
-    input.className = 'code-input';
-    input.type = 'text';
-    input.autocomplete = 'off';
-    input.autocomplete = 'off';
-    input.setAttribute('aria-label', 'Crew code');
-    card.appendChild(input);
-
-    var errLine = document.createElement('p');
-    errLine.className = 'gate-error';
-    errLine.hidden = true;
-    errLine.textContent = 'That code did not match. Try again.';
-    if (errorMsg === 'code') errLine.hidden = false;
-    card.appendChild(errLine);
-
     var btn = document.createElement('button');
     btn.className = 'btn-orange';
     btn.type = 'button';
-    btn.textContent = 'Open Contacts';
-    card.appendChild(btn);
-
-    var retryLine = document.createElement('p');
-    retryLine.className = 'gate-retry-line';
-    retryLine.hidden = true;
-    retryLine.textContent = 'Still loading, Google is slow right now.';
-    card.appendChild(retryLine);
-
-    main.appendChild(card);
-
-    function submit() {
-      var code = (input.value || '').trim();
-      if (!code) return;
-      errLine.hidden = true;
-      retryLine.hidden = true;
-      btn.disabled = true;
-      btn.textContent = 'Checking...';
-      loadContacts(code, function (result) {
-        btn.disabled = false;
-        btn.textContent = 'Open Contacts';
-        retryLine.hidden = true;
-        if (result.ok) {
-          storeCode(code);
-          renderContacts(result.data, false);
-        } else if (result.error === 'code') {
-          errLine.hidden = false;
-          input.focus();
-        } else if (result.error === 'setup') {
-          renderSetupError();
-        } else {
-          renderNetworkError(code);
-        }
-      }, function onRetrying() {
-        retryLine.hidden = false;
-      });
-    }
-
-    btn.addEventListener('click', submit);
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') submit();
+    btn.textContent = 'Sign in';
+    btn.addEventListener('click', function () {
+      try { localStorage.removeItem('ttc-crew-session:v1'); localStorage.removeItem('ttc-crew-auth-ok:v1'); } catch (e) {}
+      location.href = '../me/index.html?signin=1&return=' + encodeURIComponent(location.pathname);
     });
-    input.focus();
+    card.appendChild(btn);
+    main.appendChild(card);
   }
 
   function renderLoading() {
@@ -539,7 +471,7 @@
       renderLoading();
       loadContacts(code, function (result) {
         if (result.ok) renderContacts(result.data, false);
-        else if (result.error === 'code') renderGate('code');
+        else if (result.error === 'signin') renderGate('code');
         else if (result.error === 'setup') renderSetupError();
         else renderNetworkError(code);
       }, showLoadingRetryNote);
@@ -747,18 +679,6 @@
       sheetLink.textContent = 'Open the sheet';
       footer.appendChild(sheetLink);
     }
-    var forget = document.createElement('a');
-    forget.className = 'forget-link';
-    forget.href = '#';
-    forget.textContent = 'Forget the code on this phone';
-    forget.style.display = 'block';
-    forget.addEventListener('click', function (e) {
-      e.preventDefault();
-      clearCode();
-      try { localStorage.removeItem(CACHE_KEY); } catch (err) {}
-      renderGate();
-    });
-    footer.appendChild(forget);
     main.appendChild(footer);
   }
 
@@ -770,19 +690,19 @@
   // is never retried — it's a real answer from the server, not a Google hiccup.
   var RETRY_DELAYS_MS = [1500, 3000, 6000, 10000];
 
-  function attemptFetch(code, attemptIndex, cb, onRetrying) {
-    var url = BASE_URL + '?format=json&k=' + encodeURIComponent(String(code).trim().toLowerCase());
-    if (attemptIndex > 0) url += '&t=' + Date.now();
-
-    fetch(url, { redirect: 'follow', credentials: 'omit' })
+  function attemptFetch(token, attemptIndex, cb, onRetrying) {
+    fetch(BASE_URL + (attemptIndex > 0 ? '?t=' + Date.now() : ''), {
+      method: 'POST', redirect: 'follow', credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // text/plain: no preflight Apps Script can't answer
+      body: JSON.stringify({ token: token })
+    })
       .then(function (res) {
         return res.text().then(function (text) {
           var data;
           try { data = JSON.parse(text); } catch (e) { data = null; }
           if (!data || typeof data !== 'object' || typeof data.ok !== 'boolean') {
             // Not a real answer (e.g. Google's HTML error page) — treat as transient.
-            var err = new Error('bad-response');
-            throw err;
+            throw new Error('bad-response');
           }
           return data;
         });
@@ -791,17 +711,17 @@
         if (data.ok) {
           setCache(data);
           cb({ ok: true, data: data });
-        } else if (data.error === 'code' || data.error === 'setup') {
+        } else if (data.error === 'signin' || data.error === 'setup') {
           cb({ ok: false, error: data.error });
         } else {
-          cb({ ok: false, error: 'network' });
+          cb({ ok: false, error: 'network' });   // includes signin_unavailable: can't check != refused
         }
       })
       .catch(function () {
         if (attemptIndex < RETRY_DELAYS_MS.length) {
           if (onRetrying) onRetrying(attemptIndex);
           setTimeout(function () {
-            attemptFetch(code, attemptIndex + 1, cb, onRetrying);
+            attemptFetch(token, attemptIndex + 1, cb, onRetrying);
           }, RETRY_DELAYS_MS[attemptIndex]);
         } else {
           cb({ ok: false, error: 'network' });
@@ -809,26 +729,22 @@
       });
   }
 
-  function loadContacts(code, cb, onRetrying) {
-    attemptFetch(code, 0, cb, onRetrying);
+  function loadContacts(token, cb, onRetrying) {
+    attemptFetch(token, 0, cb, onRetrying);
   }
 
   // ================= Boot =================
-  var storedCode = getStoredCode();
+  var storedCode = getToken();   // the sign-in token (name kept so the flow below reads unchanged)
   var cache = getCache();
 
   if (!storedCode) {
-    if (cache) {
-      // Shouldn't normally happen (cache implies a code worked before), but if the code was
-      // forgotten while a cache remains, still ask for the code before showing anything.
-    }
-    renderGate();
+    renderGate();   // the app-wide gate normally sends people to sign in before they get here
   } else if (cache) {
     renderContacts(cache, false);
     loadContacts(storedCode, function (result) {
       if (result.ok) {
         renderContacts(result.data, false);
-      } else if (result.error === 'code') {
+      } else if (result.error === 'signin') {
         renderGate('code');
       } else if (result.error === 'setup') {
         renderSetupError();
@@ -841,7 +757,7 @@
     loadContacts(storedCode, function (result) {
       if (result.ok) {
         renderContacts(result.data, false);
-      } else if (result.error === 'code') {
+      } else if (result.error === 'signin') {
         renderGate('code');
       } else if (result.error === 'setup') {
         renderSetupError();

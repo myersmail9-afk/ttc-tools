@@ -1088,81 +1088,16 @@
     }
   }
 
-  // ================= Front door: the crew code, asked once per phone =================
-  // Level 1 only (the app's files are public on GitHub Pages); the code is checked against the
-  // contacts script so a wrong code is refused, then remembered in localStorage.
-  var CODE_KEY = 'ttc-crew-code';
-  var CODE_CHECK_URL = 'https://script.google.com/macros/s/AKfycbwFLYvp9TH35UjColkwFff0ArONQrT_l-WbG8cFBzS-O0wryMX5PzVBFeBlioHvJz0mZw/exec';
-  // The front-door check is LOCAL and instant (no network, works offline): the code is compared
-  // against a SHA-256 digest. This is a Level 1 gate for the app's own pages; the contacts data
-  // and the brain API check the real code server-side on every request.
-  var CODE_DIGEST = '311fe3feed16b9cd8df0f8b1517be5cb86048707df4889ba8dc37d4d68866d02';
-  function sha256Hex(str) {
-    var enc = new TextEncoder().encode(str);
-    return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
-      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
-    });
-  }
-  function checkCode(code, attempt, done) {
-    try {
-      if (!(window.crypto && crypto.subtle)) { done(code === 'yolo' ? 'ok' : 'wrong'); return; }
-      sha256Hex(code).then(function (hex) { done(hex === CODE_DIGEST ? 'ok' : 'wrong'); }).catch(function () { done('offline'); });
-    } catch (e) { done('offline'); }
-  }
-  function ensureCrewCode(next) {
-    var saved = null; try { saved = localStorage.getItem(CODE_KEY); } catch (e) {}
-    if (saved) { next(); return; }
-    clear(app);
-    var wrap = document.createElement('div'); wrap.className = 'gate-wrap';
-    var badge = document.createElement('img'); badge.className = 'gate-badge'; badge.src = 'badge.png'; badge.alt = '';
-    var title = document.createElement('div'); title.className = 'gate-title'; title.textContent = 'TTC Crew';
-    var card = document.createElement('div'); card.className = 'gate-card';
-    var h2 = document.createElement('h2'); h2.textContent = 'Enter the crew code';
-    var p = document.createElement('p'); p.textContent = 'Ask Joseph or David for it. This phone remembers it after the first time.';
-    var form = document.createElement('form');
-    var input = document.createElement('input'); input.className = 'gate-input'; input.type = 'text'; input.autocomplete = 'off'; input.setAttribute('autocapitalize','none'); input.spellcheck = false; input.maxLength = 24; input.setAttribute('aria-label', 'Crew code');
-    var btn = document.createElement('button'); btn.className = 'gate-btn'; btn.type = 'submit'; btn.textContent = 'Open the App';
-    var msg = document.createElement('div'); msg.className = 'gate-msg quiet'; msg.hidden = true;
-    form.appendChild(input); form.appendChild(btn);
-    card.appendChild(h2); card.appendChild(p); card.appendChild(form); card.appendChild(msg);
-    wrap.appendChild(badge); wrap.appendChild(title); wrap.appendChild(card);
-    app.appendChild(wrap);
-    setTimeout(function () { try { input.focus(); } catch (e) {} }, 50);
-    // Some phone keyboards send Enter without firing the form's submit; handle it explicitly.
-    input.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Enter' || ev.keyCode === 13) {
-        ev.preventDefault();
-        if (form.requestSubmit) form.requestSubmit(); else btn.click();
-      }
-    });
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var code = input.value.trim().toLowerCase();
-      if (!code) return;
-      btn.disabled = true; btn.textContent = 'Checking';
-      msg.className = 'gate-msg quiet'; msg.hidden = false; msg.textContent = 'One moment.';
-      checkCode(code, 0, function (result) {
-        if (result === 'ok') {
-          try { localStorage.setItem(CODE_KEY, code); } catch (e) {}
-          next();
-        } else if (result === 'wrong') {
-          btn.disabled = false; btn.textContent = 'Open the App';
-          msg.className = 'gate-msg'; msg.textContent = 'That code did not match. Try again.';
-        } else {
-          btn.disabled = false; btn.textContent = 'Open the App';
-          msg.className = 'gate-msg'; msg.textContent = 'Could not check the code on this phone. Try again.';
-        }
-      });
-    });
-  }
+  // The shared crew code that used to stand here is gone (Joseph, 2026-09-23). The email sign-in
+  // (shared/auth-gate.js) is the only way into the app, and it is asked once per device. Any code a
+  // phone still remembers is dropped so nothing keeps treating it as a permission.
+  try { localStorage.removeItem('ttc-crew-code'); } catch (e) {}
 
   // ================= Boot =================
   try {
     if (content && content.sections) {
-      ensureCrewCode(function () {
-        window.addEventListener('hashchange', route);
-        route();
-      });
+      window.addEventListener('hashchange', route);
+      route();
     } else {
       clear(app);
       app.appendChild(buildFooter());
