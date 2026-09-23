@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<style id="ttc-auth-prehide">html:not(.ttc-auth-ready) body > :not(#ttc-auth-gate){visibility:hidden!important}html:not(.ttc-auth-ready) body::before{content:"Opening TTC Crew sign-in… If this stays here, check your connection and reload.";display:block;padding:2rem;font:16px/1.5 system-ui}</style>
+<noscript><style>body::before{content:"Turn on JavaScript to sign in to TTC Crew."!important}</style></noscript>
+<script src="../../shared/auth-gate.js"></script>
+<meta name="theme-color" content="#2a3a25">
+<meta name="robots" content="noindex">
+<title>Tree Calls — TTC Crew</title>
+<!-- KIT: pre-paint. Must be inline and first. Do not move to shared/. -->
+<script>(function(){try{var t=localStorage.getItem('ttc-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<style>html{background:#f9f6f2}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){background:#1b2218}}html[data-theme="dark"]{background:#1b2218}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!--
+  Tree Calls — David's customer decisions (API v5.4, 2026-09-23).
+  This page is PUBLIC code (it ships from the ttc-tools GitHub Pages repo) and contains NO customer
+  data. Every card, photo and answer comes from the private TTC Crew App Records Sheet, served only to
+  a signed-in supervisor (David, Joseph). Everything from the Sheet is rendered with textContent —
+  never innerHTML — so a card can't inject markup. Links open only if they are https.
+-->
+<style>
+  :root{
+    --ttc-orange:#C9601A; --ttc-green:#4a6741; --ttc-dark:#2a3a25; --ttc-gold:#f0c080;
+    --bg:#f9f6f2; --bg-alt:#f1ece4; --card:#ffffff; --card-2:#fbf9f6;
+    --fg1:#1f2419; --fg2:#5a5f55; --fg3:#8b8f86;
+    --border:rgba(42,58,37,0.14); --border-soft:rgba(42,58,37,0.07);
+    --claim-bg:#faeeda; --claim-fg:#633806; --claim-br:#EF9F27;
+    --ver-bg:#eaf3de;  --ver-fg:#27500A;  --ver-br:#97C459;
+    --skip-bg:#eceff3; --skip-fg:#34404d; --skip-br:#8fa0b3;
+    --err-bg:#fbe9e5;  --err-fg:#7a2412;  --err-br:#d9765b;
+    --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
+    --fs:16px;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08);
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --skip-bg:#252d36; --skip-fg:#c3cfdc; --skip-br:#5d6f83;
+    --err-bg:#3d1e16;  --err-fg:#f3b9a6;  --err-br:#a5523b;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
+    --fg1:#f1eee7; --fg2:#b9bcb2; --fg3:#858a7e;
+    --border:rgba(249,246,242,.16); --border-soft:rgba(249,246,242,.08);
+    --claim-bg:#3d2d12; --claim-fg:#f3cd8e; --claim-br:#a9762a;
+    --ver-bg:#22381a;  --ver-fg:#c6e3a3;  --ver-br:#4f7a37;
+    --skip-bg:#252d36; --skip-fg:#c3cfdc; --skip-br:#5d6f83;
+    --err-bg:#3d1e16;  --err-fg:#f3b9a6;  --err-br:#a5523b;
+    --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-textsize="big"]{--fs:18.5px}
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg1);font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+       font-size:var(--fs);line-height:1.55;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  a{color:inherit} svg{display:block}
+  button,textarea,input{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ttc-orange);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  .tabular{font-variant-numeric:tabular-nums}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+          padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--ttc-dark);color:#f1eee7}
+  .topbar-back{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto;text-decoration:none}
+  .topbar-back svg{width:22px;height:22px}
+  .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:34px}
+  .icon-btn{background:none;border:0;padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
+
+  .wrap{max-width:760px;margin:0 auto;padding:16px 16px 90px}
+  .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
+  .notice{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;color:var(--fg2);box-shadow:var(--shadow)}
+  .notice a{color:var(--ttc-orange);font-weight:700}
+  .notice.err{background:var(--err-bg);border-color:var(--err-br);color:var(--err-fg);text-align:left}
+
+  .summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:2px 2px 14px}
+  .summary h1{font-size:21px;line-height:1.25;margin:0;font-weight:800;letter-spacing:-.01em}
+  .summary .counts{font-size:13.5px;color:var(--fg2)}
+  .summary .counts b{color:var(--fg1)}
+  .section-label{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin:22px 2px 9px}
+
+  /* one call */
+  .call{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);margin:0 0 14px;overflow:hidden}
+  .call-head{padding:14px 16px 0}
+  .call-who{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+  .call-name{font-size:18px;font-weight:800;margin:0;line-height:1.3}
+  .call-town{font-size:13px;color:var(--fg3)}
+  .chip{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--bg-alt);color:var(--fg2);border:1px solid var(--border-soft)}
+  .call-ask{font-size:1.06em;font-weight:600;margin:8px 0 0;line-height:1.45;text-wrap:pretty}
+
+  .strip{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 2px;scroll-snap-type:x mandatory;scroll-padding-inline:16px;-webkit-overflow-scrolling:touch}
+  .strip:empty{display:none}
+  .thumb{flex:0 0 auto;width:118px;height:118px;border-radius:11px;border:1px solid var(--border);background:var(--bg-alt);padding:0;overflow:hidden;cursor:zoom-in;scroll-snap-align:start}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb.skel{cursor:default;background:linear-gradient(100deg,var(--bg-alt) 40%,var(--card-2) 50%,var(--bg-alt) 60%) 0 0/200% 100%;animation:shimmer 1.3s linear infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){.thumb.skel{animation:none}}
+  .strip-note{font-size:12px;color:var(--fg3);padding:4px 16px 0}
+
+  .take{margin:12px 16px 0;padding:10px 12px;border-radius:11px;border-left:4px solid var(--skip-br);background:var(--skip-bg);color:var(--skip-fg);font-size:14.5px}
+  .take.treat{border-left-color:var(--ver-br);background:var(--ver-bg);color:var(--ver-fg)}
+  .take.see{border-left-color:var(--claim-br);background:var(--claim-bg);color:var(--claim-fg)}
+  .take-label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:2px}
+  .money{margin:9px 16px 0;font-size:13.5px;color:var(--fg2)}
+  .money b{color:var(--fg1);font-weight:700}
+
+  .choices{display:grid;grid-template-columns:1fr;gap:8px;padding:14px 16px 0}
+  @media (min-width:560px){.choices{grid-template-columns:repeat(var(--n,3),1fr)}}
+  .choice{min-height:50px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--card-2);
+          font-weight:700;font-size:15px;cursor:pointer;text-align:center;transition:background .15s,border-color .15s}
+  .choice:hover{border-color:var(--ttc-orange)}
+  .choice[aria-pressed="true"]{background:var(--ttc-dark);border-color:var(--ttc-dark);color:#f6f3ec}
+  :root[data-theme="dark"] .choice[aria-pressed="true"]{background:var(--ttc-gold);border-color:var(--ttc-gold);color:#2a2214}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .choice[aria-pressed="true"]{background:var(--ttc-gold);border-color:var(--ttc-gold);color:#2a2214}}
+  .choice:disabled{opacity:.6;cursor:progress}
+
+  .note-row{padding:10px 16px 0}
+  .note-row label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);margin-bottom:5px}
+  .note-row textarea{width:100%;min-height:62px;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--bg-alt);font-size:15px;resize:vertical}
+  .note-actions{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .status{font-size:12.5px;color:var(--fg3)}
+  .status.ok{color:var(--ver-fg)} .status.bad{color:var(--err-fg);font-weight:600}
+  .btn{font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .btn.primary{background:var(--ttc-orange);border-color:var(--ttc-orange);color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .note-actions .btn{margin-left:auto}
+
+  details.more{margin:14px 0 0;border-top:1px solid var(--border-soft)}
+  details.more > summary{list-style:none;cursor:pointer;padding:12px 16px;font-size:13.5px;font-weight:700;color:var(--ttc-orange);display:flex;align-items:center;gap:6px}
+  details.more > summary::-webkit-details-marker{display:none}
+  details.more > summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:3px}
+  details.more[open] > summary::before{transform:rotate(45deg)}
+  .more-body{padding:0 16px 16px;display:grid;gap:16px}
+  .more-body h3{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin:0 0 6px}
+  .hist{width:100%;border-collapse:collapse;font-size:14px}
+  .hist td{padding:6px 0;border-bottom:1px solid var(--border-soft);vertical-align:top}
+  .hist td:first-child{white-space:nowrap;padding-right:12px;color:var(--fg2);font-weight:600;width:1%}
+  .said{margin:0 0 7px;padding:7px 11px;border-left:3px solid var(--border);color:var(--fg2);font-size:14.5px;font-style:italic}
+  .qs{margin:0;padding-left:18px;font-size:14.5px}
+  .links{display:flex;flex-wrap:wrap;gap:7px}
+
+  .answered-band{display:flex;align-items:center;gap:10px;margin:12px 16px 0;padding:9px 12px;border-radius:11px;background:var(--ver-bg);color:var(--ver-fg);font-size:14px}
+  .answered-band b{font-weight:800}
+  .answered-band .by{margin-left:auto;font-size:12px;opacity:.85;text-align:right}
+  .call.compact .strip,.call.compact .strip-note,.call.compact .take,.call.compact .money,.call.compact .choices,
+  .call.compact .note-row,.call.compact details.more,.call.compact .office-row{display:none}
+  .call.compact .reopen{display:inline-flex}
+  .reopen{display:none;margin:10px 16px 14px}
+  .office-row{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px 14px}
+  .call:not(.compact) .call-foot-pad{height:14px}
+
+  /* office loader (Joseph only) */
+  .office{margin-top:26px;border:1px dashed var(--border);border-radius:14px;padding:16px;background:var(--card-2)}
+  .office h2{font-size:15px;margin:0 0 4px}
+  .office p{margin:0 0 10px;font-size:13.5px;color:var(--fg2)}
+  .office code{font-size:12.5px;background:var(--bg-alt);padding:1px 5px;border-radius:5px}
+  .office-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .file-btn{position:relative;overflow:hidden}
+  .file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .log{margin:12px 0 0;padding:0;list-style:none;font-size:13px;display:grid;gap:4px}
+  .log li.ok{color:var(--ver-fg)} .log li.bad{color:var(--err-fg)} .log li.info{color:var(--fg2)}
+
+  /* photo viewer */
+  .viewer{position:fixed;inset:0;z-index:60;background:rgba(10,12,8,.94);display:flex;flex-direction:column;color:#f1eee7}
+  .viewer[hidden]{display:none}
+  .viewer-top{display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top))}
+  .viewer-title{flex:1;font-size:14px;font-weight:600}
+  .viewer-btn{background:rgba(255,255,255,.12);border:0;border-radius:10px;min-width:44px;height:44px;font-size:20px;font-weight:700;cursor:pointer;color:#fff}
+  .viewer-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:0 8px;touch-action:pan-y pinch-zoom}
+  .viewer-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+  .viewer-nav{display:flex;justify-content:center;gap:14px;padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-back" href="../../index.html#/reviews" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </a>
+  <div class="topbar-title">Tree Calls</div>
+  <button class="icon-btn" id="bigText" type="button" title="Bigger text">Aa</button>
+</div>
+
+<main class="wrap" id="root"><div class="loading">Loading…</div></main>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="viewer-top">
+    <div class="viewer-title" id="viewerTitle"></div>
+    <button class="viewer-btn" id="viewerClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="viewer-stage" id="viewerStage"><img id="viewerImg" alt=""></div>
+  <div class="viewer-nav">
+    <button class="viewer-btn" id="viewerPrev" type="button" aria-label="Previous photo">‹</button>
+    <button class="viewer-btn" id="viewerNext" type="button" aria-label="Next photo">›</button>
+  </div>
+</div>
+
+<script src="../../data/people.js"></script>
+<script src="../../services/records.js"></script>
+<script>
+(function(){
+  'use strict';
+  var root=document.getElementById('root');
+  var LOADER_IDS=['joseph-myers'];          // who sees the "load a batch" + archive tools (the server allows any supervisor)
+  var CALL_ID_RE=/^[a-z][a-z0-9-]{0,62}$/;
+  var MAX_PHOTOS=12, PHOTO_EDGE=1400, PHOTO_QUALITY=0.72;
+
+  // ---- text size (shared app preference)
+  var TS='ttc-textsize';
+  try{ if(localStorage.getItem(TS)==='big') document.documentElement.setAttribute('data-textsize','big'); }catch(e){}
+  document.getElementById('bigText').addEventListener('click',function(){
+    var on=document.documentElement.getAttribute('data-textsize')==='big';
+    if(on) document.documentElement.removeAttribute('data-textsize'); else document.documentElement.setAttribute('data-textsize','big');
+    try{ localStorage.setItem(TS,on?'normal':'big'); }catch(e){}
+  });
+
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+  function when(ts){ if(!ts) return ''; var d=new Date(ts), today=new Date();
+    var t=d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+    if(d.toDateString()===today.toDateString()) return 'today '+t;
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+t; }
+  function firstName(s){ return String(s||'').split(' ')[0]; }
+  function safeHttps(u){ return /^https:\/\/[^\s]+$/.test(String(u||'')); }
+
+  // ---- state
+  var me=null, isLoader=false, showArchived=false;
+  var CALLS={};          // call_id -> latest server view
+  var ORDER=[];          // stable display order for this visit (new calls append; nothing jumps while David works)
+  var VIEWS={};          // call_id -> {node, update()}
+  var PHOTOS={};         // call_id -> {key, list:[dataURI], loading:Promise}
+  var stopWatch=null, lastError=null;
+
+  // ---- photo viewer
+  var viewer=document.getElementById('viewer'), vImg=document.getElementById('viewerImg'), vTitle=document.getElementById('viewerTitle');
+  var vList=[], vIdx=0, vName='', vReturn=null;
+  function openViewer(list, idx, name, from){ vList=list; vIdx=idx; vName=name; vReturn=from; viewer.hidden=false; showV(); document.getElementById('viewerClose').focus(); document.body.style.overflow='hidden'; }
+  function showV(){ vImg.src=vList[vIdx]; vImg.alt=vName+' — photo '+(vIdx+1); vTitle.textContent=vName+' · '+(vIdx+1)+' of '+vList.length; }
+  function closeViewer(){ viewer.hidden=true; vImg.removeAttribute('src'); document.body.style.overflow=''; if(vReturn) vReturn.focus(); }
+  function step(d){ if(!vList.length) return; vIdx=(vIdx+d+vList.length)%vList.length; showV(); }
+  document.getElementById('viewerClose').onclick=closeViewer;
+  document.getElementById('viewerPrev').onclick=function(){ step(-1); };
+  document.getElementById('viewerNext').onclick=function(){ step(1); };
+  document.getElementById('viewerStage').addEventListener('click',function(e){ if(e.target.id==='viewerStage') closeViewer(); });
+  document.addEventListener('keydown',function(e){ if(viewer.hidden) return;
+    if(e.key==='Escape') closeViewer(); else if(e.key==='ArrowLeft') step(-1); else if(e.key==='ArrowRight') step(1); });
+  (function(){ var x0=null; var st=document.getElementById('viewerStage');
+    st.addEventListener('touchstart',function(e){ x0=e.touches.length===1?e.touches[0].clientX:null; },{passive:true});
+    st.addEventListener('touchend',function(e){ if(x0==null) return; var dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>50) step(dx<0?1:-1); },{passive:true}); })();
+
+  // ---- photos load lazily, one call at a time, only when the card is near the screen
+  var io=('IntersectionObserver' in window)? new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ io.unobserve(en.target); loadPhotos(en.target.getAttribute('data-call')); } });
+  },{rootMargin:'400px 0px'}) : null;
+  function photoKey(c){ return c.photo_count+'|'+(c.updated_at||0); }
+  function loadPhotos(id){
+    var c=CALLS[id]; if(!c || !c.photo_count) return;
+    var key=photoKey(c), cached=PHOTOS[id];
+    if(cached && cached.key===key && (cached.list || cached.loading)) return;
+    var entry={key:key, list:null, loading:null};
+    PHOTOS[id]=entry;
+    entry.loading=TTCRecords.callPhotos(id).then(function(res){
+      entry.list=res.photos||[]; entry.loading=null; if(VIEWS[id]) VIEWS[id].drawPhotos();
+    }).catch(function(err){ entry.loading=null; entry.error=err.message||'Could not load photos.'; if(VIEWS[id]) VIEWS[id].drawPhotos(); });
+  }
+
+  // ---- one card
+  function buildCall(id){
+    var node=el('article','call'); node.setAttribute('data-call',id);
+    var head=el('div','call-head'); node.appendChild(head);
+    var who=el('div','call-who'); head.appendChild(who);
+    var name=el('h2','call-name'); who.appendChild(name);
+    var town=el('span','call-town'); who.appendChild(town);
+    var kind=el('span','chip'); who.appendChild(kind);
+    var ask=el('p','call-ask'); head.appendChild(ask);
+
+    var band=el('div','answered-band'); band.hidden=true; node.appendChild(band);
+    var reopen=el('button','btn reopen','Change my answer'); reopen.type='button'; node.appendChild(reopen);
+
+    var strip=el('div','strip'); node.appendChild(strip);
+    var stripNote=el('div','strip-note'); stripNote.hidden=true; node.appendChild(stripNote);
+    var take=el('div','take'); node.appendChild(take);
+    var money=el('div','money'); node.appendChild(money);
+    var choices=el('div','choices'); choices.setAttribute('role','group'); node.appendChild(choices);
+
+    var noteRow=el('div','note-row'); node.appendChild(noteRow);
+    var noteLbl=el('label',null,'Anything for Joseph? (optional)'); noteLbl.htmlFor='note-'+id; noteRow.appendChild(noteLbl);
+    var ta=document.createElement('textarea'); ta.id='note-'+id; ta.placeholder='A time you can go, a dose, what to tell them…'; noteRow.appendChild(ta);
+    var noteActs=el('div','note-actions'); noteRow.appendChild(noteActs);
+    var status=el('span','status'); status.setAttribute('role','status'); noteActs.appendChild(status);
+    var saveNote=el('button','btn primary','Save note'); saveNote.type='button'; saveNote.hidden=true; noteActs.appendChild(saveNote);
+
+    var more=document.createElement('details'); more.className='more'; node.appendChild(more);
+    var sum=el('summary',null,'History, their words, Jobber links'); more.appendChild(sum);
+    var moreBody=el('div','more-body'); more.appendChild(moreBody);
+
+    var officeRow=el('div','office-row'); node.appendChild(officeRow);
+    var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; officeRow.appendChild(archiveBtn);
+    officeRow.hidden=!isLoader;
+    var pad=el('div','call-foot-pad'); node.appendChild(pad);
+
+    var noteDirty=false, busy=false, forceOpen=false, drawnChoicesKey='', drawnMoreKey='';
+    ta.addEventListener('input',function(){ noteDirty=true; syncNoteButton(); });
+
+    function current(){ return CALLS[id]; }
+    function syncNoteButton(){
+      var c=current(); var d=c&&c.decision;
+      saveNote.hidden = !(d && noteDirty && ta.value.trim()!==String(d.note||'').trim());
+    }
+    function setStatus(text, tone){ status.textContent=text||''; status.className='status'+(tone?' '+tone:''); }
+
+    function save(choice){
+      if(busy) return; busy=true;
+      var btns=choices.querySelectorAll('button'); Array.prototype.forEach.call(btns,function(b){ b.disabled=true; });
+      saveNote.disabled=true;
+      setStatus('Saving…');
+      TTCRecords.callDecide(id, choice, ta.value).then(function(res){
+        var c=current(); if(c){ c.decision=res.decision; }
+        noteDirty=false; forceOpen=false;
+        setStatus('Saved '+when(res.decision.ts)+(res.notified?' · Joseph is emailed':''),'ok');
+        update();
+      }).catch(function(err){
+        setStatus((err&&err.message)||'Could not save — check your signal and tap again.','bad');
+      }).then(function(){
+        busy=false; Array.prototype.forEach.call(choices.querySelectorAll('button'),function(b){ b.disabled=false; }); saveNote.disabled=false;
+      });
+    }
+    saveNote.onclick=function(){ var d=current().decision; if(d) save(d.choice); };
+    reopen.onclick=function(){ forceOpen=true; update(); var first=choices.querySelector('button'); if(first) first.focus(); };
+    archiveBtn.onclick=function(){
+      archiveBtn.disabled=true;
+      TTCRecords.callsPut({call_id:id, status: current().status==='archived'?'open':'archived'}).then(function(){ return load(); })
+        .catch(function(err){ setStatus(err.message||'Could not archive.','bad'); }).then(function(){ archiveBtn.disabled=false; });
+    };
+
+    function drawPhotos(){
+      var c=current(); strip.innerHTML=''; stripNote.hidden=true;
+      if(!c || !c.photo_count) return;
+      var p=PHOTOS[id];
+      if(p && p.list && p.key===photoKey(c)){
+        p.list.forEach(function(uri,i){
+          var b=el('button','thumb'); b.type='button'; b.setAttribute('aria-label','Open photo '+(i+1)+' of '+p.list.length);
+          var im=document.createElement('img'); im.src=uri; im.alt=''; im.loading='lazy'; im.decoding='async'; b.appendChild(im);
+          b.onclick=function(){ openViewer(p.list,i,(c.card&&c.card.name)||id,b); };
+          strip.appendChild(b);
+        });
+        stripNote.textContent='Tap a photo to see it big.'; stripNote.hidden=false;
+        return;
+      }
+      for(var i=0;i<Math.min(c.photo_count,MAX_PHOTOS);i++){ var s=el('div','thumb skel'); s.setAttribute('aria-hidden','true'); strip.appendChild(s); }
+      if(p && p.error){ stripNote.textContent=p.error; stripNote.hidden=false; }
+      else { stripNote.textContent='Loading '+c.photo_count+' photo'+(c.photo_count===1?'':'s')+'…'; stripNote.hidden=false; }
+      if(io && !(p && p.loading)) io.observe(node); else if(!io) loadPhotos(id);
+    }
+
+    function drawMore(card){
+      var key=JSON.stringify([card.history,card.said,card.questions,card.links]);
+      if(key===drawnMoreKey) return; drawnMoreKey=key;
+      moreBody.innerHTML='';
+      if(card.history && card.history.length){
+        var sec=el('section'); sec.appendChild(el('h3',null,'Treatment history'));
+        var t=el('table','hist'), tb=el('tbody'); t.appendChild(tb);
+        card.history.forEach(function(r){ var tr=el('tr'); tr.appendChild(el('td','tabular',r[0])); tr.appendChild(el('td',null,r[1])); tb.appendChild(tr); });
+        sec.appendChild(t); moreBody.appendChild(sec);
+      }
+      if(card.said && card.said.length){
+        var s2=el('section'); s2.appendChild(el('h3',null,'What they said'));
+        card.said.forEach(function(q){ s2.appendChild(el('blockquote','said','“'+q+'”')); });
+        moreBody.appendChild(s2);
+      }
+      if(card.questions && card.questions.length){
+        var s3=el('section'); s3.appendChild(el('h3',null,"Joseph's questions"));
+        var ul=el('ul','qs'); card.questions.forEach(function(q){ ul.appendChild(el('li',null,q)); }); s3.appendChild(ul);
+        moreBody.appendChild(s3);
+      }
+      var links=(card.links||[]).filter(function(l){ return safeHttps(l[1]); });
+      if(links.length){
+        var s4=el('section'); s4.appendChild(el('h3',null,'In Jobber'));
+        var box=el('div','links');
+        links.forEach(function(l){ var a=el('a','btn',l[0]+' ↗'); a.href=l[1]; a.target='_blank'; a.rel='noopener noreferrer'; box.appendChild(a); });
+        s4.appendChild(box); moreBody.appendChild(s4);
+      }
+      more.hidden = !moreBody.childNodes.length;
+    }
+
+    function update(){
+      var c=current(); if(!c) return;
+      var card=c.card||{}, d=c.decision;
+      name.textContent=card.name||id;
+      town.textContent=card.town||''; town.hidden=!card.town;
+      kind.textContent=card.kind||''; kind.hidden=!card.kind;
+      ask.textContent=card.ask||'';
+      var tone=card.take_tone||'';
+      take.className='take'+(tone?' '+tone:'');
+      take.innerHTML=''; take.hidden=!card.take;
+      var lbl={treat:"Joseph's read · leaning treat",skip:"Joseph's read · leaning skip",see:"Joseph's read · needs your eyes"}[tone]||"Joseph's read";
+      take.appendChild(el('span','take-label',lbl)); take.appendChild(document.createTextNode(card.take||''));
+      money.innerHTML=''; money.hidden=!card.money; if(card.money){ money.appendChild(el('b',null,'Money: ')); money.appendChild(document.createTextNode(card.money)); }
+
+      var opts=(card.choices&&card.choices.length)?card.choices:['Yes','No','Need to see it'];
+      var ck=JSON.stringify(opts)+'|'+(d?d.choice:'');
+      if(ck!==drawnChoicesKey){
+        drawnChoicesKey=ck; choices.innerHTML=''; choices.style.setProperty('--n',String(Math.min(opts.length,3)));
+        choices.setAttribute('aria-label','Your call for '+(card.name||id));
+        opts.forEach(function(o){
+          var b=el('button','choice',o); b.type='button'; b.setAttribute('aria-pressed', String(!!d && d.choice===o));
+          b.onclick=function(){ save(o); };
+          choices.appendChild(b);
+        });
+      }
+      if(!noteDirty && document.activeElement!==ta) ta.value=d?(d.note||''):'';
+      syncNoteButton();
+
+      band.innerHTML=''; band.hidden=!d;
+      if(d){
+        var left=el('span'); left.appendChild(document.createTextNode((d.by_person_id===(me&&me.id)?'Your':firstName(d.by_name)+"'s")+' call: ')); left.appendChild(el('b',null,d.choice));
+        band.appendChild(left);
+        band.appendChild(el('span','by',when(d.ts)+(d.note?' · note':'')));
+        if(!status.textContent) setStatus(d.note?'Note: '+d.note:'', '');
+      }
+      node.classList.toggle('compact', !!d && !forceOpen && !isLoader);
+      archiveBtn.textContent=c.status==='archived'?'Reopen':'Done — archive';
+      archiveBtn.hidden=!(d || c.status==='archived');
+      drawMore(card);
+      drawPhotos();
+    }
+
+    VIEWS[id]={node:node, update:update, drawPhotos:drawPhotos};
+    return VIEWS[id];
+  }
+
+  // ---- page
+  function renderNotice(text, isErr, link){
+    root.innerHTML=''; var n=el('div','notice'+(isErr?' err':''),text);
+    if(link){ n.appendChild(document.createElement('br')); var a=el('a',null,link[0]); a.href=link[1]; n.appendChild(a); }
+    root.appendChild(n);
+  }
+
+  var listBox=null, answeredLabel=null, waitingLabel=null, summaryCounts=null, officeBox=null, errBox=null;
+  function ensureFrame(){
+    if(listBox) return;
+    root.innerHTML='';
+    var s=el('div','summary'); s.appendChild(el('h1',null, isLoader ? 'Tree calls for David' : (me ? 'Your calls, '+firstName(me.name) : 'Tree calls')));
+    summaryCounts=el('span','counts'); s.appendChild(summaryCounts); root.appendChild(s);
+    errBox=el('div','notice err'); errBox.hidden=true; root.appendChild(errBox);
+    waitingLabel=el('div','section-label', isLoader ? 'Waiting on David' : 'Waiting on you'); root.appendChild(waitingLabel);
+    listBox=el('div'); root.appendChild(listBox);
+    answeredLabel=el('div','section-label','Answered'); root.appendChild(answeredLabel);
+    root.appendChild(el('div')).id='answeredBox';
+    if(isLoader){ officeBox=buildOffice(); root.appendChild(officeBox); }
+  }
+
+  function apply(res){
+    lastError=null;
+    var list=(res&&res.calls)||[];
+    var seen={};
+    list.forEach(function(c){ seen[c.call_id]=true; CALLS[c.call_id]=c; });
+    Object.keys(CALLS).forEach(function(id){ if(!seen[id]){ delete CALLS[id]; if(VIEWS[id]){ VIEWS[id].node.remove(); delete VIEWS[id]; } } });
+    // First load: unanswered first. After that, order never changes under David's thumb.
+    var fresh=list.filter(function(c){ return ORDER.indexOf(c.call_id)===-1; })
+      .sort(function(a,b){ return (a.decision?1:0)-(b.decision?1:0); }).map(function(c){ return c.call_id; });
+    ORDER=ORDER.filter(function(id){ return seen[id]; }).concat(fresh);
+
+    ensureFrame(); errBox.hidden=true;
+    var answeredBox=document.getElementById('answeredBox');
+    var waiting=0, answered=0;
+    ORDER.forEach(function(id){
+      var v=VIEWS[id]||buildCall(id);
+      v.update();
+      var target=CALLS[id].decision?answeredBox:listBox;
+      if(CALLS[id].decision) answered++; else waiting++;
+      if(v.node.parentNode!==target) target.appendChild(v.node);
+    });
+    // keep each box in ORDER
+    [listBox, answeredBox].forEach(function(box){ ORDER.forEach(function(id){ var n=VIEWS[id]&&VIEWS[id].node; if(n && n.parentNode===box) box.appendChild(n); }); });
+    waitingLabel.hidden=!waiting; answeredLabel.hidden=!answered;
+    summaryCounts.innerHTML='';
+    if(!list.length){
+      summaryCounts.textContent = 'Nothing waiting — Joseph will load the next batch here.';
+    } else {
+      summaryCounts.appendChild(el('b',null,String(waiting))); summaryCounts.appendChild(document.createTextNode(' waiting · '));
+      summaryCounts.appendChild(el('b',null,String(answered))); summaryCounts.appendChild(document.createTextNode(' answered'));
+    }
+  }
+
+  function loadBundle(){ return TTCRecords.callsList({includeArchived:showArchived}); }
+  function load(){ return loadBundle().then(apply); }
+  function showError(err){
+    var msg=(err&&err.message)||'Could not load Tree Calls.';
+    if(!listBox){ renderNotice(msg, true); return; }
+    errBox.textContent=msg; errBox.hidden=false;
+  }
+
+  // ---- Joseph: load a batch from the Mac's "David Review" folder
+  function buildOffice(){
+    var box=el('section','office');
+    box.appendChild(el('h2',null,'Load a batch (office)'));
+    var p=el('p'); p.appendChild(document.createTextNode('Pick the ')); p.appendChild(el('code',null,'David Review'));
+    p.appendChild(document.createTextNode(' folder. Each customer’s photos go in their own subfolder, next to ')); p.appendChild(el('code',null,'cards.json'));
+    p.appendChild(document.createTextNode('. Re-loading updates the cards and replaces photos only for folders that have some. David’s answers are never touched.'));
+    box.appendChild(p);
+    var acts=el('div','office-actions'); box.appendChild(acts);
+    var pick=el('label','btn primary file-btn','Choose the folder…');
+    var inp=document.createElement('input'); inp.type='file'; inp.id='batchFolder'; inp.multiple=true;
+    inp.setAttribute('webkitdirectory',''); inp.setAttribute('directory','');
+    pick.appendChild(inp); acts.appendChild(pick);
+    var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; acts.appendChild(arch);
+    arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
+    var log=el('ul','log'); box.appendChild(log);
+    inp.onchange=function(){ var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(files.length){ inp.disabled=true; runBatch(files, log, pick).then(function(){ inp.disabled=false; }); } };
+    return box;
+  }
+  function logLine(log, text, tone){ var li=el('li',tone||'info',text); log.appendChild(li); return li; }
+  function relPath(f){ return String(f.webkitRelativePath||f.name); }
+  function isImage(f){ return /\.(jpe?g|png|webp|heic|heif|gif)$/i.test(f.name) || /^image\//.test(f.type||''); }
+
+  function decodeToCanvas(file){
+    function draw(src,w,h){
+      var scale=Math.min(1, PHOTO_EDGE/Math.max(w,h));
+      var cv=document.createElement('canvas'); cv.width=Math.round(w*scale); cv.height=Math.round(h*scale);
+      cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);
+      return cv.toDataURL('image/jpeg', PHOTO_QUALITY);
+    }
+    var viaBitmap = (window.createImageBitmap ? createImageBitmap(file,{imageOrientation:'from-image'}) : Promise.reject(new Error('no bitmap')))
+      .then(function(bm){ var out=draw(bm,bm.width,bm.height); if(bm.close) bm.close(); return out; });
+    return viaBitmap.catch(function(){
+      return new Promise(function(resolve,reject){
+        var url=URL.createObjectURL(file), im=new Image();
+        im.onload=function(){ try{ resolve(draw(im,im.naturalWidth,im.naturalHeight)); }catch(e){ reject(e); } URL.revokeObjectURL(url); };
+        im.onerror=function(){ URL.revokeObjectURL(url); reject(new Error('This browser can’t open '+file.name+(/\.hei[cf]$/i.test(file.name)?' — HEIC: open the folder in Safari, or export it as JPEG.':'.'))); };
+        im.src=url;
+      });
+    });
+  }
+
+  function runBatch(files, log, pick){
+    log.innerHTML='';
+    var cardsFile=files.filter(function(f){ return f.name==='cards.json'; })
+      .sort(function(a,b){ return relPath(a).split('/').length-relPath(b).split('/').length; })[0];
+    if(!cardsFile){ logLine(log,'No cards.json in that folder. Pick the David Review folder itself (Claude writes cards.json there).','bad'); return Promise.resolve(); }
+    var base=relPath(cardsFile).split('/').slice(0,-1).join('/');
+    var byFolder={};
+    files.forEach(function(f){
+      if(!isImage(f)) return;
+      var parts=relPath(f).split('/'); if(parts.length<2) return;
+      var parent=parts.slice(0,-1).join('/');
+      if(base && parent.indexOf(base+'/')!==0) return;
+      var folder=parts[parts.length-2].toLowerCase();
+      (byFolder[folder]=byFolder[folder]||[]).push(f);
+    });
+    return cardsFile.text().then(function(txt){
+      var json; try{ json=JSON.parse(txt); }catch(e){ throw new Error('cards.json is not valid JSON: '+e.message); }
+      var cards=Array.isArray(json)?json:(json.cards||[]);
+      if(!cards.length) throw new Error('cards.json has no cards.');
+      logLine(log,'Found '+cards.length+' card'+(cards.length===1?'':'s')+(json.batch?' — '+json.batch:'')+'.');
+      var chain=Promise.resolve(), ok=0, bad=0;
+      cards.forEach(function(card){
+        chain=chain.then(function(){
+          var id=String(card.id||'');
+          if(!CALL_ID_RE.test(id)){ logLine(log,'Skipped a card with a bad id ('+(id||'none')+'): use lowercase letters, digits, dashes.','bad'); bad++; return; }
+          var folder=String(card.folder||card.name||id).toLowerCase();
+          var imgs=(byFolder[folder]||[]).sort(function(a,b){ return a.name.localeCompare(b.name,undefined,{numeric:true}); });
+          var line=logLine(log, (card.name||id)+': '+(imgs.length?'reading '+imgs.length+' photo'+(imgs.length===1?'':'s')+'…':'no photos in '+(card.folder||folder)+'/ — keeping any already loaded'));
+          if(imgs.length>MAX_PHOTOS){ imgs=imgs.slice(0,MAX_PHOTOS); }
+          var skipped=[];
+          return imgs.reduce(function(p,f){
+            return p.then(function(acc){ return decodeToCanvas(f).then(function(uri){ acc.push(uri); return acc; }, function(err){ skipped.push(err.message); return acc; }); });
+          }, Promise.resolve([])).then(function(photos){
+            var payload={}; ['name','town','kind','ask','take','take_tone','money','choices','history','said','questions','links'].forEach(function(k){ if(card[k]!=null) payload[k]=card[k]; });
+            if(json.batch) payload.batch=json.batch;
+            line.textContent=(card.name||id)+': saving…';
+            return TTCRecords.callsPut({call_id:id, card:payload}, photos.length?photos:null).then(function(res){
+              ok++; line.className='ok';
+              line.textContent='✓ '+(card.name||id)+' — card'+(photos.length?' + '+photos.length+' photo'+(photos.length===1?'':'s'):'')+(res.call&&res.call.photo_count&&!photos.length?' (kept '+res.call.photo_count+' photos)':'');
+              skipped.forEach(function(s){ logLine(log,'  '+s,'bad'); });
+            });
+          }).catch(function(err){ bad++; line.className='bad'; line.textContent='✗ '+(card.name||id)+' — '+(err.message||'failed'); });
+        });
+      });
+      return chain.then(function(){ logLine(log, ok+' loaded'+(bad?', '+bad+' need attention':'')+'. David sees them now.', bad?'bad':'ok'); return load(); });
+    }).catch(function(err){ logLine(log, err.message||String(err), 'bad'); });
+  }
+
+  // ---- boot
+  function boot(){
+    if(stopWatch){ stopWatch(); stopWatch=null; }
+    me=TTCRecords.person();
+    if(!me){ renderNotice('Sign in with your email first, then come back here.', false, ['Go to sign-in','../me/index.html']); return; }
+    if(!TTCRecords.can('verify_others')){ renderNotice('Tree Calls is for David and Joseph.', false, ['← Back','../../index.html']); return; }
+    if(!TTCRecords.configured()){ renderNotice('Tree Calls needs the records backend, and this device is in demo mode.', true); return; }
+    isLoader=LOADER_IDS.indexOf(me.id)!==-1;
+    root.innerHTML='<div class="loading">Loading your calls…</div>';
+    load().then(function(){
+      stopWatch=TTCRecords.watchVisible('tree-calls', loadBundle, apply, {initial:false});
+    }).catch(showError);
+  }
+  TTCRecords.ready().then(boot);
+})();
+</script>
+<script defer src="../../shared/profile-button.js"></script>
+</body>
+</html>
