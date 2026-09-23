@@ -360,6 +360,19 @@
   .sect-dots i{width:9px;height:9px;border-radius:50%;background:var(--rail)}
   .sect-dots i.v{background:var(--ver-br)} .sect-dots i.c{background:var(--claim-br)} .sect-dots i.r{background:var(--no-br)}
   @media (prefers-reduced-motion: reduce){ .ring .val,.pipe span,.pnode .disc{transition:none} }
+  /* Supervisor crew list: every person's whole ladder as a stage strip. */
+  .stages{display:flex;gap:3px;margin-top:7px}
+  .stage{flex:1 1 0;height:7px;border-radius:99px;background:var(--rail);overflow:hidden}
+  .stage.end{flex:.7 1 0;margin-left:3px}
+  .stage i{display:block;height:100%;background:var(--ring);border-radius:99px}
+  .stage.done i{background:var(--ttc-gold)}
+  .stage.waiting{box-shadow:0 0 0 1.5px var(--claim-br)}
+  .stages-key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--fg3);margin:-4px 0 12px}
+  .stages-key span{display:inline-flex;align-items:center;gap:5px}
+  .stages-key i{width:14px;height:6px;border-radius:99px;background:var(--rail)}
+  .stages-key i.p{background:var(--ring)} .stages-key i.d{background:var(--ttc-gold)} .stages-key i.w{box-shadow:0 0 0 1.5px var(--claim-br)}
+  /* Jumps land below the sticky top bar instead of under it. */
+  #ladder,.level,.signoff{scroll-margin-top:calc(var(--touch) + 34px + env(safe-area-inset-top))}
 
   /* ---- interactive appendix forms (Appendix A scoring, B audit, C authority) ---- */
   .fm-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin:12px 0 4px}
@@ -1682,6 +1695,23 @@
     var t=document.getElementById('ladder'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
+  function stageStrip(recs){
+    var strip=el('div','stages'); strip.setAttribute('role','img');
+    var said=[];
+    (D.levels||[]).forEach(function(L){
+      var items=levelItems(L), v=0, c=0;
+      items.forEach(function(i){ var r=recs[i.id]; if(r&&r.state==='verified') v++; else if(r&&r.state==='claimed') c++; });
+      var done=items.length&&v===items.length;
+      var seg=el('span','stage'+(L.kind==='endorsement'?' end':'')+(done?' done':'')+(c?' waiting':''));
+      var f=el('i'); f.style.width=(items.length?v/items.length*100:0)+'%'; seg.appendChild(f);
+      seg.title=shortName(L)+': '+v+'/'+items.length+(c?', '+c+' waiting':'');
+      said.push(seg.title);
+      strip.appendChild(seg);
+    });
+    strip.setAttribute('aria-label',said.join('; '));
+    return strip;
+  }
+
   // The whole journey on one strip. Tiers run in order; the two endorsements open after Tier 1,
   // so they sit on their own row rather than pretending to be steps five and six.
   function pathCard(cl){
@@ -2013,6 +2043,11 @@
     head.appendChild(el('h1',null,'Your crew'));
     root.appendChild(head);
     var sum=el('p','crew-sum','Loading…'); root.appendChild(sum);
+    var key=el('div','stages-key');
+    key.appendChild(el('span',null,'Each bar: Trainee → Tier 3, then PHC and Rigging'));
+    [['p','in progress'],['d','passed'],['w','waiting on you']].forEach(function(k){
+      var sp=el('span'); sp.appendChild(el('i',k[0])); sp.appendChild(document.createTextNode(k[1])); key.appendChild(sp); });
+    root.appendChild(key);
     var list=el('div'); root.appendChild(list);
 
     var links=el('div','crew-links');
@@ -2046,9 +2081,7 @@
         var cl=p.currentLevel, tier = (cl && (cl.title || cl.levelTitle || cl.name)) ||
                (typeof p.level==='string' ? p.level : '') || 'Not started';
         var tierEl=el('div','crew-tier', tier); mid.appendChild(tierEl);
-        var bar=el('div','crew-bar'), fill=el('i');
-        fill.style.width=(cl&&cl.total?Math.round(cl.verified/cl.total*100):0)+'%';
-        bar.appendChild(fill); mid.appendChild(bar);
+        var stripHost=el('div'); mid.appendChild(stripHost);
         row.appendChild(mid);
         var right=el('div','crew-right');
         if(p.items_waiting_review>0){
@@ -2064,11 +2097,14 @@
         list.appendChild(row);
         // The overview response may be cached by an older backend. Ask the shared per-tier helper
         // for the authoritative current tier so this screen never falls back to 0/127.
-        TTCRecords.passoffCurrentLevel(p.person_id).then(function(fresh){
+        // One read per person gives both the whole ladder (for the strip) and the current tier.
+        TTCRecords.passoffRecordsFor(p.person_id).then(function(recs){
+          recs=recs||{};
+          stripHost.innerHTML=''; stripHost.appendChild(stageStrip(recs));
+          var fresh=TTCRecords.currentLevelFromRecords ? TTCRecords.currentLevelFromRecords(recs) : null;
           if(!fresh) return;
-          tierEl.textContent=fresh.title || 'Not started';
-          fill.style.width=(fresh.total?Math.round(fresh.verified/fresh.total*100):0)+'%';
-          progressEl.textContent=fresh.verified+'/'+fresh.total+(fresh.waitingForSignoff?' ready for sign-off':' this tier');
+          tierEl.textContent=fresh.allDone ? 'Every level complete' : (fresh.title || 'Not started');
+          progressEl.textContent=fresh.allDone ? 'all passed' : fresh.verified+'/'+fresh.total+(fresh.waitingForSignoff?' ready for sign-off':' this tier');
         }).catch(function(){});
       });
       if(!people.length) list.appendChild(el('p','crew-quiet','No crew members found.'));
