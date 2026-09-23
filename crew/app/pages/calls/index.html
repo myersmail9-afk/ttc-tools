@@ -411,7 +411,7 @@
     fActs.appendChild(el('span','spacer'));
     var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; fActs.appendChild(archiveBtn);
     var editBtn=el('button','btn','Edit card'); editBtn.type='button'; fActs.appendChild(editBtn);
-    var fSend=el('button','btn primary','Send to David'); fSend.type='button'; fActs.appendChild(fSend);
+    var fSend=el('button','btn primary','Save follow-up'); fSend.type='button'; fActs.appendChild(fSend);
     editBtn.onclick=function(){ openEditor(id, editBtn); };
     followRow.hidden=!isLoader;
     var pad=el('div','call-foot-pad'); node.appendChild(pad);
@@ -463,13 +463,13 @@
     fSend.onclick=function(){
       var c=current(); var text=fta.value.trim();
       if(!text){ setF('Type the follow-up first.','bad'); return; }
-      fSend.disabled=true; setF('Sending…');
+      fSend.disabled=true; setF('Saving…');
       var card=Object.assign({}, c.card, {followup:text});
+      // Tree Calls never emails David (Joseph, 2026-09-23): the follow-up puts the card back on his
+      // list, and Joseph texts him the link with "Send David the link" when he's ready.
       TTCRecords.callsPut({call_id:id, card:card}).then(function(res){
         if(res.call) CALLS[id]=res.call;
-        return TTCRecords.callsNotify({call_ids:[id]}).then(function(n){
-          fDirty=false; setF(n.sent ? 'Sent — David is emailed and it’s back on his list.' : 'Saved — it’s back on David’s list.','ok');
-        });
+        fDirty=false; setF('Saved — it’s back on David’s list. Send him the link when you’re ready.','ok');
       }).then(function(){ return load(); })
         .catch(function(err){ setF(err.message||'Could not send.','bad'); }).then(function(){ fSend.disabled=false; });
     };
@@ -663,13 +663,24 @@
     var bar=el('div','office-bar'); wrap.appendChild(bar);
     var add=el('button','btn primary','+ New call'); add.type='button'; bar.appendChild(add);
     add.onclick=function(){ openEditor(null, add); };
-    // Loading or editing a card never emails David; this does, when Joseph is ready.
-    var mail=el('button','btn','Email David'); mail.type='button'; bar.appendChild(mail);
-    mail.onclick=function(){
-      mail.disabled=true; setOffice('Emailing David…');
-      TTCRecords.callsNotify({}).then(function(n){
-        setOffice(n.sent ? 'Emailed David: '+n.waiting+' waiting on him.' : (n.waiting ? 'Nothing emailed.' : 'Nothing is waiting on David, so no email was sent.'), n.sent?'ok':'');
-      }, function(err){ setOffice((err&&err.message)||'Could not email David.','bad'); }).then(function(){ mail.disabled=false; });
+    // Tree Calls never emails David (Joseph, 2026-09-23: "I just want to send him this link"). On a phone
+    // this opens the share sheet (Messages → David) with a ready-made line and the link; where sharing
+    // isn't available it copies the same text for pasting into a text.
+    var share=el('button','btn','Send David the link'); share.type='button'; bar.appendChild(share);
+    share.onclick=function(){
+      var link=new URL('./', location.href).href;
+      var n=Object.keys(CALLS).filter(function(k){ return CALLS[k].needs_answer && CALLS[k].status!=='archived'; }).length;
+      var text = n ? ('David — '+n+' tree call'+(n===1?'':'s')+' waiting on you. Tap to open and answer:') : 'David — Tree Calls:';
+      function copied(){ setOffice('Copied. Paste it into a text to David: '+text+' '+link,'ok'); }
+      function copyFallback(){
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text+' '+link).then(copied, function(){ setOffice('Send David this link: '+link); });
+        } else setOffice('Send David this link: '+link);
+      }
+      if(navigator.share){
+        navigator.share({ title:'Tree Calls', text:text, url:link }).then(function(){ setOffice('Link sent.','ok'); },
+          function(err){ if(err && err.name==='AbortError') return; copyFallback(); });
+      } else copyFallback();
     };
     bar.appendChild(el('span','grow'));
     var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; bar.appendChild(arch);
@@ -696,14 +707,9 @@
     var pick2=el('label','btn file-btn','Choose cards.json…');
     var inp2=document.createElement('input'); inp2.type='file'; inp2.id='batchFiles'; inp2.multiple=true;
     pick2.appendChild(inp2); acts.appendChild(pick2);
-    var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid';
-    // Off by default (Joseph, 2026-09-23); the last choice is remembered on this device.
-    try{ chk.checked=localStorage.getItem('ttc-tree-calls-email-david')==='1'; }catch(e){ chk.checked=false; }
-    chk.onchange=function(){ try{ localStorage.setItem('ttc-tree-calls-email-david', chk.checked?'1':'0'); }catch(e){} };
-    chkLbl.appendChild(chk); chkLbl.appendChild(document.createTextNode('Email David when it’s loaded')); acts.appendChild(chkLbl);
     var log=el('ul','log'); box.appendChild(log);
     [inp, inp2].forEach(function(input){
-      input.onchange=function(){ var files=Array.prototype.slice.call(input.files||[]); input.value=''; if(files.length){ input.disabled=true; det.open=true; runBatch(files, log, chk.checked).then(function(){ input.disabled=false; }); } };
+      input.onchange=function(){ var files=Array.prototype.slice.call(input.files||[]); input.value=''; if(files.length){ input.disabled=true; det.open=true; runBatch(files, log).then(function(){ input.disabled=false; }); } };
     });
     return det;
   }
@@ -902,7 +908,7 @@
       var wasNew=edState.isNew, name=card.name;
       edState.busy=false; edSave.disabled=false; edCancel.disabled=false;
       closeEditor(true);
-      setOffice(wasNew ? 'Saved '+name+'. David sees it now — tap Email David when you want him to know.' :
+      setOffice(wasNew ? 'Saved '+name+'. David sees it now — tap Send David the link when you want him to know.' :
                          'Saved '+name+(res.reopened?' — it’s back on David’s list.':'.'), 'ok');
       return load();
     }).catch(function(err){
@@ -934,7 +940,7 @@
     });
   }
 
-  function runBatch(files, log, emailDavid){
+  function runBatch(files, log){
     log.innerHTML='';
     var cardsFile=files.filter(function(f){ return f.name==='cards.json'; })
       .sort(function(a,b){ return relPath(a).split('/').length-relPath(b).split('/').length; })[0];
@@ -985,11 +991,8 @@
         });
       });
       return chain.then(function(){
-        logLine(log, ok+' loaded'+(bad?', '+bad+' need attention':'')+'. David sees them now.', bad?'bad':'ok');
-        if(!emailDavid) return load();
-        return TTCRecords.callsNotify({}).then(function(n){
-          logLine(log, n.sent ? 'Emailed David: '+n.waiting+' waiting on him.' : (n.waiting ? 'Nothing emailed.' : 'Nothing is waiting on David, so no email.'), 'info');
-        }, function(err){ logLine(log,'Email to David failed: '+(err.message||err),'bad'); }).then(load);
+        logLine(log, ok+' loaded'+(bad?', '+bad+' need attention':'')+'. David sees them now — tap Send David the link to let him know.', bad?'bad':'ok');
+        return load();
       });
     }).catch(function(err){ logLine(log, err.message||String(err), 'bad'); });
   }
