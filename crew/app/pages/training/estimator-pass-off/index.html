@@ -1647,6 +1647,13 @@
     bar.setAttribute('aria-label',c.verified+' verified, '+c.claimed+' waiting on review, '+c.returned+' sent back, '+open+' not started');
     return bar;
   }
+  // The mark inside a level's ring: its own tier number ("Tier 1" -> 1), T for the trainee level,
+  // a star for an endorsement. Position in the list ("Tier 1" is second) was misleading.
+  function levelBadge(L){
+    if(L.kind==='endorsement') return '★';
+    var m=/Tier\s+(\d+)/i.exec(String(L.title||'')); if(m) return m[1];
+    return /trainee/i.test(String(L.title||'')) ? 'T' : String((D.levels||[]).indexOf(L)+1);
+  }
   function allLevelItems(){ var out=[]; (D.levels||[]).forEach(function(L){ out=out.concat(levelItems(L)); }); return out; }
   // Short label for the path: the part of David's own title before the dash for a tier
   // ("Tier 1"), the part after it for an endorsement ("Plant Health Care (PHC)"). Nothing reworded.
@@ -1655,9 +1662,11 @@
     if(parts.length<2) return t;
     return L.kind==='endorsement' ? parts.slice(1).join(' — ') : parts[0];
   }
+  // Counted over the same 110 requirements as the ring. Sign-off lines are mutually exclusive
+  // decisions ("Pass", "Not ready"), not requirements, so they never count toward progress.
   function verifiedThisWeek(){
     var recs=recMap(), since=Date.now()-7*24*3600*1000, n=0;
-    Object.keys(recs).forEach(function(id){ var r=recs[id]; if(r&&r.state==='verified'&&(r.ts||0)>=since) n++; });
+    allLevelItems().forEach(function(i){ var r=recs[i.id]; if(r&&r.state==='verified'&&(r.ts||0)>=since) n++; });
     return n;
   }
   function jumpToLevel(L){
@@ -1690,7 +1699,7 @@
       var disc=el('div','disc'); disc.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,50,5));
       var ctr=el('div','ctr');
       if(done) ctr.appendChild(tick()); else if(locked && !canVerify) ctr.appendChild(lockIcon());
-      else ctr.textContent = L.kind==='endorsement' ? '★' : String(i+1);
+      else ctr.textContent = levelBadge(L);
       disc.appendChild(ctr); b.appendChild(disc);
       b.appendChild(el('div','lbl',shortName(L)));
       if(current) b.appendChild(el('div','here','You are here'));
@@ -1888,7 +1897,7 @@
       var lr=el('div','level-ring'); lr.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,42,4));
       var lc=el('div','ctr');
       if(isComplete) lc.appendChild(tick()); else if(isLocked) lc.appendChild(lockIcon());
-      else lc.textContent = L.kind==='endorsement'?'★':String(levels.indexOf(L)+1);
+      else lc.textContent = levelBadge(L);
       lr.appendChild(lc); head.appendChild(lr);
       var tt=el('div','level-titles');
       tt.appendChild(el('div','level-title',L.title));
