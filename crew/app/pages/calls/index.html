@@ -155,7 +155,8 @@
   .answered-band b{font-weight:800}
   .answered-band .by{margin-left:auto;font-size:12px;opacity:.85;text-align:right}
   .call.compact .strip,.call.compact .strip-note,.call.compact .take,.call.compact .money,.call.compact .choices,
-  .call.compact .note-row,.call.compact details.more,.call.compact .office-row{display:none}
+  .call.compact .note-row,.call.compact details.more,.call.compact .office-row,
+  .call.compact .submit-row,.call.compact .from-joseph,.call.compact .last-answer{display:none}
   .call.compact .reopen{display:inline-flex}
   .reopen{display:none;margin:10px 16px 14px}
   .office-row{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px 14px}
@@ -181,6 +182,26 @@
   .viewer-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:0 8px;touch-action:pan-y pinch-zoom}
   .viewer-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
   .viewer-nav{display:flex;justify-content:center;gap:14px;padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+
+  /* v5.5: submit flow, follow-ups, profile links */
+  .profile-link{font-size:12.5px;font-weight:700;color:var(--ttc-orange);text-decoration:none;white-space:nowrap}
+  .profile-link:hover{text-decoration:underline}
+  .updated-pill{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--ttc-orange);color:#fff}
+  .from-joseph{margin:12px 16px 0;padding:10px 12px;border-radius:11px;border:1.5px solid var(--ttc-orange);background:var(--card-2);font-size:15px;white-space:pre-wrap}
+  .from-joseph .take-label{color:var(--ttc-orange);opacity:1}
+  .last-answer{margin:9px 16px 0;padding:8px 12px;border-radius:10px;background:var(--bg-alt);font-size:13.5px;color:var(--fg2)}
+  .last-answer b{color:var(--fg1)}
+  .submit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px 0}
+  .submit-row .btn.primary{font-size:15px;padding:11px 18px;border-radius:11px;margin-left:auto}
+  @media (max-width:559px){.submit-row .btn.primary{width:100%;justify-content:center;margin-left:0;order:-1}}
+  .answered-band .note{display:block;font-size:13px;opacity:.9;margin-top:2px;white-space:pre-wrap}
+  .office-view .choices,.office-view .note-row,.office-view .submit-row{display:none}
+  .followup-row{padding:12px 16px 0;border-top:1px dashed var(--border);margin-top:14px}
+  .followup-row label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);margin-bottom:5px}
+  .followup-row textarea{width:100%;min-height:54px;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--bg-alt);font-size:14.5px;resize:vertical}
+  .followup-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:7px}
+  .followup-acts .spacer{flex:1}
+  .office .check{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--fg2)}
 </style>
 </head>
 <body>
@@ -275,19 +296,30 @@
     }).catch(function(err){ entry.loading=null; entry.error=err.message||'Could not load photos.'; if(VIEWS[id]) VIEWS[id].drawPhotos(); });
   }
 
+  // ---- drafts: David's picked-but-not-submitted answer survives a reload (this device only)
+  var DRAFT_KEY='ttc-tree-calls-draft:v1';
+  function readDrafts(){ try{ return JSON.parse(localStorage.getItem(DRAFT_KEY)||'{}')||{}; }catch(e){ return {}; } }
+  function getDraft(id){ var d=readDrafts()[id]; return d&&typeof d==='object'?d:null; }
+  function setDraft(id, draft){ try{ var all=readDrafts(); if(draft) all[id]=draft; else delete all[id]; localStorage.setItem(DRAFT_KEY, JSON.stringify(all)); }catch(e){} }
+
   // ---- one card
   function buildCall(id){
     var node=el('article','call'); node.setAttribute('data-call',id);
+    if(isLoader) node.classList.add('office-view');
     var head=el('div','call-head'); node.appendChild(head);
     var who=el('div','call-who'); head.appendChild(who);
     var name=el('h2','call-name'); who.appendChild(name);
     var town=el('span','call-town'); who.appendChild(town);
     var kind=el('span','chip'); who.appendChild(kind);
+    var updated=el('span','updated-pill','Updated'); updated.hidden=true; who.appendChild(updated);
+    var profile=el('a','profile-link','Jobber profile ↗'); profile.target='_blank'; profile.rel='noopener noreferrer'; profile.hidden=true; who.appendChild(profile);
     var ask=el('p','call-ask'); head.appendChild(ask);
 
     var band=el('div','answered-band'); band.hidden=true; node.appendChild(band);
     var reopen=el('button','btn reopen','Change my answer'); reopen.type='button'; node.appendChild(reopen);
 
+    var fromJoseph=el('div','from-joseph'); fromJoseph.hidden=true; node.appendChild(fromJoseph);
+    var lastAnswer=el('div','last-answer'); lastAnswer.hidden=true; node.appendChild(lastAnswer);
     var strip=el('div','strip'); node.appendChild(strip);
     var stripNote=el('div','strip-note'); stripNote.hidden=true; node.appendChild(stripNote);
     var take=el('div','take'); node.appendChild(take);
@@ -295,53 +327,85 @@
     var choices=el('div','choices'); choices.setAttribute('role','group'); node.appendChild(choices);
 
     var noteRow=el('div','note-row'); node.appendChild(noteRow);
-    var noteLbl=el('label',null,'Anything for Joseph? (optional)'); noteLbl.htmlFor='note-'+id; noteRow.appendChild(noteLbl);
-    var ta=document.createElement('textarea'); ta.id='note-'+id; ta.placeholder='A time you can go, a dose, what to tell them…'; noteRow.appendChild(ta);
-    var noteActs=el('div','note-actions'); noteRow.appendChild(noteActs);
-    var status=el('span','status'); status.setAttribute('role','status'); noteActs.appendChild(status);
-    var saveNote=el('button','btn primary','Save note'); saveNote.type='button'; saveNote.hidden=true; noteActs.appendChild(saveNote);
+    var noteLbl=el('label',null,'Note for Joseph (optional)'); noteLbl.htmlFor='note-'+id; noteRow.appendChild(noteLbl);
+    var ta=document.createElement('textarea'); ta.id='note-'+id; ta.placeholder='A dose, a price, what to tell them…'; noteRow.appendChild(ta);
+
+    var submitRow=el('div','submit-row'); node.appendChild(submitRow);
+    var status=el('span','status'); status.setAttribute('role','status'); submitRow.appendChild(status);
+    var submitBtn=el('button','btn primary','Submit to Joseph'); submitBtn.type='button'; submitBtn.disabled=true; submitRow.appendChild(submitBtn);
 
     var more=document.createElement('details'); more.className='more'; node.appendChild(more);
     var sum=el('summary',null,'History, their words, Jobber links'); more.appendChild(sum);
     var moreBody=el('div','more-body'); more.appendChild(moreBody);
 
-    var officeRow=el('div','office-row'); node.appendChild(officeRow);
-    var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; officeRow.appendChild(archiveBtn);
-    officeRow.hidden=!isLoader;
+    // Joseph only: send David a follow-up (re-opens the call and emails him), archive when handled.
+    var followRow=el('div','followup-row'); node.appendChild(followRow);
+    var fLbl=el('label',null,'Follow-up for David'); fLbl.htmlFor='follow-'+id; followRow.appendChild(fLbl);
+    var fta=document.createElement('textarea'); fta.id='follow-'+id; fta.placeholder='A reply, a new question, or what the customer said…'; followRow.appendChild(fta);
+    var fActs=el('div','followup-acts'); followRow.appendChild(fActs);
+    var fStatus=el('span','status'); fStatus.setAttribute('role','status'); fActs.appendChild(fStatus);
+    fActs.appendChild(el('span','spacer'));
+    var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; fActs.appendChild(archiveBtn);
+    var fSend=el('button','btn primary','Send to David'); fSend.type='button'; fActs.appendChild(fSend);
+    followRow.hidden=!isLoader;
     var pad=el('div','call-foot-pad'); node.appendChild(pad);
 
-    var noteDirty=false, busy=false, forceOpen=false, drawnChoicesKey='', drawnMoreKey='';
-    ta.addEventListener('input',function(){ noteDirty=true; syncNoteButton(); });
+    var draft=getDraft(id);                 // {choice, note} picked but not yet submitted
+    var busy=false, forceOpen=false, drawnMoreKey='', fDirty=false;
 
     function current(){ return CALLS[id]; }
-    function syncNoteButton(){
-      var c=current(); var d=c&&c.decision;
-      saveNote.hidden = !(d && noteDirty && ta.value.trim()!==String(d.note||'').trim());
-    }
     function setStatus(text, tone){ status.textContent=text||''; status.className='status'+(tone?' '+tone:''); }
+    function setF(text, tone){ fStatus.textContent=text||''; fStatus.className='status'+(tone?' '+tone:''); }
+    function isOpen(){ var c=current(); return !!c && (c.needs_answer || forceOpen); }
 
-    function save(choice){
-      if(busy) return; busy=true;
-      var btns=choices.querySelectorAll('button'); Array.prototype.forEach.call(btns,function(b){ b.disabled=true; });
-      saveNote.disabled=true;
-      setStatus('Saving…');
-      TTCRecords.callDecide(id, choice, ta.value).then(function(res){
-        var c=current(); if(c){ c.decision=res.decision; }
-        noteDirty=false; forceOpen=false;
-        setStatus('Saved '+when(res.decision.ts)+(res.notified?' · Joseph is emailed':''),'ok');
-        update();
-      }).catch(function(err){
-        setStatus((err&&err.message)||'Could not save — check your signal and tap again.','bad');
-      }).then(function(){
-        busy=false; Array.prototype.forEach.call(choices.querySelectorAll('button'),function(b){ b.disabled=false; }); saveNote.disabled=false;
-      });
+    function selected(){
+      if(draft && draft.choice) return draft.choice;
+      var c=current(), d=c&&c.decision;
+      return (d && (forceOpen || c.changed_since_answer)) ? d.choice : null;
     }
-    saveNote.onclick=function(){ var d=current().decision; if(d) save(d.choice); };
-    reopen.onclick=function(){ forceOpen=true; update(); var first=choices.querySelector('button'); if(first) first.focus(); };
+    function syncSubmit(){
+      var c=current(), d=c&&c.decision, pick=selected();
+      submitBtn.disabled=busy || !pick;
+      submitBtn.textContent = d ? 'Resubmit to Joseph' : 'Submit to Joseph';
+      Array.prototype.forEach.call(choices.querySelectorAll('button'),function(b){
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-choice')===pick)); b.disabled=busy; });
+      if(!busy && !status.classList.contains('bad')) setStatus(pick ? (draft ? 'Not sent yet — tap Submit.' : '') : 'Pick an answer, then Submit.');
+    }
+    function saveDraft(){ draft={choice: selected(), note: ta.value}; setDraft(id, draft); }
+
+    ta.addEventListener('input',function(){ saveDraft(); syncSubmit(); });
+    fta.addEventListener('input',function(){ fDirty=true; });
+
+    submitBtn.onclick=function(){
+      var pick=selected(); if(busy || !pick) return;
+      busy=true; syncSubmit(); setStatus('Submitting…');
+      TTCRecords.callDecide(id, pick, ta.value).then(function(res){
+        var c=current(); if(c && res.call){ CALLS[id]=res.call; } else if(c){ c.decision=res.decision; c.needs_answer=false; c.changed_since_answer=false; }
+        draft=null; setDraft(id,null); forceOpen=false;
+        setStatus('Submitted '+when(res.decision.ts)+(res.notified?' · Joseph is emailed':''),'ok');
+        busy=false; relayout();
+      }).catch(function(err){
+        busy=false; setStatus((err&&err.message)||'Could not submit — check your signal and tap Submit again.','bad'); syncSubmit();
+      });
+    };
+    reopen.onclick=function(){ forceOpen=true; setStatus(''); update(); relayout(); var first=choices.querySelector('button'); if(first) first.focus(); };
     archiveBtn.onclick=function(){
       archiveBtn.disabled=true;
       TTCRecords.callsPut({call_id:id, status: current().status==='archived'?'open':'archived'}).then(function(){ return load(); })
-        .catch(function(err){ setStatus(err.message||'Could not archive.','bad'); }).then(function(){ archiveBtn.disabled=false; });
+        .catch(function(err){ setF(err.message||'Could not archive.','bad'); }).then(function(){ archiveBtn.disabled=false; });
+    };
+    fSend.onclick=function(){
+      var c=current(); var text=fta.value.trim();
+      if(!text){ setF('Type the follow-up first.','bad'); return; }
+      fSend.disabled=true; setF('Sending…');
+      var card=Object.assign({}, c.card, {followup:text});
+      TTCRecords.callsPut({call_id:id, card:card}).then(function(res){
+        if(res.call) CALLS[id]=res.call;
+        return TTCRecords.callsNotify({call_ids:[id]}).then(function(n){
+          fDirty=false; setF(n.sent ? 'Sent — David is emailed and it’s back on his list.' : 'Saved — it’s back on David’s list.','ok');
+        });
+      }).then(function(){ return load(); })
+        .catch(function(err){ setF(err.message||'Could not send.','bad'); }).then(function(){ fSend.disabled=false; });
     };
 
     function drawPhotos(){
@@ -394,49 +458,65 @@
       more.hidden = !moreBody.childNodes.length;
     }
 
+    var drawnChoicesKey='';
     function update(){
       var c=current(); if(!c) return;
       var card=c.card||{}, d=c.decision;
       name.textContent=card.name||id;
       town.textContent=card.town||''; town.hidden=!card.town;
       kind.textContent=card.kind||''; kind.hidden=!card.kind;
+      updated.hidden=!c.changed_since_answer;
+      if(card.profile && safeHttps(card.profile)){ profile.href=card.profile; profile.hidden=false; } else profile.hidden=true;
       ask.textContent=card.ask||'';
+
+      fromJoseph.innerHTML=''; fromJoseph.hidden=!card.followup;
+      if(card.followup){ fromJoseph.appendChild(el('span','take-label','From Joseph')); fromJoseph.appendChild(document.createTextNode(card.followup)); }
+      lastAnswer.innerHTML=''; lastAnswer.hidden=!(d && c.changed_since_answer);
+      if(d && c.changed_since_answer){
+        lastAnswer.appendChild(document.createTextNode((d.by_person_id===(me&&me.id)?'Your':firstName(d.by_name)+"'s")+' last answer: '));
+        lastAnswer.appendChild(el('b',null,d.choice)); lastAnswer.appendChild(document.createTextNode(' · '+when(d.ts)+(d.note?' — “'+d.note+'”':'')));
+      }
+
       var tone=card.take_tone||'';
       take.className='take'+(tone?' '+tone:'');
       take.innerHTML=''; take.hidden=!card.take;
-      var lbl={treat:"Joseph's read · leaning treat",skip:"Joseph's read · leaning skip",see:"Joseph's read · needs your eyes"}[tone]||"Joseph's read";
+      var lbl={treat:"Joseph's read · leaning treat",skip:"Joseph's read · leaning skip",see:"Joseph's read · your call"}[tone]||"Joseph's read";
       take.appendChild(el('span','take-label',lbl)); take.appendChild(document.createTextNode(card.take||''));
       money.innerHTML=''; money.hidden=!card.money; if(card.money){ money.appendChild(el('b',null,'Money: ')); money.appendChild(document.createTextNode(card.money)); }
 
-      var opts=(card.choices&&card.choices.length)?card.choices:['Yes','No','Need to see it'];
-      var ck=JSON.stringify(opts)+'|'+(d?d.choice:'');
+      var opts=(card.choices&&card.choices.length)?card.choices:['Yes','No','Other (see note)'];
+      var ck=JSON.stringify(opts);
       if(ck!==drawnChoicesKey){
         drawnChoicesKey=ck; choices.innerHTML=''; choices.style.setProperty('--n',String(Math.min(opts.length,3)));
-        choices.setAttribute('aria-label','Your call for '+(card.name||id));
+        choices.setAttribute('aria-label','Your answer for '+(card.name||id));
         opts.forEach(function(o){
-          var b=el('button','choice',o); b.type='button'; b.setAttribute('aria-pressed', String(!!d && d.choice===o));
-          b.onclick=function(){ save(o); };
+          var b=el('button','choice',o); b.type='button'; b.setAttribute('data-choice',o);
+          b.onclick=function(){ draft={choice:o, note:ta.value}; setDraft(id,draft); setStatus(''); syncSubmit(); };
           choices.appendChild(b);
         });
       }
-      if(!noteDirty && document.activeElement!==ta) ta.value=d?(d.note||''):'';
-      syncNoteButton();
-
-      band.innerHTML=''; band.hidden=!d;
-      if(d){
-        var left=el('span'); left.appendChild(document.createTextNode((d.by_person_id===(me&&me.id)?'Your':firstName(d.by_name)+"'s")+' call: ')); left.appendChild(el('b',null,d.choice));
-        band.appendChild(left);
-        band.appendChild(el('span','by',when(d.ts)+(d.note?' · note':'')));
-        if(!status.textContent) setStatus(d.note?'Note: '+d.note:'', '');
+      if(document.activeElement!==ta){
+        if(draft) ta.value=draft.note||'';
+        else ta.value=(d && forceOpen && !c.changed_since_answer)?(d.note||''):'';
       }
-      node.classList.toggle('compact', !!d && !forceOpen && !isLoader);
+      if(isLoader && !fDirty && document.activeElement!==fta) fta.value=card.followup||'';
+
+      band.innerHTML=''; band.hidden=!d || (c.changed_since_answer && !isLoader);
+      if(d){
+        var left=el('span');
+        left.appendChild(document.createTextNode((d.by_person_id===(me&&me.id)?'Submitted':firstName(d.by_name)+' submitted')+': ')); left.appendChild(el('b',null,d.choice));
+        if(d.note) left.appendChild(el('span','note','“'+d.note+'”'));
+        band.appendChild(left);
+        band.appendChild(el('span','by',when(d.ts)+(c.changed_since_answer?' · before your update':'')));
+      } else if(isLoader){ band.hidden=false; band.appendChild(el('span',null,'No answer from David yet.')); }
+      node.classList.toggle('compact', !isOpen() && !isLoader);
       archiveBtn.textContent=c.status==='archived'?'Reopen':'Done — archive';
-      archiveBtn.hidden=!(d || c.status==='archived');
       drawMore(card);
       drawPhotos();
+      syncSubmit();
     }
 
-    VIEWS[id]={node:node, update:update, drawPhotos:drawPhotos};
+    VIEWS[id]={node:node, update:update, drawPhotos:drawPhotos, isOpen:isOpen};
     return VIEWS[id];
   }
 
@@ -456,7 +536,7 @@
     errBox=el('div','notice err'); errBox.hidden=true; root.appendChild(errBox);
     waitingLabel=el('div','section-label', isLoader ? 'Waiting on David' : 'Waiting on you'); root.appendChild(waitingLabel);
     listBox=el('div'); root.appendChild(listBox);
-    answeredLabel=el('div','section-label','Answered'); root.appendChild(answeredLabel);
+    answeredLabel=el('div','section-label', isLoader ? 'Submitted by David' : 'Submitted'); root.appendChild(answeredLabel);
     root.appendChild(el('div')).id='answeredBox';
     if(isLoader){ officeBox=buildOffice(); root.appendChild(officeBox); }
   }
@@ -467,30 +547,37 @@
     var seen={};
     list.forEach(function(c){ seen[c.call_id]=true; CALLS[c.call_id]=c; });
     Object.keys(CALLS).forEach(function(id){ if(!seen[id]){ delete CALLS[id]; if(VIEWS[id]){ VIEWS[id].node.remove(); delete VIEWS[id]; } } });
-    // First load: unanswered first. After that, order never changes under David's thumb.
+    // First load: waiting first. After that, order never changes under David's thumb.
     var fresh=list.filter(function(c){ return ORDER.indexOf(c.call_id)===-1; })
-      .sort(function(a,b){ return (a.decision?1:0)-(b.decision?1:0); }).map(function(c){ return c.call_id; });
+      .sort(function(a,b){ return (a.needs_answer?0:1)-(b.needs_answer?0:1); }).map(function(c){ return c.call_id; });
     ORDER=ORDER.filter(function(id){ return seen[id]; }).concat(fresh);
-
     ensureFrame(); errBox.hidden=true;
+    ORDER.forEach(function(id){ (VIEWS[id]||buildCall(id)).update(); });
+    relayout();
+  }
+
+  // Waiting = no answer yet, or Joseph changed the card since. A card David has open (changing an
+  // answer) stays where it is until he submits.
+  function relayout(){
+    if(!listBox) return;
     var answeredBox=document.getElementById('answeredBox');
-    var waiting=0, answered=0;
+    var waiting=0, submitted=0;
     ORDER.forEach(function(id){
-      var v=VIEWS[id]||buildCall(id);
+      var v=VIEWS[id], c=CALLS[id]; if(!v||!c) return;
       v.update();
-      var target=CALLS[id].decision?answeredBox:listBox;
-      if(CALLS[id].decision) answered++; else waiting++;
+      var isWaiting=!!c.needs_answer;
+      if(isWaiting) waiting++; else submitted++;
+      var target=isWaiting?listBox:answeredBox;
       if(v.node.parentNode!==target) target.appendChild(v.node);
     });
-    // keep each box in ORDER
     [listBox, answeredBox].forEach(function(box){ ORDER.forEach(function(id){ var n=VIEWS[id]&&VIEWS[id].node; if(n && n.parentNode===box) box.appendChild(n); }); });
-    waitingLabel.hidden=!waiting; answeredLabel.hidden=!answered;
+    waitingLabel.hidden=!waiting; answeredLabel.hidden=!submitted;
     summaryCounts.innerHTML='';
-    if(!list.length){
-      summaryCounts.textContent = 'Nothing waiting — Joseph will load the next batch here.';
+    if(!ORDER.length){
+      summaryCounts.textContent = isLoader ? 'Nothing loaded yet — use Load a batch below.' : 'Nothing waiting — Joseph will send the next ones here.';
     } else {
       summaryCounts.appendChild(el('b',null,String(waiting))); summaryCounts.appendChild(document.createTextNode(' waiting · '));
-      summaryCounts.appendChild(el('b',null,String(answered))); summaryCounts.appendChild(document.createTextNode(' answered'));
+      summaryCounts.appendChild(el('b',null,String(submitted))); summaryCounts.appendChild(document.createTextNode(' submitted'));
     }
   }
 
@@ -508,7 +595,7 @@
     box.appendChild(el('h2',null,'Load a batch (office)'));
     var p=el('p'); p.appendChild(document.createTextNode('Pick the ')); p.appendChild(el('code',null,'David Review'));
     p.appendChild(document.createTextNode(' folder. Each customer’s photos go in their own subfolder, next to ')); p.appendChild(el('code',null,'cards.json'));
-    p.appendChild(document.createTextNode('. Re-loading updates the cards and replaces photos only for folders that have some. David’s answers are never touched.'));
+    p.appendChild(document.createTextNode('. Re-load any time: only cards whose text or photos changed go back on David’s list (with his last answer shown). His answers are never erased.'));
     box.appendChild(p);
     var acts=el('div','office-actions'); box.appendChild(acts);
     var pick=el('label','btn primary file-btn','Choose the folder…');
@@ -517,8 +604,10 @@
     pick.appendChild(inp); acts.appendChild(pick);
     var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; acts.appendChild(arch);
     arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
+    var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid'; chk.checked=true;
+    chkLbl.appendChild(chk); chkLbl.appendChild(document.createTextNode('Email David when it’s loaded')); acts.appendChild(chkLbl);
     var log=el('ul','log'); box.appendChild(log);
-    inp.onchange=function(){ var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(files.length){ inp.disabled=true; runBatch(files, log, pick).then(function(){ inp.disabled=false; }); } };
+    inp.onchange=function(){ var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(files.length){ inp.disabled=true; runBatch(files, log, chk.checked).then(function(){ inp.disabled=false; }); } };
     return box;
   }
   function logLine(log, text, tone){ var li=el('li',tone||'info',text); log.appendChild(li); return li; }
@@ -544,7 +633,7 @@
     });
   }
 
-  function runBatch(files, log, pick){
+  function runBatch(files, log, emailDavid){
     log.innerHTML='';
     var cardsFile=files.filter(function(f){ return f.name==='cards.json'; })
       .sort(function(a,b){ return relPath(a).split('/').length-relPath(b).split('/').length; })[0];
@@ -571,24 +660,35 @@
           if(!CALL_ID_RE.test(id)){ logLine(log,'Skipped a card with a bad id ('+(id||'none')+'): use lowercase letters, digits, dashes.','bad'); bad++; return; }
           var folder=String(card.folder||card.name||id).toLowerCase();
           var imgs=(byFolder[folder]||[]).sort(function(a,b){ return a.name.localeCompare(b.name,undefined,{numeric:true}); });
-          var line=logLine(log, (card.name||id)+': '+(imgs.length?'reading '+imgs.length+' photo'+(imgs.length===1?'':'s')+'…':'no photos in '+(card.folder||folder)+'/ — keeping any already loaded'));
           if(imgs.length>MAX_PHOTOS){ imgs=imgs.slice(0,MAX_PHOTOS); }
+          // Same files as last time (name, size, date) → don't re-send them, so nothing re-opens by accident.
+          var fp=imgs.map(function(f){ return f.name+':'+f.size+':'+f.lastModified; }).join('|');
+          var known=CALLS[id];
+          var samePhotos=!!(known && imgs.length && known.photos_src===fp);
+          if(samePhotos) imgs=[];
+          var line=logLine(log, (card.name||id)+': '+(imgs.length?'reading '+imgs.length+' photo'+(imgs.length===1?'':'s')+'…':(samePhotos?'photos unchanged':'no photos in '+(card.folder||folder)+'/ — keeping any already loaded')));
           var skipped=[];
           return imgs.reduce(function(p,f){
             return p.then(function(acc){ return decodeToCanvas(f).then(function(uri){ acc.push(uri); return acc; }, function(err){ skipped.push(err.message); return acc; }); });
           }, Promise.resolve([])).then(function(photos){
-            var payload={}; ['name','town','kind','ask','take','take_tone','money','choices','history','said','questions','links'].forEach(function(k){ if(card[k]!=null) payload[k]=card[k]; });
+            var payload={}; ['name','town','kind','ask','take','take_tone','money','profile','followup','choices','history','said','questions','links'].forEach(function(k){ if(card[k]!=null) payload[k]=card[k]; });
             if(json.batch) payload.batch=json.batch;
             line.textContent=(card.name||id)+': saving…';
-            return TTCRecords.callsPut({call_id:id, card:payload}, photos.length?photos:null).then(function(res){
+            return TTCRecords.callsPut({call_id:id, card:payload}, photos.length?photos:null, photos.length?fp:null).then(function(res){
               ok++; line.className='ok';
-              line.textContent='✓ '+(card.name||id)+' — card'+(photos.length?' + '+photos.length+' photo'+(photos.length===1?'':'s'):'')+(res.call&&res.call.photo_count&&!photos.length?' (kept '+res.call.photo_count+' photos)':'');
+              line.textContent='✓ '+(card.name||id)+' — card'+(photos.length?' + '+photos.length+' photo'+(photos.length===1?'':'s'):'')+(res.call&&res.call.photo_count&&!photos.length?' (kept '+res.call.photo_count+' photo'+(res.call.photo_count===1?'':'s')+')':'')+(res.reopened?' · changed, back on David’s list':'');
               skipped.forEach(function(s){ logLine(log,'  '+s,'bad'); });
             });
           }).catch(function(err){ bad++; line.className='bad'; line.textContent='✗ '+(card.name||id)+' — '+(err.message||'failed'); });
         });
       });
-      return chain.then(function(){ logLine(log, ok+' loaded'+(bad?', '+bad+' need attention':'')+'. David sees them now.', bad?'bad':'ok'); return load(); });
+      return chain.then(function(){
+        logLine(log, ok+' loaded'+(bad?', '+bad+' need attention':'')+'. David sees them now.', bad?'bad':'ok');
+        if(!emailDavid) return load();
+        return TTCRecords.callsNotify({}).then(function(n){
+          logLine(log, n.sent ? 'Emailed David: '+n.waiting+' waiting on him.' : (n.waiting ? 'Nothing emailed.' : 'Nothing is waiting on David, so no email.'), 'info');
+        }, function(err){ logLine(log,'Email to David failed: '+(err.message||err),'bad'); }).then(load);
+      });
     }).catch(function(err){ logLine(log, err.message||String(err), 'bad'); });
   }
 

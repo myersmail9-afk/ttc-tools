@@ -161,7 +161,7 @@
 
   // ---------------------------------------------------------------------- transport (remote)
 
-  var WRITE_ACTIONS = ['record', 'record_batch', 'set_catalog', 'people_admin', 'profile_set', 'certs_set', 'call_decide', 'calls_put'];
+  var WRITE_ACTIONS = ['record', 'record_batch', 'set_catalog', 'people_admin', 'profile_set', 'certs_set', 'call_decide', 'calls_put', 'calls_notify'];
 
   function beginWrite() {
     sync.activeWrites++;
@@ -1079,12 +1079,25 @@
       return callsGuard() || apiPost('call_decide', { call_id: callId, choice: choice, note: note || '' }, true);
     }).catch(callsFriendly);
   }
-  // callsPut({call_id, card?, status?}, photos?) — photos (array of data URIs) replaces that call's set.
-  function callsPut(call, photos) {
+  // callsPut({call_id, card?, status?}, photos?, photosSrc?) — photos (array of data URIs) replaces that
+  // call's set; photosSrc is the loader's fingerprint of the source files, so an unchanged folder is skipped.
+  function callsPut(call, photos, photosSrc) {
     return ready().then(function () {
       var body = { call: call };
-      if (photos) body.photos = photos;
+      if (photos) { body.photos = photos; if (photosSrc != null) body.photos_src = photosSrc; }
       return callsGuard() || apiPost('calls_put', body, true);
+    }).catch(callsFriendly);
+  }
+
+  // callsNotify({call_ids?, message?}) — emails David the calls waiting on him (with this page's link).
+  function callsNotify(opts) {
+    opts = opts || {};
+    return ready().then(function () {
+      var body = {};
+      if (location.protocol === 'https:') body.page_url = location.origin + location.pathname.replace(/index\.html$/, '');
+      if (opts.call_ids) body.call_ids = opts.call_ids;
+      if (opts.message) body.message = opts.message;
+      return callsGuard() || apiPost('calls_notify', body, true);
     }).catch(callsFriendly);
   }
 
@@ -1111,7 +1124,7 @@
     certsGet: certsGet, certsSet: certsSet, certsExpiring: certsExpiring,
     insights: insights, reviewQueue: reviewQueue,
     recordBatch: recordBatch, recordSet: recordSet,
-    callsList: callsList, callPhotos: callPhotos, callDecide: callDecide, callsPut: callsPut,
+    callsList: callsList, callPhotos: callPhotos, callDecide: callDecide, callsPut: callsPut, callsNotify: callsNotify,
     records: records, loadRecords: loadRecords,
     passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor, recordsFor: recordsFor,
     currentLevelFromRecords: computeCurrentLevel,
