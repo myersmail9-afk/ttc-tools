@@ -391,6 +391,8 @@
     white-space: nowrap;
   }
   .tile-chevron { font-size: 18px; color: #c4c4c4; line-height: 1; }
+  .tile-badge.due { color: #fff; background: var(--ttc-orange, #C9601A); padding: 2px 8px; border-radius: 999px; font-weight: 800; }
+  .card-due { margin-top: 6px; display: inline-block; font-size: 11.5px; font-weight: 800; color: #fff; background: var(--ttc-orange, #C9601A); padding: 2px 8px; border-radius: 999px; }
   .tile-sheet-link {
     display: flex; align-items: center;
     min-height: 32px; padding: 0 16px 8px;
@@ -523,6 +525,26 @@
   };
 
   var roles = loadRoles();
+
+  // Tree Calls waiting count (supervisors only). Fetched after the screen is up; if it can't be
+  // reached, nothing changes. Refreshed when the app comes back to the front, at most once a minute.
+  var treeCallsWaiting = 0, treeCallsCheckedAt = 0;
+  function refreshTreeCalls() {
+    if (roles.indexOf('supervisor') === -1) return;
+    if (Date.now() - treeCallsCheckedAt < 60000) return;
+    treeCallsCheckedAt = Date.now();
+    var withRecords = window.TTCRecords ? Promise.resolve(window.TTCRecords) : new Promise(function (resolve, reject) {
+      var tag = document.createElement('script'); tag.src = 'services/records.js';
+      tag.onload = function () { window.TTCRecords ? resolve(window.TTCRecords) : reject(new Error('no records')); };
+      tag.onerror = reject; document.head.appendChild(tag);
+    });
+    withRecords.then(function (R) { return R.ready().then(function () { return R.callsList({ includeArchived: false }); }); })
+      .then(function (res) {
+        var n = ((res && res.calls) || []).filter(function (c) { return c.needs_answer; }).length;
+        if (n !== treeCallsWaiting) { treeCallsWaiting = n; if (typeof route === 'function') route(); }
+      }).catch(function () { /* quiet: the count is a convenience, never a gate */ });
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refreshTreeCalls(); });
   var content = (typeof window.TTC_CONTENT !== 'undefined') ? window.TTC_CONTENT : null;
 
   // ================= Icons =================
@@ -672,7 +694,11 @@
     var a = document.createElement('a');
     a.className = 'tile-main';
     a.href = tile.href;
-    if (tile.kind !== 'file') {
+    // Pages that are part of this app (a relative href) open in place, like any app screen, and
+    // come back with their own back link. Opening them in a new tab sent an installed iPhone app
+    // out to Safari, which keeps separate storage — a second sign-in for a page of the same app.
+    var internal = !/^[a-z]+:/i.test(String(tile.href || ''));
+    if (tile.kind !== 'file' && !internal) {
       a.target = '_blank';
       a.rel = 'noopener';
     }
@@ -695,6 +721,10 @@
     var badge = document.createElement('span');
     badge.className = 'tile-badge';
     badge.textContent = KIND_LABELS[tile.kind] || 'Link';
+    if (tile.id === 'tree-calls' && treeCallsWaiting > 0) {
+      badge.className = 'tile-badge due';
+      badge.textContent = treeCallsWaiting + ' waiting';
+    }
     right.appendChild(badge);
     var chev = document.createElement('span');
     chev.className = 'tile-chevron';
@@ -970,6 +1000,12 @@
         count.className = 'card-count';
         count.textContent = tiles.length + (tiles.length === 1 ? ' item' : ' items');
         card.appendChild(count);
+        if (treeCallsWaiting > 0 && tiles.some(function (t) { return t.id === 'tree-calls'; })) {
+          var due = document.createElement('div');
+          due.className = 'card-due';
+          due.textContent = treeCallsWaiting + ' tree call' + (treeCallsWaiting === 1 ? '' : 's') + ' waiting';
+          card.appendChild(due);
+        }
         grid.appendChild(card);
       });
       main.appendChild(grid);
@@ -1098,6 +1134,7 @@
     if (content && content.sections) {
       window.addEventListener('hashchange', route);
       route();
+      refreshTreeCalls();
     } else {
       clear(app);
       app.appendChild(buildFooter());
