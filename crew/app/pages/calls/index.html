@@ -346,7 +346,30 @@
     var fStatus=el('span','status'); fStatus.setAttribute('role','status'); fActs.appendChild(fStatus);
     fActs.appendChild(el('span','spacer'));
     var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; fActs.appendChild(archiveBtn);
+    var addLbl=el('label','btn file-btn','Add photos'); var addInp=document.createElement('input'); addInp.type='file'; addInp.accept='image/*'; addInp.multiple=true; addInp.id='add-'+id;
+    addLbl.appendChild(addInp); fActs.appendChild(addLbl);
     var fSend=el('button','btn primary','Send to David'); fSend.type='button'; fActs.appendChild(fSend);
+    // Works from a phone's camera roll: adds to the photos already on the card (12 max), then David sees
+    // the card as updated. Uses the same resize as the folder loader.
+    addInp.onchange=function(){
+      var files=Array.prototype.slice.call(addInp.files||[]); addInp.value=''; if(!files.length) return;
+      addInp.disabled=true; setF('Reading '+files.length+' photo'+(files.length===1?'':'s')+'…');
+      var fresh=[], failed=[];
+      files.reduce(function(p,f){ return p.then(function(){ return decodeToCanvas(f).then(function(u){ fresh.push(u); }, function(e){ failed.push(e.message); }); }); }, Promise.resolve())
+      .then(function(){
+        if(!fresh.length) throw new Error(failed[0]||'No photos could be read.');
+        return TTCRecords.callPhotos(id).then(function(r){
+          var all=(r.photos||[]).concat(fresh).slice(0, MAX_PHOTOS);
+          setF('Uploading…');
+          return TTCRecords.callsPut({call_id:id}, all, 'added in app '+Date.now());
+        });
+      }).then(function(res){
+        if(res.call) CALLS[id]=res.call;
+        setF('Added '+fresh.length+' photo'+(fresh.length===1?'':'s')+(failed.length?' ('+failed.length+' could not be read)':'')+(res.reopened?' — back on David’s list':'')+'.','ok');
+        return load();
+      }).catch(function(err){ setF(err.message||'Could not add photos.','bad'); })
+      .then(function(){ addInp.disabled=false; });
+    };
     followRow.hidden=!isLoader;
     var pad=el('div','call-foot-pad'); node.appendChild(pad);
 
@@ -598,10 +621,16 @@
     p.appendChild(document.createTextNode('. Re-load any time: only cards whose text or photos changed go back on David’s list (with his last answer shown). His answers are never erased.'));
     box.appendChild(p);
     var acts=el('div','office-actions'); box.appendChild(acts);
+    // Phones can't pick a folder, so they get a plain file picker (cards.json from the Files app, then
+    // photos per card with "Add photos"). Computers get the whole-folder picker.
+    var isPhone=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
     var pick=el('label','btn primary file-btn','Choose the folder…');
     var inp=document.createElement('input'); inp.type='file'; inp.id='batchFolder'; inp.multiple=true;
     inp.setAttribute('webkitdirectory',''); inp.setAttribute('directory','');
-    pick.appendChild(inp); acts.appendChild(pick);
+    pick.appendChild(inp); if(!isPhone) acts.appendChild(pick);
+    var pick2=el('label','btn '+(isPhone?'primary ':'')+'file-btn', isPhone?'Choose cards.json…':'Or pick files…');
+    var inp2=document.createElement('input'); inp2.type='file'; inp2.id='batchFiles'; inp2.multiple=true;
+    pick2.appendChild(inp2); acts.appendChild(pick2);
     var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; acts.appendChild(arch);
     arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
     var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid';
@@ -610,7 +639,10 @@
     chk.onchange=function(){ try{ localStorage.setItem('ttc-tree-calls-email-david', chk.checked?'1':'0'); }catch(e){} };
     chkLbl.appendChild(chk); chkLbl.appendChild(document.createTextNode('Email David when it’s loaded')); acts.appendChild(chkLbl);
     var log=el('ul','log'); box.appendChild(log);
-    inp.onchange=function(){ var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(files.length){ inp.disabled=true; runBatch(files, log, chk.checked).then(function(){ inp.disabled=false; }); } };
+    [inp, inp2].forEach(function(input){
+      input.onchange=function(){ var files=Array.prototype.slice.call(input.files||[]); input.value=''; if(files.length){ input.disabled=true; runBatch(files, log, chk.checked).then(function(){ input.disabled=false; }); } };
+    });
+    if(isPhone){ var tip=el('p',null,'On a phone: pick cards.json from the Files app (iCloud Drive → Documents → Total Tree Care Claude → David Review), then use Add photos on each card.'); tip.style.marginTop='10px'; box.appendChild(tip); }
     return box;
   }
   function logLine(log, text, tone){ var li=el('li',tone||'info',text); log.appendChild(li); return li; }
@@ -642,10 +674,10 @@
       .sort(function(a,b){ return relPath(a).split('/').length-relPath(b).split('/').length; })[0];
     if(!cardsFile){ logLine(log,'No cards.json in that folder. Pick the David Review folder itself (Claude writes cards.json there).','bad'); return Promise.resolve(); }
     var base=relPath(cardsFile).split('/').slice(0,-1).join('/');
-    var byFolder={};
+    var byFolder={}, loose=0;
     files.forEach(function(f){
       if(!isImage(f)) return;
-      var parts=relPath(f).split('/'); if(parts.length<2) return;
+      var parts=relPath(f).split('/'); if(parts.length<2){ loose++; return; }
       var parent=parts.slice(0,-1).join('/');
       if(base && parent.indexOf(base+'/')!==0) return;
       var folder=parts[parts.length-2].toLowerCase();
@@ -656,6 +688,7 @@
       var cards=Array.isArray(json)?json:(json.cards||[]);
       if(!cards.length) throw new Error('cards.json has no cards.');
       logLine(log,'Found '+cards.length+' card'+(cards.length===1?'':'s')+(json.batch?' — '+json.batch:'')+'.');
+      if(loose) logLine(log, loose+' photo'+(loose===1?'':'s')+' picked without a folder can’t be matched to a customer — use Add photos on the card instead.','bad');
       var chain=Promise.resolve(), ok=0, bad=0;
       cards.forEach(function(card){
         chain=chain.then(function(){
