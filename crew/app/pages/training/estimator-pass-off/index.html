@@ -268,6 +268,95 @@
   details.appx[open]>summary::after{transform:rotate(90deg)}
   .appx-body{padding:0 16px 14px}
 
+  /* ---- progress at a glance: rings, a pipeline bar, the path, lesson dots ----
+     Borrowed on purpose: Duolingo's path (where am I, what's next, what's locked), a CRM pipeline
+     (how much is done / waiting on someone / bounced / untouched) and lesson dots (what's inside a
+     section without opening it). State colours come from the same tokens as the item chips. */
+  .ring{display:block}
+  .ring .trk{fill:none;stroke:var(--rail)}
+  .ring .val{fill:none;stroke:var(--ttc-green);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+  .is-done .ring .val,.ring.full .val{stroke:var(--ttc-gold)}
+
+  .pipe{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--rail)}
+  .pipe span{display:block;height:100%;min-width:0;transition:flex-basis .4s ease}
+  .pipe .v{background:var(--ver-br)} .pipe .c{background:var(--claim-br)} .pipe .r{background:var(--no-br)}
+  .pipe .o{background:transparent}
+
+  .hero-top{display:flex;align-items:center;gap:14px;margin:2px 0 14px}
+  .hero-ring{position:relative;flex:0 0 auto;width:84px;height:84px}
+  .hero-ring .ring .trk{stroke:rgba(241,238,231,.16)}
+  .hero-ring .ring .val{stroke:var(--ttc-gold)}
+  .hero-ring .ctr{position:absolute;inset:0;display:grid;place-content:center;text-align:center;line-height:1.05}
+  .hero-ring .ctr b{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
+  .hero-ring .ctr small{display:block;margin-top:2px;font-size:10px;font-weight:700;letter-spacing:.04em;opacity:.75;font-variant-numeric:tabular-nums}
+  .hero-stats{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .stat{display:flex;align-items:center;gap:7px;min-height:42px;padding:6px 9px;border:0;border-radius:10px;
+        background:rgba(241,238,231,.08);color:inherit;font:inherit;text-align:left;cursor:pointer}
+  .stat:active{background:rgba(241,238,231,.16)}
+  .stat i{flex:0 0 auto;width:9px;height:9px;border-radius:50%}
+  .stat i.v{background:var(--ver-br)} .stat i.c{background:var(--claim-br)} .stat i.r{background:var(--no-br)} .stat i.o{background:rgba(241,238,231,.35)}
+  .stat b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat span{display:block;font-size:10.5px;opacity:.78;line-height:1.15}
+  .hero .pipe{background:rgba(241,238,231,.16);margin:0 0 6px}
+  .hero-momentum{font-size:12px;font-weight:700;color:var(--ttc-gold);margin:0 0 12px}
+  .hero-divider{height:1px;background:rgba(241,238,231,.14);margin:4px 0 12px}
+  details.more{margin:0 0 10px}
+  details.more>summary{list-style:none;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ttc-gold);
+                       min-height:32px;display:flex;align-items:center;gap:6px}
+  details.more>summary::-webkit-details-marker{display:none}
+  details.more>summary::after{content:'›';transition:transform .2s ease}
+  details.more[open]>summary::after{transform:rotate(90deg)}
+  details.more .hero-purpose{margin-top:4px}
+
+  .path{margin:0 0 16px;padding:14px 12px 12px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+  .path-h{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:800;letter-spacing:.1em;
+          text-transform:uppercase;color:var(--fg3);margin:0 2px 12px}
+  .path-h span{letter-spacing:0;text-transform:none;font-weight:600}
+  .path-row{display:flex;align-items:flex-start;justify-content:space-between}
+  .path-sub{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);
+            margin:14px 2px 10px;padding-top:12px;border-top:1px dashed var(--border)}
+  .path-row.ends{justify-content:flex-start;gap:18px}
+  .pnode{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;padding:0;
+         border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+  .pnode .disc{position:relative;width:50px;height:50px;transition:transform .2s ease}
+  .pnode .ctr{position:absolute;inset:7px;border-radius:50%;display:grid;place-items:center;font-size:15px;font-weight:800;
+              background:var(--card-2);color:var(--fg2)}
+  .pnode .ctr svg{width:17px;height:17px}
+  .pnode.is-done .ctr{background:var(--ttc-gold);color:#3a2a10}
+  .pnode.is-current .ctr{background:var(--ttc-green);color:#fff}
+  .pnode.is-current .disc{transform:scale(1.1)}
+  .pnode.is-locked .ctr{color:var(--fg3);background:var(--rail)}
+  .pnode .lbl{font-size:11px;font-weight:700;line-height:1.2;text-align:center;color:var(--fg2)}
+  .pnode.is-current .lbl{color:var(--fg1)}
+  .pnode .cnt{font-size:10.5px;color:var(--fg3);font-variant-numeric:tabular-nums}
+  .pnode .here{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;
+               background:var(--ttc-green);border-radius:99px;padding:2px 7px}
+  .pnode .wait{font-size:9.5px;font-weight:800;color:var(--claim-fg);background:var(--claim-bg);border-radius:99px;padding:2px 7px}
+  .plink{flex:1 1 auto;height:4px;margin:23px -4px 0;border-radius:99px;background:var(--rail)}
+  .plink.on{background:var(--ttc-gold)}
+
+  .level-ring{position:relative;flex:0 0 auto;width:42px;height:42px}
+  .level-ring .ctr{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--fg2)}
+  .level-ring .ctr svg{width:16px;height:16px}
+  .level.is-done .level-ring .ctr{color:var(--ttc-gold)}
+  .level .pipe{height:5px;border-radius:0;gap:1px}
+  .level-count .sub{display:block;font-size:11.5px;font-weight:700}
+  .level-count .sub.c{color:var(--claim-fg)} .level-count .sub.r{color:var(--ret-fg)} .level-count .sub.v{color:var(--fg3);font-weight:600}
+  details.more.in-level{margin:-4px 0 14px}
+  details.more.in-level>summary{color:var(--ttc-orange)}
+  details.howto{margin:0 0 14px;border:1px solid var(--border);border-radius:14px;background:var(--card)}
+  details.howto>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+                        min-height:var(--touch);padding:10px 14px;font-weight:800;font-size:14px}
+  details.howto>summary::-webkit-details-marker{display:none}
+  details.howto>summary::after{content:'›';color:var(--fg3);transition:transform .2s ease}
+  details.howto[open]>summary::after{transform:rotate(90deg)}
+  details.howto>.blocks{padding:0 14px 10px}
+
+  .sect-dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .sect-dots i{width:9px;height:9px;border-radius:50%;background:var(--rail)}
+  .sect-dots i.v{background:var(--ver-br)} .sect-dots i.c{background:var(--claim-br)} .sect-dots i.r{background:var(--no-br)}
+  @media (prefers-reduced-motion: reduce){ .ring .val,.pipe span,.pnode .disc{transition:none} }
+
   /* ---- interactive appendix forms (Appendix A scoring, B audit, C authority) ---- */
   .fm-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin:12px 0 4px}
   .fm-f{display:flex;flex-direction:column;gap:4px}
@@ -1470,7 +1559,13 @@
     var box=el('div','sect'); box.dataset.open=isOpen?'1':'0';
 
     var head=el('button','sect-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
-    var titles=el('div','sect-titles'); titles.appendChild(el('div','sect-title',S.title)); head.appendChild(titles);
+    var titles=el('div','sect-titles'); titles.appendChild(el('div','sect-title',S.title));
+    // One dot per item, coloured by state: what's inside, readable without opening it.
+    var dots=el('div','sect-dots'); dots.setAttribute('aria-hidden','true');
+    items.forEach(function(i){ var st=itemState(i.id);
+      dots.appendChild(el('i',{verified:'v',claimed:'c',returned:'r'}[st]||'')); });
+    if(items.length) titles.appendChild(dots);
+    head.appendChild(titles);
     var hint=el('div','sect-hint');
     var countCls = c.total&&c.verified===c.total ? 'all-done' : (c.claimed?'has-waiting':'');
     var countLabel = c.total&&c.verified===c.total ? '✓ '+c.verified+'/'+c.total : (c.claimed?c.claimed+' waiting · ':'')+c.verified+'/'+c.total;
@@ -1499,7 +1594,7 @@
     });
     if(!shown){
       if(!items.length){ body.appendChild(el('p','locked-note','No items in this section.')); }
-      else { sect.classList.add('is-filtered-out'); }   // hidden entirely; the filter bar explains why
+      else { box.classList.add('is-filtered-out'); }   // hidden entirely; the filter bar explains why
     }
     if(S.after&&S.after.length){ var sa=el('div','blocks'); blocks(S.after,sa); body.appendChild(sa); }
     box.appendChild(body);
@@ -1524,9 +1619,125 @@
   }
 
   /* ---------- hero: "what's next" ---------- */
+  /* ---------- progress visuals ---------- */
+  var SVGNS='http://www.w3.org/2000/svg';
+  function ring(pct, size, stroke){
+    var r=(size-stroke)/2, c=2*Math.PI*r, p=Math.max(0,Math.min(1,pct||0));
+    var svg=document.createElementNS(SVGNS,'svg');
+    svg.setAttribute('class','ring'+(p>=1?' full':'')); svg.setAttribute('width',size); svg.setAttribute('height',size);
+    svg.setAttribute('viewBox','0 0 '+size+' '+size); svg.setAttribute('aria-hidden','true');
+    function circ(cls){ var e=document.createElementNS(SVGNS,'circle'); e.setAttribute('class',cls);
+      e.setAttribute('cx',size/2); e.setAttribute('cy',size/2); e.setAttribute('r',r); e.setAttribute('stroke-width',stroke); return e; }
+    svg.appendChild(circ('trk'));
+    var v=circ('val'); v.setAttribute('stroke-dasharray',c.toFixed(2)); v.setAttribute('stroke-dashoffset',(c*(1-p)).toFixed(2));
+    v.setAttribute('transform','rotate(-90 '+size/2+' '+size/2+')');
+    if(p>0) svg.appendChild(v);
+    return svg;
+  }
+  function lockIcon(){ var s=document.createElementNS(SVGNS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none');
+    s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.4'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+    var a=document.createElementNS(SVGNS,'rect'); a.setAttribute('x','5'); a.setAttribute('y','11'); a.setAttribute('width','14'); a.setAttribute('height','10'); a.setAttribute('rx','2');
+    var b=document.createElementNS(SVGNS,'path'); b.setAttribute('d','M8 11V7a4 4 0 0 1 8 0v4'); s.appendChild(a); s.appendChild(b); return s; }
+  // A pipeline bar: verified | waiting on review | sent back | not started, in proportion.
+  function pipe(c){
+    var bar=el('div','pipe'), t=c.total||1, open=Math.max(0,c.total-c.verified-c.claimed-c.returned);
+    [['v',c.verified],['c',c.claimed],['r',c.returned],['o',open]].forEach(function(seg){
+      if(!seg[1]) return; var sp=el('span',seg[0]); sp.style.flex='0 0 '+(seg[1]/t*100)+'%'; bar.appendChild(sp); });
+    bar.setAttribute('role','img');
+    bar.setAttribute('aria-label',c.verified+' verified, '+c.claimed+' waiting on review, '+c.returned+' sent back, '+open+' not started');
+    return bar;
+  }
+  function allLevelItems(){ var out=[]; (D.levels||[]).forEach(function(L){ out=out.concat(levelItems(L)); }); return out; }
+  // Short label for the path: the part of David's own title before the dash for a tier
+  // ("Tier 1"), the part after it for an endorsement ("Plant Health Care (PHC)"). Nothing reworded.
+  function shortName(L){
+    var t=String(L.title||''), parts=t.split(' — ');
+    if(parts.length<2) return t;
+    return L.kind==='endorsement' ? parts.slice(1).join(' — ') : parts[0];
+  }
+  function verifiedThisWeek(){
+    var recs=recMap(), since=Date.now()-7*24*3600*1000, n=0;
+    Object.keys(recs).forEach(function(id){ var r=recs[id]; if(r&&r.state==='verified'&&(r.ts||0)>=since) n++; });
+    return n;
+  }
+  function jumpToLevel(L){
+    UI.levels[L.id]=true; saveUI(); rerender();
+    var t=document.getElementById('lvl-'+L.id); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function showOnly(state){
+    setFilter(state); rerender();
+    var t=document.getElementById('ladder'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  // The whole journey on one strip. Tiers run in order; the two endorsements open after Tier 1,
+  // so they sit on their own row rather than pretending to be steps five and six.
+  function pathCard(cl){
+    var levels=D.levels||[], locks=computeLevelLocks(levels), canVerify=TTCRecords.can('verify_others');
+    var card=el('div','path');
+    var tiers=levels.filter(function(L){ return L.kind!=='endorsement'; });
+    var ends=levels.filter(function(L){ return L.kind==='endorsement'; });
+    var doneTiers=tiers.filter(levelFullyVerified).length;
+    var h=el('div','path-h'); h.appendChild(document.createTextNode('Your path'));
+    h.appendChild(el('span',null,doneTiers+' of '+tiers.length+' tiers passed')); card.appendChild(h);
+
+    function node(L, i){
+      var cnt=countOf(levelItems(L)), done=levelFullyVerified(L);
+      var locked=!!locks[L.id] && !done;
+      var current=cl && !cl.allDone && cl.id===L.id;
+      var b=el('button','pnode'+(done?' is-done':'')+(current?' is-current':'')+(locked?' is-locked':''));
+      b.type='button'; b.title=L.title;
+      b.setAttribute('aria-label',L.title+': '+cnt.verified+' of '+cnt.total+' verified'+(locked?', locked':'')+(current?', current':''));
+      var disc=el('div','disc'); disc.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,50,5));
+      var ctr=el('div','ctr');
+      if(done) ctr.appendChild(tick()); else if(locked && !canVerify) ctr.appendChild(lockIcon());
+      else ctr.textContent = L.kind==='endorsement' ? '★' : String(i+1);
+      disc.appendChild(ctr); b.appendChild(disc);
+      b.appendChild(el('div','lbl',shortName(L)));
+      if(current) b.appendChild(el('div','here','You are here'));
+      else if(cnt.claimed) b.appendChild(el('div','wait',cnt.claimed+' waiting'));
+      else b.appendChild(el('div','cnt',cnt.verified+'/'+cnt.total));
+      b.onclick=function(){ jumpToLevel(L); };
+      return b;
+    }
+    var row=el('div','path-row');
+    tiers.forEach(function(L,i){
+      if(i){ var link=el('div','plink'+(levelFullyVerified(tiers[i-1])?' on':'')); row.appendChild(link); }
+      row.appendChild(node(L,i));
+    });
+    card.appendChild(row);
+    if(ends.length){
+      card.appendChild(el('div','path-sub','Specialty endorsements · open after Tier 1'));
+      var r2=el('div','path-row ends'); ends.forEach(function(L,i){ r2.appendChild(node(L,i)); }); card.appendChild(r2);
+    }
+    return card;
+  }
+
   function heroCard(cl){
     var card=el('div','hero');
     if(!cl){ card.appendChild(el('div','hero-title','Loading your standing…')); return card; }
+
+    // Top: the whole pass-off in one ring, and the four states as tappable counts.
+    var all=countOf(allLevelItems()), open=Math.max(0,all.total-all.verified-all.claimed-all.returned);
+    var top=el('div','hero-top');
+    var hr=el('div','hero-ring'); hr.appendChild(ring(all.total?all.verified/all.total:0,84,8));
+    var ctr=el('div','ctr'); ctr.appendChild(el('b',null,(all.total?Math.round(all.verified/all.total*100):0)+'%'));
+    ctr.appendChild(el('small',null,all.verified+' / '+all.total)); hr.appendChild(ctr); top.appendChild(hr);
+    var stats=el('div','hero-stats');
+    [['v','verified','Verified',all.verified],['c','claimed','Waiting on review',all.claimed],
+     ['r','returned','Sent back',all.returned],['o','open','Not started',open]].forEach(function(x){
+      var b=el('button','stat'); b.type='button'; b.appendChild(el('i',x[0]));
+      var t=el('div'); t.appendChild(el('b',null,String(x[3]))); t.appendChild(el('span',null,x[2])); b.appendChild(t);
+      b.setAttribute('aria-label','Show '+x[2].toLowerCase()+': '+x[3]);
+      b.onclick=function(){ showOnly(x[1]); };
+      stats.appendChild(b);
+    });
+    top.appendChild(stats); card.appendChild(top);
+    card.appendChild(pipe(all));
+    var week=verifiedThisWeek();
+    if(week && !cl.allDone) card.appendChild(el('div','hero-momentum','+'+week+' verified in the last 7 days'));
+    else card.appendChild(el('div','hero-momentum',' '));
+    card.appendChild(el('div','hero-divider'));
+
     if(cl.allDone){
       card.appendChild(el('div','hero-kicker','STANDING'));
       card.appendChild(el('div','hero-title','Every level complete.'));
@@ -1534,8 +1745,14 @@
     }
     card.appendChild(el('div','hero-kicker', cl.kind==='endorsement'?'CURRENT — SPECIALTY ENDORSEMENT':'CURRENT TIER'));
     card.appendChild(el('div','hero-title', cl.title));
-    if(cl.purpose) card.appendChild(el('div','hero-purpose', cl.purpose));
-    var bar=el('div','hero-bar'); var i=el('i'); i.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(i); card.appendChild(bar);
+    if(cl.purpose){
+      var more=document.createElement('details'); more.className='more';
+      more.appendChild(el('summary',null,'What this tier allows'));
+      more.appendChild(el('div','hero-purpose', cl.purpose));
+      card.appendChild(more);
+    }
+    var lvl=(D.levels||[]).filter(function(L){ return L.id===cl.id; })[0];
+    if(lvl){ var lp=pipe(countOf(levelItems(lvl))); card.appendChild(lp); }
     if(cl.waitingForSignoff){
       card.appendChild(el('div','hero-next','Ready for sign-off'));
     } else if(cl.nextSection){
@@ -1551,7 +1768,6 @@
     card.appendChild(jump);
     return card;
   }
-
   function openCurrentAction(cl){
     if(!cl) return;
     UI.levels[cl.id]=true;
@@ -1623,9 +1839,17 @@
     root.appendChild(h);
 
     root.appendChild(heroCard(currentLevelCache));
-    root.appendChild(filterBar());
+    root.appendChild(pathCard(currentLevelCache));
 
-    if(D.intro&&D.intro.length){ var ib=el('div','blocks'); blocks(D.intro,ib); root.appendChild(ib); }
+    // David's purpose note and "How to Use This Pass-Off" stay word for word; they fold away so the
+    // progress is what you see first. Open/closed is remembered per person.
+    if(D.intro&&D.intro.length){
+      var how=document.createElement('details'); how.className='howto'; if(UI.intro) how.open=true;
+      how.appendChild(el('summary',null,'How this pass-off works'));
+      var ib=el('div','blocks'); blocks(D.intro,ib); how.appendChild(ib);
+      how.addEventListener('toggle',function(){ UI.intro=how.open; saveUI(); });
+      root.appendChild(how);
+    }
     if(D.header_fields&&D.header_fields.length){
       var hf=el('div','fields');
       D.header_fields.forEach(function(f){
@@ -1635,7 +1859,8 @@
       root.appendChild(hf);
     }
 
-    root.appendChild(el('h2','part','The ladder'));
+    var ladderH=el('h2','part','The ladder'); ladderH.id='ladder'; root.appendChild(ladderH);
+    root.appendChild(filterBar());
 
     var levels=D.levels||[];
     var locks=computeLevelLocks(levels);
@@ -1660,14 +1885,21 @@
       box.id='lvl-'+L.id;
 
       var head=el('button','level-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
-      var ord=el('div','level-ord',L.kind==='endorsement'?'★':String(levels.indexOf(L)+1)); head.appendChild(ord);
+      var lr=el('div','level-ring'); lr.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,42,4));
+      var lc=el('div','ctr');
+      if(isComplete) lc.appendChild(tick()); else if(isLocked) lc.appendChild(lockIcon());
+      else lc.textContent = L.kind==='endorsement'?'★':String(levels.indexOf(L)+1);
+      lr.appendChild(lc); head.appendChild(lr);
       var tt=el('div','level-titles');
       tt.appendChild(el('div','level-title',L.title));
       tt.appendChild(el('div','level-kind',L.kind==='endorsement'?'Specialty endorsement':'Tier'));
       if(lockTitle) tt.appendChild(el('div','level-lock-chip','Opens after '+lockTitle+' sign-off'));
       head.appendChild(tt);
       var cc=el('div','level-count tabular'); var b=el('b',null,cnt.verified+'/'+cnt.total);
-      cc.appendChild(b); cc.appendChild(document.createTextNode(cnt.claimed?cnt.claimed+' waiting':(cnt.verified===cnt.total&&!isComplete&&pass?'ready to sign off':'verified')));
+      cc.appendChild(b);
+      if(cnt.claimed) cc.appendChild(el('span','sub c',cnt.claimed+' waiting'));
+      else if(cnt.returned) cc.appendChild(el('span','sub r',cnt.returned+' sent back'));
+      else cc.appendChild(el('span','sub v',cnt.verified===cnt.total&&!isComplete&&pass?'ready to sign off':'verified'));
       head.appendChild(cc);
       head.appendChild(el('div','level-chev','›'));
       head.onclick=function(){
@@ -1677,12 +1909,15 @@
       };
       box.appendChild(head);
 
-      var bar=el('div','level-bar'), fill=el('i');
-      fill.style.width=(cnt.total?Math.round(cnt.verified/cnt.total*100):0)+'%'; bar.appendChild(fill); box.appendChild(bar);
+      box.appendChild(pipe(cnt));
 
       var body=el('div','level-body');
       if(L.purpose) body.appendChild(el('p','level-purpose',L.purpose));
-      if(L.meta_table) body.appendChild(tableOf(L.meta_table));
+      if(L.meta_table){
+        var mt=document.createElement('details'); mt.className='more in-level';
+        mt.appendChild(el('summary',null,'Authority and review details'));
+        mt.appendChild(tableOf(L.meta_table)); body.appendChild(mt);
+      }
 
       (L.sections||[]).forEach(function(S){ body.appendChild(sectionRow(S, isLocked?lockTitle:null)); });
 
