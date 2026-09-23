@@ -116,57 +116,65 @@
     location.replace(signinTarget(currentReturn()));
   }
   function invalidAuth(err) { return err && ['not_signed_in', 'bad_token', 'invalid_token', 'invalid_session', 'session_changed', 'expired_token', 'unknown_person', 'forbidden'].indexOf(err.error) !== -1; }
-  function check(opts) {
-    opts = opts || {};
+  // Sign in ONCE per device, then never see the gate again.
+  //   - No saved sign-in on this device  -> straight to the sign-in screen, no "checking" flash.
+  //   - A saved sign-in                  -> straight into the page, every time.
+  // The saved sign-in is a 90-day token that the server renews silently whenever it has under 14
+  // days left, so anyone who opens the app at least every couple of months stays signed in
+  // indefinitely. Validity is still re-checked, but behind the page and at most once per
+  // VALID_FOR_MS, so it neither blocks a tap nor spends Apps Script quota on every page open.
+  // Only a genuine auth failure (revoked, deactivated, tampered token) signs someone out; being
+  // offline or a slow Google response never does.
+  function wire(records) {
+    if (initialized || !records) return;
+    initialized = true;
+    records.on('signout', function () { clearValidated(); if (!signingOut && !isLogin()) goToSignIn(); });
+  }
+  function validateInBackground(opts) {
     if (checking) return checking;
     lastCheck = Date.now();
-    // Straight in when this device validated this same token minutes ago. The check still runs,
-    // just behind the page instead of in front of it.
-    var quiet = !opts.force && recentlyValidated(storedToken()) && !isLogin();
-    if (quiet) {
-      reveal();
-    } else {
-      document.documentElement.classList.remove('ttc-auth-ready');
-      document.documentElement.classList.add('ttc-auth-pending');
-      message('Checking your sign-in…', 'One moment while TTC Crew verifies this device.', false);
-    }
     checking = loadRecords().then(function (records) {
-      return records.ready().then(function () {
-        if (!initialized) {
-          initialized = true;
-          records.on('signout', function () { clearValidated(); if (!signingOut) goToSignIn(); });
-        }
-        return records.requireSession();
-      });
+      wire(records);
+      return records.ready().then(function () { return records.requireSession(); });
     }).then(function () {
       markValidated(storedToken());
-      var params = new URLSearchParams(location.search);
-      if (params.get('signin') === '1') location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
-      else reveal();
     }).catch(function (err) {
       if (err && err.error === 'session_changed') {
-        // Another tab replaced or refreshed the session during validation. The persisted replacement
-        // is authoritative; let this check unwind, then validate it without deleting it.
-        setTimeout(function () { check(opts); }, 0);
+        // Another tab replaced or refreshed the session during validation. The persisted
+        // replacement is authoritative; validate it without deleting it.
+        setTimeout(function () { checking = null; validateInBackground(opts); }, 0);
         return;
       }
       if (invalidAuth(err)) {
         clearValidated();
-        if (isLogin() && err.error === 'not_signed_in') { reveal(); return; }
         signingOut = true;
         if (window.TTCRecords) window.TTCRecords.signOut();
         signingOut = false;
         goToSignIn();
-        return;
       }
-      // A quiet re-validation that cannot reach the network must never blank a page the person is
-      // already reading. The records service shows its own offline state; leave the page alone.
-      if (quiet) return;
-      message('TTC Crew is unavailable', err && err.error === 'not_configured' ?
-        'Sign-in has not been configured. Please contact the office.' :
-        'We could not verify your sign-in. Check your connection, then try again.', true);
+      // Anything else — offline, a slow or bounced Google reply — leaves the person where they are.
     }).then(function () { checking = null; }, function () { checking = null; });
     return checking;
+  }
+  function check(opts) {
+    opts = opts || {};
+    var token = storedToken();
+    var params = new URLSearchParams(location.search);
+
+    if (!token) {
+      // Never signed in here (or signed out). The profile page doubles as the sign-in screen.
+      if (isLogin()) reveal(); else goToSignIn();
+      return Promise.resolve(null);
+    }
+
+    // Remembered. If this was a trip through the sign-in screen, carry on to where they were going.
+    if (params.get('signin') === '1') {
+      location.replace(safeReturn(params.get('return')) || new URL('index.html#/', root).href);
+      return Promise.resolve(null);
+    }
+    reveal();
+    if (!opts.force && recentlyValidated(token)) return Promise.resolve(null);
+    return validateInBackground(opts);
   }
   function completeSignIn() {
     var params = new URLSearchParams(location.search);
