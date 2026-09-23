@@ -281,34 +281,63 @@
       var fr1=el('div','field-row'); var emailLabel=el('label',null,'Gmail or email address'); emailLabel.htmlFor='signin-email'; fr1.appendChild(emailLabel);
       var emailInput=document.createElement('input'); emailInput.id='signin-email'; emailInput.type='email'; emailInput.placeholder='you@gmail.com'; emailInput.autocomplete='email'; emailInput.autocapitalize='none'; emailInput.spellcheck=false; emailInput.required=true;
       fr1.appendChild(emailInput); wrap.appendChild(fr1);
+      // One screen, three moves: type your email, tap Send, type the 6 digits. The code box opens the
+      // moment Send is tapped — it used to wait for Google's reply, which takes seconds and, when
+      // Google's redirect hiccuped, never arrived at all, so the box never appeared. The sixth digit
+      // signs you in by itself; the button is only there as a fallback.
       var sendBtn=el('button','btn primary','Send code'); wrap.appendChild(sendBtn);
       var codeWrap=el('div',null); codeWrap.hidden=true;
-      var fr2=el('div','field-row'); var codeLabel=el('label',null,'6-digit code'); codeLabel.htmlFor='signin-code'; fr2.appendChild(codeLabel);
-      var codeInput=document.createElement('input'); codeInput.id='signin-code'; codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.maxLength=6; codeInput.autocomplete='one-time-code';
+      var fr2=el('div','field-row'); var codeLabel=el('label',null,'6-digit code from your email'); codeLabel.htmlFor='signin-code'; fr2.appendChild(codeLabel);
+      var codeInput=document.createElement('input'); codeInput.id='signin-code'; codeInput.type='text'; codeInput.inputMode='numeric'; codeInput.pattern='[0-9]*'; codeInput.maxLength=6; codeInput.autocomplete='one-time-code';
+      codeInput.style.fontSize='22px'; codeInput.style.letterSpacing='.3em'; codeInput.style.textAlign='center';
       fr2.appendChild(codeInput); codeWrap.appendChild(fr2);
-      var verifyBtn=el('button','btn primary','Verify'); codeWrap.appendChild(verifyBtn);
+      var verifyBtn=el('button','btn primary','Sign in'); codeWrap.appendChild(verifyBtn);
       wrap.appendChild(codeWrap);
       var status=el('p','signin-status'); status.setAttribute('role','status'); wrap.appendChild(status);
-      sendBtn.onclick=function(){
+
+      function showCodeBox(){ codeWrap.hidden=false; try{ codeInput.focus(); }catch(e){} }
+      function sentText(addr){ return 'Code sent to '+addr+'. It can take a minute to arrive — check spam too.'; }
+      function send(){
         if(!emailInput.reportValidity()) return;
+        var addr=emailInput.value.trim();
         sendBtn.disabled=true;
-        status.className='signin-status'; status.textContent='Sending…';
-        TTCRecords.signIn(emailInput.value).then(function(){ status.textContent='If this email is on the active crew roster, a code is on its way. Check your inbox and spam folder.'; codeWrap.hidden=false; codeInput.focus(); })
-          .catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Could not send a code.'; })
-          .then(function(){ sendBtn.disabled=false; });
-      };
-      verifyBtn.onclick=function(){
-        status.className='signin-status'; status.textContent='Verifying…';
-        TTCRecords.verifyCode(codeInput.value).then(function(){
-          // Signing in always lands on the home screen, or on the page you were trying to reach
-          // when the gate stopped you. Previously this only happened when the gate had added
-          // ?signin=1; opening this page directly left you sitting on your own profile, which is
-          // not where anyone wants to start. completeSignIn() already falls back to the home
-          // screen when there is no safe return target, so it is right in both cases.
+        status.className='signin-status'; status.textContent='Sending a code to '+addr+'…';
+        showCodeBox();
+        TTCRecords.signIn(addr).then(function(){
+          status.className='signin-status'; status.textContent=sentText(addr);
+        }).catch(function(err){
+          if(err && err.error==='redirect_blocked_after_send'){   // the code went out; only the reply got lost
+            status.className='signin-status'; status.textContent=sentText(addr); return;
+          }
+          status.className='signin-status err'; status.textContent=(err&&err.message)||'Could not send a code. Try again.';
+        }).then(function(){ sendBtn.disabled=false; sendBtn.textContent='Send a new code'; });
+      }
+      sendBtn.onclick=send;
+      emailInput.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); send(); } });
+
+      var verifying=false;
+      function verify(){
+        var code=codeInput.value.replace(/\D/g,'');
+        if(code.length!==6 || verifying) return;
+        verifying=true; verifyBtn.disabled=true;
+        status.className='signin-status'; status.textContent='Signing you in…';
+        TTCRecords.verifyCode(code).then(function(){
+          // Straight to the home screen, or the page the gate stopped you on — and remembered on
+          // this device from now on.
           if(window.TTCAuthGate) return TTCAuthGate.completeSignIn();
-          boot();   // gate not loaded (a bare page open) — at least show the signed-in profile
-        }).catch(function(err){ status.className='signin-status err'; status.textContent=err.message||'Wrong code.'; });
-      };
+          boot();
+        }).catch(function(err){
+          status.className='signin-status err'; status.textContent=(err&&err.message)||'That code did not work. Try again.';
+          codeInput.select();
+        }).then(function(){ verifying=false; verifyBtn.disabled=false; });
+      }
+      verifyBtn.onclick=verify;
+      codeInput.addEventListener('input',function(){
+        var d=codeInput.value.replace(/\D/g,'').slice(0,6);
+        if(d!==codeInput.value) codeInput.value=d;
+        if(d.length===6) verify();
+      });
+      codeInput.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); verify(); } });
     }
     root.appendChild(wrap);
   }

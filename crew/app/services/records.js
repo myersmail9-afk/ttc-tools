@@ -224,8 +224,10 @@
     var isWrite = WRITE_ACTIONS.indexOf(action) !== -1;
     // Only a read may be retried. The server runs the action BEFORE issuing its redirect, so a
     // bounced reply still means it happened — retrying signin_start would send a second code and
-    // retrying a write would append a second row.
-    var mayRetry = !isWrite && action !== 'signin_start' && action !== 'signin_verify';
+    // retrying a write would append a second row. signin_verify IS retried: since API 5.6 the
+    // server hands back the same sign-in for the same code for two minutes, so a lost reply is
+    // simply collected again instead of turning into "wrong code".
+    var mayRetry = !isWrite && action !== 'signin_start';
     var payload = Object.assign({ action: action }, fields || {});
     if (needsToken) {
       if (!state.session || !state.session.token) return Promise.reject({ error: 'not_signed_in', message: 'Not signed in.' });
