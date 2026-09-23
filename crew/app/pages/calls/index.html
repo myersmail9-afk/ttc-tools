@@ -604,7 +604,10 @@
     pick.appendChild(inp); acts.appendChild(pick);
     var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; acts.appendChild(arch);
     arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
-    var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid'; chk.checked=true;
+    var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid';
+    // Off by default (Joseph, 2026-09-23); the last choice is remembered on this device.
+    try{ chk.checked=localStorage.getItem('ttc-tree-calls-email-david')==='1'; }catch(e){ chk.checked=false; }
+    chk.onchange=function(){ try{ localStorage.setItem('ttc-tree-calls-email-david', chk.checked?'1':'0'); }catch(e){} };
     chkLbl.appendChild(chk); chkLbl.appendChild(document.createTextNode('Email David when it’s loaded')); acts.appendChild(chkLbl);
     var log=el('ul','log'); box.appendChild(log);
     inp.onchange=function(){ var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(files.length){ inp.disabled=true; runBatch(files, log, chk.checked).then(function(){ inp.disabled=false; }); } };
