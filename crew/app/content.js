@@ -37,7 +37,7 @@
 
 window.TTC_CONTENT = {
   meta: {
-    version: "2026-09-22.1",
+    version: "2026-09-23.1",
     updated: "September 11, 2026",
     appName: "TTC Crew"
   },
@@ -128,7 +128,8 @@ window.TTC_CONTENT = {
         { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" },
         { id: "my-profile", label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
         { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["supervisor"], search: "roster team insights expiring" },
-        { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["supervisor"], search: "verify batch approve sign off" }
+        { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["supervisor"], search: "verify batch approve sign off" },
+        { id: "tree-calls", label: "Tree Calls", desc: "Customer trees waiting on David's call: photos, history, one-tap answer", href: "pages/calls/", kind: "app", roles: ["supervisor"], search: "david decision verdur customer photos quote treat skip" }
       ]
     },
 

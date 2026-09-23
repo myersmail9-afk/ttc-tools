@@ -161,7 +161,7 @@
 
   // ---------------------------------------------------------------------- transport (remote)
 
-  var WRITE_ACTIONS = ['record', 'record_batch', 'set_catalog', 'people_admin', 'profile_set', 'certs_set'];
+  var WRITE_ACTIONS = ['record', 'record_batch', 'set_catalog', 'people_admin', 'profile_set', 'certs_set', 'call_decide', 'calls_put'];
 
   function beginWrite() {
     sync.activeWrites++;
@@ -1046,6 +1046,48 @@
     });
   }
 
+  // ---------------------------------------------------------------------- tree calls (API v5.4)
+  // David's customer decisions (pages/calls/). Supervisor-only, remote-only: the cards are customer
+  // data that lives in the private Sheet, so there is deliberately no localStorage fallback — a
+  // device without the backend gets a clear "not available" instead of a pretend copy.
+
+  function callsGuard() {
+    if (!can('verify_others')) return Promise.reject({ error: 'forbidden', message: 'Tree Calls is for David and Joseph.' });
+    if (!configured()) return Promise.reject({ error: 'not_configured', message: 'Tree Calls needs the records backend.' });
+    return null;
+  }
+  function callsFriendly(err) {
+    // Before the v5.4 backend is deployed the server answers "Unknown action: calls_list".
+    if (err && /Unknown action/.test(err.message || '')) {
+      var e = new Error('Tree Calls is waiting on a backend update (v5.4). Joseph: run the clasp push + deploy.');
+      e.error = 'backend_outdated'; throw e;
+    }
+    throw err;
+  }
+  function callsList(opts) {
+    return ready().then(function () {
+      return callsGuard() || apiPost('calls_list', { include_archived: !!(opts && opts.includeArchived) }, true);
+    }).catch(callsFriendly);
+  }
+  function callPhotos(callId) {
+    return ready().then(function () {
+      return callsGuard() || apiPost('call_photos', { call_id: callId }, true);
+    }).catch(callsFriendly);
+  }
+  function callDecide(callId, choice, note) {
+    return ready().then(function () {
+      return callsGuard() || apiPost('call_decide', { call_id: callId, choice: choice, note: note || '' }, true);
+    }).catch(callsFriendly);
+  }
+  // callsPut({call_id, card?, status?}, photos?) — photos (array of data URIs) replaces that call's set.
+  function callsPut(call, photos) {
+    return ready().then(function () {
+      var body = { call: call };
+      if (photos) body.photos = photos;
+      return callsGuard() || apiPost('calls_put', body, true);
+    }).catch(callsFriendly);
+  }
+
   // ---------------------------------------------------------------------- events
 
   function on(evt, cb) {
@@ -1069,6 +1111,7 @@
     certsGet: certsGet, certsSet: certsSet, certsExpiring: certsExpiring,
     insights: insights, reviewQueue: reviewQueue,
     recordBatch: recordBatch, recordSet: recordSet,
+    callsList: callsList, callPhotos: callPhotos, callDecide: callDecide, callsPut: callsPut,
     records: records, loadRecords: loadRecords,
     passoffCurrentLevel: passoffCurrentLevel, passoffRecordsFor: passoffRecordsFor, recordsFor: recordsFor,
     currentLevelFromRecords: computeCurrentLevel,
