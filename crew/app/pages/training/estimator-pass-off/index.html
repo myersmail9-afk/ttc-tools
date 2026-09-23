@@ -32,6 +32,7 @@
     --shadow:0 1px 2px rgba(42,58,37,.06),0 8px 24px rgba(42,58,37,.06);
     --fs:16px; --touch:44px;
     --no-bg:#f8e4dd; --no-fg:#7d2d13; --no-br:#c8704f;
+    --ring:#4a6741;
   }
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
     --bg:#1b2218; --bg-alt:#222b1e; --card:#26301f; --card-2:#2b3624;
@@ -43,6 +44,7 @@
     --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
     --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
     --no-bg:#3d2018; --no-fg:#f0b9a3; --no-br:#a3563a;
+    --ring:#8fbf5a;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }}
   :root[data-theme="dark"]{
@@ -55,6 +57,7 @@
     --ret-bg:#3a3020;  --ret-fg:#d8c398;  --ret-br:#8a7550;
     --ttc-orange:#e0782f; --ttc-gold:#d9ad6f;
     --no-bg:#3d2018; --no-fg:#f0b9a3; --no-br:#a3563a;
+    --ring:#8fbf5a;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
   }
   :root[data-textsize="big"]{--fs:18.5px}
@@ -274,7 +277,7 @@
      section without opening it). State colours come from the same tokens as the item chips. */
   .ring{display:block}
   .ring .trk{fill:none;stroke:var(--rail)}
-  .ring .val{fill:none;stroke:var(--ttc-green);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+  .ring .val{fill:none;stroke:var(--ring);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
   .is-done .ring .val,.ring.full .val{stroke:var(--ttc-gold)}
 
   .pipe{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--rail)}
@@ -342,7 +345,8 @@
   .level .pipe{height:5px;border-radius:0;gap:1px}
   .level-count .sub{display:block;font-size:11.5px;font-weight:700}
   .level-count .sub.c{color:var(--claim-fg)} .level-count .sub.r{color:var(--ret-fg)} .level-count .sub.v{color:var(--fg3);font-weight:600}
-  details.more.in-level{margin:-4px 0 14px}
+  details.more.in-level{margin:-4px 0 8px}
+  details.more.in-level .level-purpose{margin:4px 0 10px}
   details.more.in-level>summary{color:var(--ttc-orange)}
   details.howto{margin:0 0 14px;border:1px solid var(--border);border-radius:14px;background:var(--card)}
   details.howto>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
@@ -1921,7 +1925,11 @@
       box.appendChild(pipe(cnt));
 
       var body=el('div','level-body');
-      if(L.purpose) body.appendChild(el('p','level-purpose',L.purpose));
+      if(L.purpose){
+        var lp=document.createElement('details'); lp.className='more in-level';
+        lp.appendChild(el('summary',null, L.kind==='endorsement'?'What this endorsement allows':'What this tier allows'));
+        lp.appendChild(el('p','level-purpose',L.purpose)); body.appendChild(lp);
+      }
       if(L.meta_table){
         var mt=document.createElement('details'); mt.className='more in-level';
         mt.appendChild(el('summary',null,'Authority and review details'));
