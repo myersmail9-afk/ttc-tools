@@ -3,8 +3,9 @@
   TTC Crew — David's Brain.
   Self-contained page: inline CSS + vanilla JS, no libraries. Talks to a small API on the office
   Mac, reached through a tunnel whose address is published as ../../brain.json (network-first,
-  falls back to a copy cached in localStorage). The crew code gates each question; it is read
-  from localStorage, never hardcoded here and never logged. Questions and answers are never
+  falls back to a copy cached in localStorage). Each question carries the signed-in person's
+  crew app token (checked by the server against the records backend); it is read from the
+  saved sign-in, never hardcoded here and never logged. Questions and answers are never
   written to the console.
 
   2026-09-12: streaming answers (NDJSON), short conversation memory, voice in (speech
@@ -606,7 +607,6 @@
 (function () {
   'use strict';
 
-  var CODE_KEY = 'ttc-crew-code';
   var ENDPOINT_CACHE_KEY = 'ttc-brain-endpoint';
   var HISTORY_KEY = 'ttc-brain-history';
   var VOICE_KEY = 'ttc-brain-voice';
@@ -621,8 +621,14 @@
   function $(id) { return document.getElementById(id); }
   function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
 
-  function getCode() {
-    try { return localStorage.getItem(CODE_KEY) || ''; } catch (e) { return ''; }
+  // Every question carries the signed-in person's token; the brain server checks it with the crew
+  // records server. The shared crew code is gone (Joseph, 2026-09-23) and is dropped if still stored.
+  try { localStorage.removeItem('ttc-crew-code'); } catch (e) {}
+  function getToken() {
+    try {
+      var sess = JSON.parse(localStorage.getItem('ttc-crew-session:v1') || 'null');
+      return (sess && sess.mode === 'remote' && sess.token) ? String(sess.token) : '';
+    } catch (e) { return ''; }
   }
   function normalizeQ(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
 
@@ -1289,7 +1295,7 @@
   // Contract (agreed with the server side 2026-09-12): POST {url}/transcribe
   //   { code, audio_b64, mime }  (audio <= 2.5 MB, base64 of the recorded Blob)
   //   -> 200 { ok:true, text, seconds, ms }  (text can be "" with a note when nothing was heard)
-  //   -> 401 bad crew code · 413 too big · 502 transcribe failure
+  //   -> 401 sign-in not valid · 413 too big · 502 transcribe failure
   // Until the server ships this route, any non-200/ok response degrades to a plain message and
   // never leaves the user stuck — no crash, no infinite "Listening…".
   var audioCtx = null;
@@ -1447,7 +1453,7 @@
       fetch(url + '/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: getCode(), audio_b64: b64, mime: mime })
+        body: JSON.stringify({ token: getToken(), audio_b64: b64, mime: mime })
       })
         .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
         .then(function (result) {
@@ -1647,16 +1653,16 @@
     var box = document.createElement('div');
     box.className = 'error-box';
 
-    if (kind === 'code') {
+    if (kind === 'signin') {
       var p1 = document.createElement('p');
-      p1.textContent = "That crew code did not work with the brain. It may need to be entered again.";
+      p1.textContent = "Your sign-in on this phone is no longer valid. Sign in again to ask the brain.";
       box.appendChild(p1);
       var link = document.createElement('a');
       link.className = 'error-link';
-      link.href = '../../';
-      link.textContent = 'Enter the crew code';
+      link.href = '../me/index.html?signin=1&return=' + encodeURIComponent(location.pathname);
+      link.textContent = 'Sign in';
       link.addEventListener('click', function () {
-        try { localStorage.removeItem(CODE_KEY); } catch (e) {}
+        try { localStorage.removeItem('ttc-crew-session:v1'); localStorage.removeItem('ttc-crew-auth-ok:v1'); } catch (e) {}
       });
       box.appendChild(link);
     } else {
@@ -1758,7 +1764,7 @@
       var url = ep && ep.url;
       if (!url) { pending.textContent = "Could not log that — David's brain is asleep."; return; }
       var payload = {
-        code: getCode(),
+        token: getToken(),
         question: question,
         reason: reason,
         cited: data.cited || [],
@@ -2258,7 +2264,7 @@
     fetch(url + '/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: question, code: getCode(), facts_only: true })
+      body: JSON.stringify({ question: question, token: getToken(), facts_only: true })
     })
       .then(function (res) { return res.status === 200 ? res.json() : null; })
       .then(function (data) {
@@ -2273,7 +2279,7 @@
     var reqOpts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: question, code: getCode(), stream: true, mode: mode, history: historyForServer() })
+      body: JSON.stringify({ question: question, token: getToken(), stream: true, mode: mode, history: historyForServer() })
     };
     if (controller) reqOpts.signal = controller.signal;
 
@@ -2440,7 +2446,7 @@
         askedMode: data.mode, note: data.note
       };
       finishAnswer(question, state, mode, { mode: 'whole', forceReadFull: !!(opts && opts.readFull) });
-    } else if (status === 401) { showError('code'); }
+    } else if (status === 401) { showError('signin'); }
     else if (status === 429) { showError('rate'); }
     else if (status === 503) { showError('busy'); }
     else if (status === 502) { showError('ollama'); }
