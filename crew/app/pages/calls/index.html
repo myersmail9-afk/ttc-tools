@@ -410,30 +410,9 @@
     var fStatus=el('span','status'); fStatus.setAttribute('role','status'); fActs.appendChild(fStatus);
     fActs.appendChild(el('span','spacer'));
     var archiveBtn=el('button','btn','Done — archive'); archiveBtn.type='button'; fActs.appendChild(archiveBtn);
-    var addLbl=el('label','btn file-btn','Add photos'); var addInp=document.createElement('input'); addInp.type='file'; addInp.accept='image/*'; addInp.multiple=true; addInp.id='add-'+id;
-    addLbl.appendChild(addInp); fActs.appendChild(addLbl);
+    var editBtn=el('button','btn','Edit card'); editBtn.type='button'; fActs.appendChild(editBtn);
     var fSend=el('button','btn primary','Send to David'); fSend.type='button'; fActs.appendChild(fSend);
-    // Works from a phone's camera roll: adds to the photos already on the card (12 max), then David sees
-    // the card as updated. Uses the same resize as the folder loader.
-    addInp.onchange=function(){
-      var files=Array.prototype.slice.call(addInp.files||[]); addInp.value=''; if(!files.length) return;
-      addInp.disabled=true; setF('Reading '+files.length+' photo'+(files.length===1?'':'s')+'…');
-      var fresh=[], failed=[];
-      files.reduce(function(p,f){ return p.then(function(){ return decodeToCanvas(f).then(function(u){ fresh.push(u); }, function(e){ failed.push(e.message); }); }); }, Promise.resolve())
-      .then(function(){
-        if(!fresh.length) throw new Error(failed[0]||'No photos could be read.');
-        return TTCRecords.callPhotos(id).then(function(r){
-          var all=(r.photos||[]).concat(fresh).slice(0, MAX_PHOTOS);
-          setF('Uploading…');
-          return TTCRecords.callsPut({call_id:id}, all, 'added in app '+Date.now());
-        });
-      }).then(function(res){
-        if(res.call) CALLS[id]=res.call;
-        setF('Added '+fresh.length+' photo'+(fresh.length===1?'':'s')+(failed.length?' ('+failed.length+' could not be read)':'')+(res.reopened?' — back on David’s list':'')+'.','ok');
-        return load();
-      }).catch(function(err){ setF(err.message||'Could not add photos.','bad'); })
-      .then(function(){ addInp.disabled=false; });
-    };
+    editBtn.onclick=function(){ openEditor(id, editBtn); };
     followRow.hidden=!isLoader;
     var pad=el('div','call-foot-pad'); node.appendChild(pad);
 
@@ -625,7 +604,7 @@
     listBox=el('div'); root.appendChild(listBox);
     answeredLabel=el('div','section-label', isLoader ? 'Submitted by David' : 'Submitted'); root.appendChild(answeredLabel);
     root.appendChild(el('div')).id='answeredBox';
-    if(isLoader){ officeBox=buildOffice(); root.appendChild(officeBox); }
+    if(isLoader){ root.insertBefore(buildOfficeBar(), errBox); officeBox=buildImport(); root.appendChild(officeBox); }
   }
 
   function apply(res){
@@ -661,7 +640,7 @@
     waitingLabel.hidden=!waiting; answeredLabel.hidden=!submitted;
     summaryCounts.innerHTML='';
     if(!ORDER.length){
-      summaryCounts.textContent = isLoader ? 'Nothing loaded yet — use Load a batch below.' : 'Nothing waiting — Joseph will send the next ones here.';
+      summaryCounts.textContent = isLoader ? 'Nothing here yet — tap New call to add one.' : 'Nothing waiting — Joseph will send the next ones here.';
     } else {
       summaryCounts.appendChild(el('b',null,String(waiting))); summaryCounts.appendChild(document.createTextNode(' waiting · '));
       summaryCounts.appendChild(el('b',null,String(submitted))); summaryCounts.appendChild(document.createTextNode(' submitted'));
@@ -676,27 +655,47 @@
     errBox.textContent=msg; errBox.hidden=false;
   }
 
-  // ---- Joseph: load a batch from the Mac's "David Review" folder
-  function buildOffice(){
-    var box=el('section','office');
-    box.appendChild(el('h2',null,'Load a batch (office)'));
-    var p=el('p'); p.appendChild(document.createTextNode('Pick the ')); p.appendChild(el('code',null,'David Review'));
-    p.appendChild(document.createTextNode(' folder. Each customer’s photos go in their own subfolder, next to ')); p.appendChild(el('code',null,'cards.json'));
-    p.appendChild(document.createTextNode('. Re-load any time: only cards whose text or photos changed go back on David’s list (with his last answer shown). His answers are never erased.'));
+  // ---- Joseph: the office bar. The same on a phone, a tablet or a computer — no device branching.
+  var officeStatus=null;
+  function setOffice(text, tone){ if(!officeStatus) return; officeStatus.textContent=text||''; officeStatus.className='office-status'+(tone?' '+tone:''); }
+  function buildOfficeBar(){
+    var wrap=el('div');
+    var bar=el('div','office-bar'); wrap.appendChild(bar);
+    var add=el('button','btn primary','+ New call'); add.type='button'; bar.appendChild(add);
+    add.onclick=function(){ openEditor(null, add); };
+    // Loading or editing a card never emails David; this does, when Joseph is ready.
+    var mail=el('button','btn','Email David'); mail.type='button'; bar.appendChild(mail);
+    mail.onclick=function(){
+      mail.disabled=true; setOffice('Emailing David…');
+      TTCRecords.callsNotify({}).then(function(n){
+        setOffice(n.sent ? 'Emailed David: '+n.waiting+' waiting on him.' : (n.waiting ? 'Nothing emailed.' : 'Nothing is waiting on David, so no email was sent.'), n.sent?'ok':'');
+      }, function(err){ setOffice((err&&err.message)||'Could not email David.','bad'); }).then(function(){ mail.disabled=false; });
+    };
+    bar.appendChild(el('span','grow'));
+    var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; bar.appendChild(arch);
+    arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
+    officeStatus=el('div','office-status'); officeStatus.setAttribute('role','status'); wrap.appendChild(officeStatus);
+    return wrap;
+  }
+
+  // ---- Joseph: optional import of a Claude-prepared batch (cards.json + one photo folder per customer).
+  // Secondary on purpose: New call is the normal way. Folded away until it's wanted.
+  function buildImport(){
+    var det=document.createElement('details'); det.className='import';
+    det.appendChild(el('summary',null,'Import from a file (optional)'));
+    var box=el('section','office'); det.appendChild(box);
+    var p=el('p'); p.appendChild(document.createTextNode('For a batch Claude prepared: pick the ')); p.appendChild(el('code',null,'David Review'));
+    p.appendChild(document.createTextNode(' folder (cards plus each customer’s photo folder), or just its ')); p.appendChild(el('code',null,'cards.json'));
+    p.appendChild(document.createTextNode(' and add photos with Edit card. Re-importing only re-opens cards that changed; David’s answers are never erased.'));
     box.appendChild(p);
     var acts=el('div','office-actions'); box.appendChild(acts);
-    // Phones can't pick a folder, so they get a plain file picker (cards.json from the Files app, then
-    // photos per card with "Add photos"). Computers get the whole-folder picker.
-    var isPhone=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
     var pick=el('label','btn primary file-btn','Choose the folder…');
     var inp=document.createElement('input'); inp.type='file'; inp.id='batchFolder'; inp.multiple=true;
     inp.setAttribute('webkitdirectory',''); inp.setAttribute('directory','');
-    pick.appendChild(inp); if(!isPhone) acts.appendChild(pick);
-    var pick2=el('label','btn '+(isPhone?'primary ':'')+'file-btn', isPhone?'Choose cards.json…':'Or pick files…');
+    pick.appendChild(inp); acts.appendChild(pick);
+    var pick2=el('label','btn file-btn','Choose cards.json…');
     var inp2=document.createElement('input'); inp2.type='file'; inp2.id='batchFiles'; inp2.multiple=true;
     pick2.appendChild(inp2); acts.appendChild(pick2);
-    var arch=el('button','btn',showArchived?'Hide archived':'Show archived'); arch.type='button'; acts.appendChild(arch);
-    arch.onclick=function(){ showArchived=!showArchived; arch.textContent=showArchived?'Hide archived':'Show archived'; load().catch(showError); };
     var chkLbl=el('label','check'); var chk=document.createElement('input'); chk.type='checkbox'; chk.id='emailDavid';
     // Off by default (Joseph, 2026-09-23); the last choice is remembered on this device.
     try{ chk.checked=localStorage.getItem('ttc-tree-calls-email-david')==='1'; }catch(e){ chk.checked=false; }
@@ -704,11 +703,214 @@
     chkLbl.appendChild(chk); chkLbl.appendChild(document.createTextNode('Email David when it’s loaded')); acts.appendChild(chkLbl);
     var log=el('ul','log'); box.appendChild(log);
     [inp, inp2].forEach(function(input){
-      input.onchange=function(){ var files=Array.prototype.slice.call(input.files||[]); input.value=''; if(files.length){ input.disabled=true; runBatch(files, log, chk.checked).then(function(){ input.disabled=false; }); } };
+      input.onchange=function(){ var files=Array.prototype.slice.call(input.files||[]); input.value=''; if(files.length){ input.disabled=true; det.open=true; runBatch(files, log, chk.checked).then(function(){ input.disabled=false; }); } };
     });
-    if(isPhone){ var tip=el('p',null,'On a phone: pick cards.json from the Files app (iCloud Drive → Documents → Total Tree Care Claude → David Review), then use Add photos on each card.'); tip.style.marginTop='10px'; box.appendChild(tip); }
-    return box;
+    return det;
   }
+
+  // ---- Joseph: create or edit one card, from any device. Saves through calls_put (no new backend).
+  var DEFAULT_CHOICES=['Treat this fall','Skip this year','Need to see it'];
+  var ed=document.getElementById('editor'), edBody=document.getElementById('edBody'), edTitle=document.getElementById('edTitle');
+  var edStatus=document.getElementById('edStatus'), edSave=document.getElementById('edSave'), edCancel=document.getElementById('edCancel');
+  var edState=null;   // {id, isNew, card, photos:[dataURI], photosDirty, dirty, returnTo, readers:{}}
+  function setEd(text, tone){ edStatus.textContent=text||''; edStatus.className='status'+(tone?' '+tone:''); }
+
+  function slugId(name){
+    var parts=String(name||'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').split(/[^a-z0-9]+/).filter(Boolean);
+    var base=(parts.length?parts[parts.length-1]:'call');           // last name first, like the batch ids
+    if(!/^[a-z]/.test(base)) base='call-'+base;
+    base=base.slice(0,40);
+    var id=base;
+    if(CALLS[id]) id=base+'-'+Date.now().toString(36).slice(-4);
+    return id.slice(0,63);
+  }
+  function linesOf(v){ return String(v||'').split(/\r?\n/).map(function(x){ return x.trim(); }).filter(Boolean); }
+  // "Spring 2025 — Mectinite injection" -> ["Spring 2025","Mectinite injection"]
+  function splitPair(line){
+    var m=/^(.*?)\s+[—–-]\s+(.+)$/.exec(line) || /^([^:]{1,40}):\s+(.+)$/.exec(line);
+    return m ? [m[1].trim(), m[2].trim()] : ['', line];
+  }
+  // "Quote 1234 https://…" -> ["Quote 1234","https://…"]; anything that is not https is dropped.
+  function splitLink(line){
+    var m=/^(.*?)\s*(https:\/\/\S+)\s*$/.exec(line); if(!m) return null;
+    return [m[1].replace(/[\s:—–-]+$/,'').trim() || 'Link', m[2]];
+  }
+
+  function field(label, input, opts){
+    opts=opts||{};
+    var f=el('label','fld'+(opts.req?' req':'')); f.appendChild(el('span',null,label)); f.appendChild(input);
+    if(opts.hint) f.appendChild(el('small',null,opts.hint));
+    return f;
+  }
+  function textInput(val, ph, type){ var i=document.createElement('input'); i.type=type||'text'; i.value=val||''; if(ph) i.placeholder=ph; i.autocomplete='off'; return i; }
+  function textArea(val, ph, rows){ var t=document.createElement('textarea'); t.value=val||''; if(ph) t.placeholder=ph; if(rows) t.rows=rows; return t; }
+
+  function openEditor(id, returnTo){
+    var c=id?CALLS[id]:null;
+    var card=c?JSON.parse(JSON.stringify(c.card||{})):{choices:DEFAULT_CHOICES.slice()};
+    edState={id:id, isNew:!id, card:card, photos:[], photosDirty:false, dirty:false, returnTo:returnTo, busy:false};
+    edTitle.textContent=id?'Edit card — '+(card.name||id):'New call for David';
+    edSave.textContent=id?'Save changes':'Save — David sees it';
+    setEd(id && c && c.decision ? 'Saving changes puts this back on David’s list, with his last answer shown.' : '');
+    drawEditor();
+    ed.hidden=false; document.body.style.overflow='hidden';
+    var first=edBody.querySelector('input,textarea'); if(first) first.focus();
+    if(id && c && c.photo_count){
+      var cached=PHOTOS[id];
+      var got=(cached && cached.list && cached.key===photoKey(c)) ? Promise.resolve(cached.list) : TTCRecords.callPhotos(id).then(function(r){ return r.photos||[]; });
+      setEd('Loading '+c.photo_count+' photo'+(c.photo_count===1?'':'s')+'…');
+      got.then(function(list){ if(!edState || edState.id!==id) return; edState.photos=list.slice(); setEd(''); drawPhotosEd(); },
+               function(err){ if(edState && edState.id===id) setEd((err&&err.message)||'Could not load the photos; saving won’t change them.','bad'); });
+    }
+  }
+  function closeEditor(force){
+    if(!edState) return;
+    if(edState.busy) return;
+    if(!force && (edState.dirty || edState.photosDirty) && edCancel.getAttribute('data-confirm')!=='1'){
+      edCancel.setAttribute('data-confirm','1'); edCancel.textContent='Discard changes?'; return;
+    }
+    var back=edState.returnTo; edState=null; ed.hidden=true; document.body.style.overflow='';
+    edCancel.removeAttribute('data-confirm'); edCancel.textContent='Cancel'; edBody.innerHTML='';
+    if(back && back.focus) back.focus();
+  }
+  function markDirty(){ if(edState){ edState.dirty=true; edCancel.removeAttribute('data-confirm'); edCancel.textContent='Cancel'; } }
+  edCancel.onclick=function(){ closeEditor(false); };
+  document.getElementById('edClose').onclick=function(){ closeEditor(false); };
+  ed.addEventListener('click',function(e){ if(e.target===ed) closeEditor(false); });
+  document.addEventListener('keydown',function(e){ if(!ed.hidden && e.key==='Escape') closeEditor(false); });
+
+  var edPhotosBox=null, edRefs=null;
+  function drawEditor(){
+    var card=edState.card; edBody.innerHTML='';
+    edBody.addEventListener('input', markDirty);
+    var R={};
+    R.name=textInput(card.name,'Customer name'); edBody.appendChild(field('Customer',R.name,{req:true}));
+    var r2=el('div','row2'); edBody.appendChild(r2);
+    R.town=textInput(card.town,'Town'); r2.appendChild(field('Town',R.town));
+    R.kind=textInput(card.kind,'e.g. PHC, removal'); r2.appendChild(field('Type (optional)',R.kind));
+    R.profile=textInput(card.profile,'https://secure.getjobber.com/clients/…','url'); edBody.appendChild(field('Jobber profile link',R.profile,{hint:'Paste the customer’s Jobber link (https).'}));
+    R.ask=textArea(card.ask,'What do you need David to decide?',3); edBody.appendChild(field('Question for David',R.ask,{req:true}));
+
+    // Photos
+    var pf=el('div','fld'); pf.appendChild(el('span',null,'Photos')); edPhotosBox=el('div','ed-photos'); pf.appendChild(edPhotosBox);
+    pf.appendChild(el('small',null,'Up to '+MAX_PHOTOS+'. On a phone this opens your camera roll.'));
+    edBody.appendChild(pf); drawPhotosEd();
+
+    R.take=textArea(card.take,'What the office sees, in a sentence or two',3); edBody.appendChild(field('Office read',R.take));
+    var lean=el('div','fld'); lean.appendChild(el('span',null,'Office lean')); var seg=el('div','seg'); seg.setAttribute('role','group'); lean.appendChild(seg);
+    var tone=card.take_tone||'';
+    [['treat','Treat'],['skip','Skip'],['see','Your call'],['','No lean']].forEach(function(o){
+      var b=el('button',null,o[1]); b.type='button'; b.setAttribute('data-tone',o[0]); b.setAttribute('aria-pressed',String(o[0]===tone));
+      b.onclick=function(){ tone=o[0]; R.tone=tone; markDirty(); Array.prototype.forEach.call(seg.children,function(x){ x.setAttribute('aria-pressed',String(x.getAttribute('data-tone')===tone)); }); };
+      seg.appendChild(b);
+    });
+    R.tone=tone; edBody.appendChild(lean);
+    R.money=textInput(card.money,'e.g. $185 last year, 2 trees'); edBody.appendChild(field('Money',R.money));
+
+    // Answer choices (2–6)
+    var cf=el('div','fld'); cf.appendChild(el('span',null,'David’s answer choices')); var cl=el('div','choice-list'); cf.appendChild(cl);
+    cf.appendChild(el('small',null,'Between 2 and 6. David taps one, adds a note if he wants, and submits.'));
+    edBody.appendChild(cf);
+    R.choices=[];
+    function addChoice(v){
+      if(R.choices.length>=6) return;
+      var row=el('div','choice-item'); var i=textInput(v,'An answer David can tap'); row.appendChild(i);
+      var del=el('button','mini','−'); del.type='button'; del.setAttribute('aria-label','Remove this choice'); row.appendChild(del);
+      del.onclick=function(){ if(R.choices.length<=2){ setEd('Keep at least 2 choices.','bad'); return; } R.choices.splice(R.choices.indexOf(i),1); row.remove(); markDirty(); syncAdd(); };
+      R.choices.push(i); cl.appendChild(row); syncAdd();
+    }
+    var addC=el('button','btn','+ Add a choice'); addC.type='button';
+    function syncAdd(){ addC.hidden=R.choices.length>=6; }
+    addC.onclick=function(){ addChoice(''); markDirty(); var last=R.choices[R.choices.length-1]; if(last) last.focus(); };
+    var start=(card.choices&&card.choices.length)?card.choices:DEFAULT_CHOICES;
+    start.forEach(function(v){ addChoice(v); });
+    while(R.choices.length<2) addChoice('');
+    cf.appendChild(addC);
+
+    // The longer, optional parts — folded so the form stays short on a phone.
+    var more=document.createElement('details'); more.className='ed-more';
+    var hasMore=(card.history&&card.history.length)||(card.said&&card.said.length)||(card.questions&&card.questions.length)||(card.links&&card.links.length);
+    if(hasMore) more.open=true;
+    more.appendChild(el('summary',null,'History, what they said, questions, links'));
+    var mb=el('div','ed-more-body'); more.appendChild(mb);
+    R.history=textArea((card.history||[]).map(function(h){ return h[0]?h[0]+' — '+h[1]:h[1]; }).join('\n'),'Spring 2025 — Mectinite injection',3);
+    mb.appendChild(field('Treatment history',R.history,{hint:'One per line: when — what happened.'}));
+    R.said=textArea((card.said||[]).join('\n'),'What the customer said, word for word',3);
+    mb.appendChild(field('What they said',R.said,{hint:'One quote per line.'}));
+    R.questions=textArea((card.questions||[]).join('\n'),'Anything else you want David to weigh in on',2);
+    mb.appendChild(field('Your questions',R.questions,{hint:'One per line.'}));
+    R.links=textArea((card.links||[]).map(function(l){ return l[0]+' '+l[1]; }).join('\n'),'Quote 7041 https://secure.getjobber.com/…',2);
+    mb.appendChild(field('Jobber links',R.links,{hint:'One per line: a label, then the https link.'}));
+    edBody.appendChild(more);
+    edRefs=R;
+  }
+
+  function drawPhotosEd(){
+    if(!edPhotosBox || !edState) return;
+    edPhotosBox.innerHTML='';
+    edState.photos.forEach(function(uri,i){
+      var ph=el('div','ed-ph'); var im=document.createElement('img'); im.src=uri; im.alt='Photo '+(i+1); ph.appendChild(im);
+      var x=el('button',null,'×'); x.type='button'; x.setAttribute('aria-label','Remove photo '+(i+1));
+      x.onclick=function(){ edState.photos.splice(i,1); edState.photosDirty=true; markDirty(); drawPhotosEd(); };
+      ph.appendChild(x); edPhotosBox.appendChild(ph);
+    });
+    if(edState.photos.length<MAX_PHOTOS){
+      var add=el('label','ed-add','+ Add photos'); var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+      inp.setAttribute('aria-label','Add photos'); add.appendChild(inp); edPhotosBox.appendChild(add);
+      inp.onchange=function(){
+        var files=Array.prototype.slice.call(inp.files||[]); inp.value=''; if(!files.length) return;
+        var room=MAX_PHOTOS-edState.photos.length, take=files.slice(0,room), failed=[];
+        setEd('Reading '+take.length+' photo'+(take.length===1?'':'s')+'…');
+        take.reduce(function(p,f){ return p.then(function(){ return decodeToCanvas(f).then(function(u){ if(edState){ edState.photos.push(u); edState.photosDirty=true; } }, function(e){ failed.push(e.message); }); }); }, Promise.resolve())
+          .then(function(){
+            markDirty(); drawPhotosEd();
+            var msg=failed.length ? failed[0] : (files.length>take.length ? 'Only '+MAX_PHOTOS+' photos fit; the extras were left out.' : '');
+            setEd(msg, failed.length?'bad':'');
+          });
+      };
+    }
+  }
+
+  edSave.onclick=function(){
+    if(!edState || edState.busy) return;
+    var R=edRefs, card=Object.assign({}, edState.card);   // keeps fields the form doesn't show (batch, followup)
+    card.name=R.name.value.trim(); card.town=R.town.value.trim(); card.kind=R.kind.value.trim();
+    card.ask=R.ask.value.trim(); card.take=R.take.value.trim(); card.take_tone=R.tone||''; card.money=R.money.value.trim();
+    var prof=R.profile.value.trim();
+    if(!card.name){ setEd('Add the customer’s name.','bad'); R.name.focus(); return; }
+    if(!card.ask){ setEd('Add the question for David.','bad'); R.ask.focus(); return; }
+    if(prof && !safeHttps(prof)){ setEd('The Jobber link has to start with https://','bad'); R.profile.focus(); return; }
+    card.profile=prof || undefined;
+    var picks=R.choices.map(function(i){ return i.value.trim(); }).filter(Boolean);
+    var uniq=picks.filter(function(v,i){ return picks.indexOf(v)===i; });
+    if(uniq.length<2){ setEd('Give David at least 2 different answers to choose from.','bad'); return; }
+    card.choices=uniq.slice(0,6);
+    card.history=linesOf(R.history.value).map(splitPair);
+    card.said=linesOf(R.said.value);
+    card.questions=linesOf(R.questions.value);
+    var rawLinks=linesOf(R.links.value), links=rawLinks.map(splitLink).filter(Boolean);
+    if(links.length<rawLinks.length){ setEd('Each Jobber link line needs an https:// link.','bad'); R.links.focus(); return; }
+    card.links=links;
+    delete card.followup;          // the follow-up is sent from the card, never rewritten here
+    ['town','kind','take','money'].forEach(function(k){ if(!card[k]) delete card[k]; });
+    var id=edState.id || slugId(card.name);
+    var photos=(edState.isNew ? (edState.photos.length?edState.photos:null) : (edState.photosDirty?edState.photos:null));
+    edState.busy=true; edSave.disabled=true; edCancel.disabled=true;
+    setEd(photos && photos.length ? 'Saving the card and '+photos.length+' photo'+(photos.length===1?'':'s')+'…' : 'Saving…');
+    TTCRecords.callsPut({call_id:id, card:card}, photos, photos?('edited in app '+Date.now()):null).then(function(res){
+      if(res.call) CALLS[id]=res.call;
+      var wasNew=edState.isNew, name=card.name;
+      edState.busy=false; edSave.disabled=false; edCancel.disabled=false;
+      closeEditor(true);
+      setOffice(wasNew ? 'Saved '+name+'. David sees it now — tap Email David when you want him to know.' :
+                         'Saved '+name+(res.reopened?' — it’s back on David’s list.':'.'), 'ok');
+      return load();
+    }).catch(function(err){
+      if(edState){ edState.busy=false; edSave.disabled=false; edCancel.disabled=false; }
+      setEd((err&&err.message)||'Could not save. Check your signal and tap Save again.','bad');
+    });
+  };
+
   function logLine(log, text, tone){ var li=el('li',tone||'info',text); log.appendChild(li); return li; }
   function relPath(f){ return String(f.webkitRelativePath||f.name); }
   function isImage(f){ return /\.(jpe?g|png|webp|heic|heif|gif)$/i.test(f.name) || /^image\//.test(f.type||''); }
