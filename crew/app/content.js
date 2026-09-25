@@ -55,14 +55,13 @@ window.TTC_CONTENT = {
   brain: {
     label: "David's Brain",
     desc: "Answers from David's notes, with sources",
-    href: "pages/brain/",
-    roles: ["supervisor"]
+    href: "pages/brain/"
   },
 
   sections: [
     {
       // Crew view (Joseph, 2026-09-25): the crew see the original TTC Employee Resources links, the Chip Drop app,
-      // the watering helper, Emergency Contacts and the two estimator trainings. Everything else is marked
+      // the watering helper, Emergency Contacts, David's Brain, My Profile and the two estimator trainings. Everything else is marked
       // roles: ["supervisor"] (David and Joseph still see it; flip a tile back to the crew when it is ready).
       id: "resources", title: "TTC Employee Resources", icon: "book", roles: ["crew"],
       blurb: "The original resources sheet, all in one place.",
@@ -137,7 +136,7 @@ window.TTC_CONTENT = {
         { id: "estimator-field-manual", label: "Estimator Field Manual", desc: "Consultations, prescriptive specs, production estimating, and PHC discovery, the field reference", href: "pages/training/estimator-field-manual/", kind: "file", search: "estimator bid consultation specifications production phc" },
         { id: "estimator-pass-off", label: "Qualified Estimator Pass-Off", desc: "The tiered path from Estimator Trainee to independent estimating authority, trackable live", href: "pages/training/estimator-pass-off/index.html", kind: "file", search: "estimator training tier certification pass off" },
         { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" },
-        { id: "my-profile", roles: ["supervisor"], label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
+        { id: "my-profile", label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
         { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["supervisor"], search: "roster team insights expiring" },
         { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["supervisor"], search: "verify batch approve sign off" },
         { id: "tree-calls", label: "Tree Calls", desc: "Customer trees waiting on David's call — photos, history, submit an answer", href: "pages/calls/", kind: "app", roles: ["supervisor"], search: "david decision verdur customer photos quote treat skip" }
