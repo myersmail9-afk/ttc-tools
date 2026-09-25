@@ -171,6 +171,13 @@
 
   function start() {
     mount();
+    // Every page checks for a newer version of the app, not only the home screen: a phone that reopens
+    // straight into a page (the pass-off, a profile) still picks up a deploy.
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+        navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update(); }).catch(function () {});
+      }
+    } catch (e) {}
     // The app home builds category top bars after route changes. Keep the shared control present
     // whenever a new top bar is rendered instead of requiring every page to remember to add it.
     if (window.MutationObserver && document.body) {
