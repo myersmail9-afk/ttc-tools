@@ -88,13 +88,10 @@
         border-radius:12px;background:var(--claim-bg);color:var(--claim-fg);border:1px solid var(--claim-br);font-size:13.5px}
   .working-on b{font-weight:800}
   .working-on-back{margin-left:auto;font-weight:700;text-decoration:underline}
-  .sect.is-filtered-out{display:none}
-  .filter-empty{margin:18px 0;padding:16px 18px;border:1px dashed var(--border);border-radius:14px;
-        background:var(--card);color:var(--fg2);font-size:14px}
-  .filter-empty b{color:var(--fg1)}
 
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
+  html{font-size:var(--fs)}
   body{background:var(--bg);color:var(--fg1);font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
        font-size:var(--fs);line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
   a{text-decoration:none;color:inherit} svg{display:block}
@@ -112,7 +109,7 @@
   .topbar-title{flex:1;font-size:15px;font-weight:600;text-align:center;margin-right:var(--touch)}
   .icon-btn{background:none;border:0;min-width:var(--touch);min-height:var(--touch);padding:6px 8px;cursor:pointer;font-weight:700;font-size:14px;opacity:.9}
 
-  .wrap{max-width:780px;margin:0 auto;padding:18px 16px calc(136px + env(safe-area-inset-bottom))}
+  .wrap{max-width:780px;margin:0 auto;padding:18px 16px calc(48px + env(safe-area-inset-bottom))}
   .tabular{font-variant-numeric:tabular-nums}
 
   /* ---- sign-in (same idiom as the other TTC Crew pages) ---- */
@@ -137,33 +134,11 @@
   .btn.good{background:var(--ver-br);border-color:var(--ver-br);color:#12280a}
   .btn.bad{background:var(--card);border-color:var(--ret-br);color:var(--ret-fg)}
   .btn.small{padding:7px 12px;font-size:12.5px}
+  .btn.full{width:100%;display:block;text-align:center;margin-top:6px}
   .btn:disabled{opacity:.5;cursor:default}
 
-  /* ---- header ---- */
-  .doc-head{text-align:center;padding:10px 0 4px}
   .doc-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ttc-green);margin:0 0 8px}
   h1{font-size:clamp(25px,5.4vw,33px);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
-  .doc-sub{font-size:13.5px;color:var(--fg2);margin:0 0 4px}
-
-  /* ---- hero: "what's next", the primary object on the screen ---- */
-  .hero{background:linear-gradient(155deg,var(--ttc-dark),#37492f);color:#f1eee7;border-radius:18px;
-        padding:18px 20px;margin:16px 0;box-shadow:var(--shadow)}
-  :root[data-theme="light"] .hero, .hero{color:#f1eee7}
-  .hero-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ttc-gold);margin-bottom:6px}
-  .hero-title{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
-  .hero-purpose{font-size:13.5px;color:rgba(241,238,231,.82);margin:0 0 10px}
-  .hero-bar{height:8px;border-radius:99px;background:rgba(241,238,231,.18);overflow:hidden;margin:2px 0 10px}
-  .hero-bar i{display:block;height:100%;background:var(--ttc-gold);border-radius:99px;transition:width .35s ease}
-  .hero-next{font-size:14px;font-weight:600;margin-bottom:4px}
-  .hero-gate{font-size:12.5px;color:rgba(241,238,231,.75);margin-bottom:12px}
-  .hero .btn.primary{background:var(--ttc-gold);border-color:var(--ttc-gold);color:#2a2214}
-
-  /* ---- filter bar ---- */
-  .filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;margin:0}
-  .filter-chip{flex:0 0 auto;min-height:var(--touch);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:99px;
-        border:1px solid var(--border);background:var(--card);color:var(--fg2);cursor:pointer;white-space:nowrap}
-  .filter-chip[aria-pressed="true"]{background:var(--ttc-dark);border-color:var(--ttc-dark);color:#f1eee7}
-  .filter-chip .n{font-variant-numeric:tabular-nums;opacity:.8;margin-left:4px}
 
   /* ---- generic blocks (verbatim content) ---- */
   .blocks p{margin:0 0 10px}
@@ -177,202 +152,136 @@
   tr:last-child td{border-bottom:0}
   .note-block{border-left:3px solid var(--ttc-gold);padding:2px 0 2px 13px;margin:0 0 12px;color:var(--fg2)}
 
-  /* ---- level ---- */
-  .level{margin:0 0 14px;border:1px solid var(--border);border-radius:16px;background:var(--card);
-         box-shadow:var(--shadow);overflow:hidden}
-  .level.is-endorsement{border-style:dashed}
-  .level.is-locked{opacity:.82}
-  .level-head{display:flex;align-items:center;gap:12px;min-height:58px;padding:14px 16px;background:var(--card-2);
-              border-bottom:1px solid var(--border-soft);cursor:pointer;width:100%;border:0;text-align:left}
-  .level-ord{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
-             background:var(--ttc-dark);color:#f1eee7;font-size:13px;font-weight:800}
-  .level.is-done .level-ord{background:var(--ver-br);color:#12280a}
-  .level.is-locked .level-ord{background:var(--rail);color:var(--fg3)}
-  .level-titles{flex:1;min-width:0}
-  .level-title{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
-  .level-kind{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:700;margin-top:2px}
-  .level-lock-chip{display:inline-block;font-size:10.5px;font-weight:700;color:var(--fg3);background:var(--rail);
-        border-radius:6px;padding:2px 6px;margin-top:4px}
-  .level-count{flex:0 0 auto;font-size:12.5px;color:var(--fg2);text-align:right}
-  .level-count b{display:block;font-size:15px;color:var(--fg1)}
-  .level-chev{flex:0 0 auto;transition:transform .2s ease;color:var(--fg3)}
-  .level.is-open .level-chev{transform:rotate(90deg)}
-  .level-bar{height:4px;background:var(--rail)}
-  .level-bar i{display:block;height:100%;background:var(--ttc-green);transition:width .35s ease}
-  .level-body{padding:14px 16px 6px;display:none}
-  .level.is-open .level-body{display:block}
-  .level-purpose{font-size:15px;font-weight:600;color:var(--fg1);margin:0 0 14px;line-height:1.5}
+  /* ---- summary: flat, the first thing on the page ---- */
+  .summary{margin:6px 0 20px}
+  .summary-line{font-size:14px;color:var(--fg2);margin:0 0 3px}
+  .summary-stage{margin:14px 0 2px}
+  .summary-stage-name{font-size:15.5px;font-weight:700;color:var(--fg1);margin:0 0 8px}
+  .summary-stage-count{font-size:13px;color:var(--fg2);margin-top:7px}
+  .summary-notes{font-size:13px;color:var(--claim-fg);margin:7px 0 14px}
+  .summary .save-state{margin-top:12px}
 
-  /* ---- section: its own collapsible row, same idiom as <details class="appx"> below ---- */
-  .sect{border:1px solid var(--border);border-radius:12px;background:var(--card-2);margin:0 0 10px;overflow:hidden}
-  .sect-head{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--touch);padding:11px 13px;background:none;border:0;
-        cursor:pointer;text-align:left}
-  .sect-titles{flex:1;min-width:0}
-  .sect-title{font-size:14px;font-weight:800;color:var(--ttc-orange);letter-spacing:.01em}
-  .sect-hint{display:flex;align-items:center;gap:5px;flex:0 0 auto}
-  .sect-count{font-size:12px;color:var(--fg3)}
-  .sect-count.all-done{color:var(--ver-fg);font-weight:700}
-  .sect-count.has-waiting{color:var(--claim-fg);font-weight:700}
-  .sect-chev{flex:0 0 auto;color:var(--fg3);transition:transform .18s ease}
-  .sect[data-open="1"] .sect-chev{transform:rotate(90deg)}
-  .sect-body{padding:0 13px 12px}
-  .sect[data-open="0"] .sect-body{display:none}
-
-  /* ---- item ---- */
-  .item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--border-soft);
-        border-radius:12px;background:var(--bg-alt);margin:0 0 7px;min-height:56px}
-  .item[data-state="claimed"]{background:var(--claim-bg);border-color:var(--claim-br)}
-  .item[data-state="verified"]{background:var(--ver-bg);border-color:var(--ver-br)}
-  .item[data-state="returned"]{background:var(--ret-bg);border-color:var(--ret-br)}
-  .item-mark{flex:0 0 auto;width:var(--touch);height:var(--touch);border-radius:10px;border:2px solid var(--border);
-             background:var(--card);display:grid;place-items:center;padding:0;margin-top:1px}
-  .item-mark svg{width:18px;height:18px;opacity:0}
-  .item[data-state="claimed"] .item-mark{border-color:var(--claim-br)}
-  .item[data-state="claimed"] .item-mark svg{opacity:1;color:var(--claim-fg)}
-  .item[data-state="verified"] .item-mark{border-color:var(--ver-br);background:var(--ver-br)}
-  .item[data-state="verified"] .item-mark svg{opacity:1;color:#12280a}
-  .item[data-state="returned"] .item-mark{border-color:var(--ret-br)}
-  .item[data-state="returned"] .item-mark svg{opacity:1;color:var(--ret-fg)}
-  .item-body{flex:1;min-width:0}
-  .item-text{font-size:16px;line-height:1.55;color:var(--fg1)}
-  .more-link{background:none;border:0;min-height:var(--touch);color:var(--ttc-orange);font-weight:700;font-size:13px;cursor:pointer;padding:7px 0}
-  .item-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
-  .chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;
-        background:var(--open-bg);color:var(--open-fg);white-space:nowrap}
-  .chip.claimed{background:var(--claim-bg);color:var(--claim-fg)}
-  .chip.verified{background:var(--ver-bg);color:var(--ver-fg)}
-  .chip.returned{background:var(--ret-bg);color:var(--ret-fg)}
-  .item-when{font-size:11.5px;color:var(--fg3)}
-  .item-note{font-size:13px;color:var(--fg2);margin-top:6px;padding:7px 10px;background:var(--card);
-             border-radius:9px;border:1px solid var(--border-soft);white-space:pre-line}
-  .item-note b{font-weight:700;color:var(--fg1)}
-  .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-  .locked-note{font-size:12px;color:var(--fg3);margin-top:8px}
-
-  /* ---- sign-off (always visible — the gate, never collapsed) ---- */
-  .signoff{margin:14px 0 4px;border:2px solid var(--ttc-gold);border-radius:14px;background:var(--card);overflow:hidden}
-  .signoff-head{padding:10px 14px;background:var(--ttc-gold);color:#3a2a10;font-size:13px;font-weight:800;
-                letter-spacing:.06em;text-transform:uppercase}
-  .signoff-body{padding:13px 14px 6px}
-  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-top:10px}
-  .field{border:1px dashed var(--border);border-radius:9px;padding:8px 10px}
-  .field-label{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:700}
-  .field-line{height:18px;border-bottom:1px solid var(--border);margin-top:3px}
-  .field-value{font-size:14.5px;font-weight:700;margin-top:3px;line-height:1.35;word-break:break-word}
-  .field-value.empty{font-weight:600;color:var(--fg3)}
-  .field.filled{border-style:solid}
-
-  /* ---- appendix ---- */
-  details.appx{border:1px solid var(--border);border-radius:14px;background:var(--card);margin:0 0 10px;
-               box-shadow:var(--shadow);overflow:hidden}
-  details.appx>summary{padding:13px 16px;cursor:pointer;font-weight:800;font-size:15px;list-style:none}
-  details.appx>summary::-webkit-details-marker{display:none}
-  details.appx>summary::after{content:'›';float:right;color:var(--fg3);transition:transform .2s}
-  details.appx[open]>summary::after{transform:rotate(90deg)}
-  .appx-body{padding:0 16px 14px}
-
-  /* ---- progress at a glance: rings, a pipeline bar, the path, lesson dots ----
-     Borrowed on purpose: Duolingo's path (where am I, what's next, what's locked), a CRM pipeline
-     (how much is done / waiting on someone / bounced / untouched) and lesson dots (what's inside a
-     section without opening it). State colours come from the same tokens as the item chips. */
-  .ring{display:block}
-  .ring .trk{fill:none;stroke:var(--rail)}
-  .ring .val{fill:none;stroke:var(--ring);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
-  .is-done .ring .val,.ring.full .val{stroke:var(--ttc-gold)}
-
-  .pipe{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--rail)}
-  .pipe span{display:block;height:100%;min-width:0;transition:flex-basis .4s ease}
-  .pipe .v{background:var(--ver-br)} .pipe .c{background:var(--claim-br)} .pipe .r{background:var(--no-br)}
-  .pipe .o{background:transparent}
-
-  .hero-top{display:flex;align-items:center;gap:14px;margin:2px 0 14px}
-  .hero-ring{position:relative;flex:0 0 auto;width:84px;height:84px}
-  .hero-ring .ring .trk{stroke:rgba(241,238,231,.16)}
-  .hero-ring .ring .val{stroke:var(--ttc-gold)}
-  .hero-ring .ctr{position:absolute;inset:0;display:grid;place-content:center;text-align:center;line-height:1.05}
-  .hero-ring .ctr b{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
-  .hero-ring .ctr small{display:block;margin-top:2px;font-size:10px;font-weight:700;letter-spacing:.04em;opacity:.75;font-variant-numeric:tabular-nums}
-  .hero-stats{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .stat{display:flex;align-items:center;gap:7px;min-height:42px;padding:6px 9px;border:0;border-radius:10px;
-        background:rgba(241,238,231,.08);color:inherit;font:inherit;text-align:left;cursor:pointer}
-  .stat:active{background:rgba(241,238,231,.16)}
-  .stat i{flex:0 0 auto;width:9px;height:9px;border-radius:50%}
-  .stat i.v{background:var(--ver-br)} .stat i.c{background:var(--claim-br)} .stat i.r{background:var(--no-br)} .stat i.o{background:rgba(241,238,231,.35)}
-  .stat b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
-  .stat span{display:block;font-size:10.5px;opacity:.78;line-height:1.15}
-  .hero .pipe{background:rgba(241,238,231,.16);margin:0 0 6px}
-  .hero-momentum{font-size:12px;font-weight:700;color:var(--ttc-gold);margin:0 0 12px}
-  .hero-divider{height:1px;background:rgba(241,238,231,.14);margin:4px 0 12px}
+  /* ---- how this works + the 4-mark legend ---- */
+  details.howto{margin:0 0 16px;border:1px solid var(--border);border-radius:14px;background:var(--card)}
+  details.howto>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+                        min-height:var(--touch);padding:10px 14px;font-weight:800;font-size:14px}
+  details.howto>summary::-webkit-details-marker{display:none}
+  details.howto>summary::after{content:'›';color:var(--fg3);transition:transform .2s ease}
+  details.howto[open]>summary::after{transform:rotate(90deg)}
+  details.howto>.blocks{padding:0 14px 14px}
   details.more{margin:0 0 10px}
   details.more>summary{list-style:none;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ttc-gold);
                        min-height:32px;display:flex;align-items:center;gap:6px}
   details.more>summary::-webkit-details-marker{display:none}
   details.more>summary::after{content:'›';transition:transform .2s ease}
   details.more[open]>summary::after{transform:rotate(90deg)}
-  details.more .hero-purpose{margin-top:4px}
 
-  .path{margin:0 0 16px;padding:14px 12px 12px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
-  .path-h{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:800;letter-spacing:.1em;
-          text-transform:uppercase;color:var(--fg3);margin:0 2px 12px}
-  .path-h span{letter-spacing:0;text-transform:none;font-weight:600}
-  .path-row{display:flex;align-items:flex-start;justify-content:space-between}
-  .path-sub{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);
-            margin:14px 2px 10px;padding-top:12px;border-top:1px dashed var(--border)}
-  .path-row.ends{justify-content:flex-start;gap:18px}
-  .pnode{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;padding:0;
-         border:0;background:none;color:inherit;font:inherit;cursor:pointer}
-  .pnode .disc{position:relative;width:50px;height:50px;transition:transform .2s ease}
-  .pnode .ctr{position:absolute;inset:7px;border-radius:50%;display:grid;place-items:center;font-size:15px;font-weight:800;
-              background:var(--card-2);color:var(--fg2)}
-  .pnode .ctr svg{width:17px;height:17px}
-  .pnode.is-done .ctr{background:var(--ttc-gold);color:#3a2a10}
-  .pnode.is-current .ctr{background:var(--ttc-green);color:#fff}
-  .pnode.is-current .disc{transform:scale(1.1)}
-  .pnode.is-locked .ctr{color:var(--fg3);background:var(--rail)}
-  .pnode .lbl{font-size:11px;font-weight:700;line-height:1.2;text-align:center;color:var(--fg2)}
-  .pnode.is-current .lbl{color:var(--fg1)}
-  .pnode .cnt{font-size:10.5px;color:var(--fg3);font-variant-numeric:tabular-nums}
-  .pnode .here{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;
-               background:var(--ttc-green);border-radius:99px;padding:2px 7px}
-  .pnode .wait{font-size:9.5px;font-weight:800;color:var(--claim-fg);background:var(--claim-bg);border-radius:99px;padding:2px 7px}
-  .plink{flex:1 1 auto;height:4px;margin:23px -4px 0;border-radius:99px;background:var(--rail)}
-  .plink.on{background:var(--ttc-gold)}
+  .legend{display:flex;flex-direction:column;gap:11px;margin:14px 0 12px;padding-top:12px;border-top:1px solid var(--border-soft)}
+  .legend-row{display:flex;align-items:flex-start;gap:10px}
+  .legend-text b{display:block;font-size:13.5px;font-weight:700;color:var(--fg1)}
+  .legend-text span{font-size:12.5px;color:var(--fg3)}
 
-  .level-ring{position:relative;flex:0 0 auto;width:42px;height:42px}
-  .level-ring .ctr{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--fg2)}
-  .level-ring .ctr svg{width:16px;height:16px}
-  .level.is-done .level-ring .ctr{color:var(--ttc-gold)}
-  .level .pipe{height:5px;border-radius:0;gap:1px}
-  .level-count .sub{display:block;font-size:11.5px;font-weight:700}
-  .level-count .sub.c{color:var(--claim-fg)} .level-count .sub.r{color:var(--ret-fg)} .level-count .sub.v{color:var(--fg3);font-weight:600}
-  details.more.in-level{margin:-4px 0 8px}
-  details.more.in-level .level-purpose{margin:4px 0 10px}
-  details.more.in-level>summary{color:var(--ttc-orange)}
-  details.howto{margin:0 0 14px;border:1px solid var(--border);border-radius:14px;background:var(--card)}
-  details.howto>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-                        min-height:var(--touch);padding:10px 14px;font-weight:800;font-size:14px}
-  details.howto>summary::-webkit-details-marker{display:none}
-  details.howto>summary::after{content:'›';color:var(--fg3);transition:transform .2s ease}
-  details.howto[open]>summary::after{transform:rotate(90deg)}
-  details.howto>.blocks{padding:0 14px 10px}
+  /* ---- the 4-state mark, shared by the legend and every standard row ---- */
+  .mark{flex:0 0 auto;border-radius:50%;border:2px solid var(--border);background:var(--card);display:grid;place-items:center}
+  .mark svg{display:block}
+  .mark[data-state="claimed"]{border-color:var(--claim-br);background:var(--claim-bg);color:var(--claim-fg)}
+  .mark[data-state="verified"]{border-color:var(--ver-br);background:var(--ver-br);color:#12280a}
+  .mark[data-state="returned"]{border-color:var(--ret-br);background:var(--ret-bg);color:var(--ret-fg)}
+  .mark.sm{width:26px;height:26px} .mark.sm svg{width:13px;height:13px}
+  .mark.lg{width:30px;height:30px} .mark.lg svg{width:15px;height:15px}
 
-  .sect-dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-  .sect-dots i{width:9px;height:9px;border-radius:50%;background:var(--rail)}
-  .sect-dots i.v{background:var(--ver-br)} .sect-dots i.c{background:var(--claim-br)} .sect-dots i.r{background:var(--no-br)}
-  @media (prefers-reduced-motion: reduce){ .ring .val,.pipe span,.pnode .disc{transition:none} }
-  /* Supervisor crew list: every person's whole ladder as a stage strip. */
-  .stages{display:flex;gap:3px;margin-top:7px}
-  .stage{flex:1 1 0;height:7px;border-radius:99px;background:var(--rail);overflow:hidden}
-  .stage.end{flex:.7 1 0;margin-left:3px}
-  .stage i{display:block;height:100%;background:var(--ring);border-radius:99px}
-  .stage.done i{background:var(--ttc-gold)}
-  .stage.waiting{box-shadow:0 0 0 1.5px var(--claim-br)}
-  .stages-key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--fg3);margin:-4px 0 12px}
-  .stages-key span{display:inline-flex;align-items:center;gap:5px}
-  .stages-key i{width:14px;height:6px;border-radius:99px;background:var(--rail)}
-  .stages-key i.p{background:var(--ring)} .stages-key i.d{background:var(--ttc-gold)} .stages-key i.w{box-shadow:0 0 0 1.5px var(--claim-br)}
-  /* Jumps land below the sticky top bar instead of under it. */
-  #ladder,.level,.signoff{scroll-margin-top:calc(var(--touch) + 34px + env(safe-area-inset-top))}
+  /* ---- stages: a stepper, not a document ---- */
+  .stagebar-wrap{margin:18px 0 24px}
+  .stages-row{display:flex;gap:6px;margin:0 0 10px}
+  .stagebtn{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+        min-height:58px;padding:9px 4px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);
+        color:var(--fg2);cursor:pointer;text-align:center}
+  .stagebtn svg{width:16px;height:16px}
+  .stagebtn-lbl{font-size:12.5px;font-weight:700;color:var(--fg1);line-height:1.25}
+  .stagebtn-cap{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--fg3)}
+  .stagebtn.is-done{border-color:var(--ver-br);background:var(--ver-bg)}
+  .stagebtn.is-done svg{color:var(--ver-fg)}
+  .stagebtn.is-done .stagebtn-cap{color:var(--ver-fg)}
+  .stagebtn.is-current{background:var(--ttc-dark);border-color:var(--ttc-dark)}
+  .stagebtn.is-current .stagebtn-lbl{color:#f1eee7}
+  .stagebtn.is-current .stagebtn-cap{color:var(--ttc-gold)}
+  .stagebtn.is-locked{background:var(--bg-alt)}
+  .stagebtn.is-locked .stagebtn-lbl{color:var(--fg3)}
+  .stagebtn[aria-selected="true"]{border-width:2px;border-color:var(--ttc-orange)}
+  .stages-sub{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin:2px 0 8px}
+
+  /* ---- stage panel: one stage, no card around the whole thing ---- */
+  .panel{margin:4px 0 24px}
+  .panel-title{font-size:21px;font-weight:800;letter-spacing:-.01em;margin:2px 0 12px;line-height:1.2}
+  .panel-locked{font-size:13px;color:var(--claim-fg);background:var(--claim-bg);border:1px solid var(--claim-br);
+        border-radius:10px;padding:10px 12px;margin:0 0 14px}
+  .panel-clears{font-size:14.5px;line-height:1.55;color:var(--fg1);margin:2px 0 8px}
+  .panel-clears b{font-weight:800}
+  .panel-before{font-size:13px;line-height:1.5;color:var(--fg3);margin:0 0 14px}
+  .panel-before b{font-weight:700;color:var(--fg2)}
+
+  /* ---- groups: flat full-width rows separated by hairlines, no card wrapping them ---- */
+  .grp-list{margin:8px 0 6px;border-top:1px solid var(--border)}
+  .grp{border-bottom:1px solid var(--border)}
+  .grp-head{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:12px 2px;
+        background:none;border:0;text-align:left;cursor:pointer}
+  .grp-letter{flex:0 0 auto;width:28px;height:28px;border-radius:8px;background:var(--bg-alt);color:var(--fg2);
+        display:grid;place-items:center;font-weight:800;font-size:12.5px}
+  .grp-letter.done{background:var(--ver-br);color:#12280a}
+  .grp-titles{flex:1;min-width:0}
+  .grp-title{font-size:15px;font-weight:700;color:var(--fg1);line-height:1.3}
+  .grp-short{font-size:12.5px;color:var(--fg3);margin-top:2px;line-height:1.35}
+  .grp-count{flex:0 0 auto;font-size:12.5px;color:var(--fg3);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .grp-count.done{color:var(--ver-fg);font-weight:700}
+  .grp-chev{flex:0 0 auto;color:var(--fg3);transition:transform .18s ease}
+  .grp[data-open="1"] .grp-chev{transform:rotate(90deg)}
+  .grp-body{padding:0 0 16px}
+  .grp[data-open="0"] .grp-body{display:none}
+  .grp-note{font-size:14px;line-height:1.55;color:var(--fg2);margin:0 0 10px}
+  .grp-note b{color:var(--fg1);font-weight:700}
+
+  /* ---- standard row: full-width text, a status circle, never a card ---- */
+  .std{display:flex;gap:11px;align-items:flex-start;width:100%;padding:12px 2px;
+        border-top:1px solid var(--border-soft);cursor:pointer}
+  .std:first-child{border-top:0}
+  .std-body{flex:1;min-width:0;padding-top:2px}
+  .item-text{font-size:1rem;line-height:1.55;color:var(--fg1)}
+  .more-link{background:none;border:0;min-height:var(--touch);color:var(--ttc-orange);font-weight:700;font-size:13px;cursor:pointer;padding:7px 0}
+  .std-sub{font-size:12.5px;margin-top:6px;color:var(--fg3)}
+  .std[data-state="claimed"] .std-sub{color:var(--claim-fg)}
+  .std[data-state="returned"] .std-sub{color:var(--ret-fg)}
+  .std-pass-inline{display:inline-flex;align-items:center;min-height:38px;margin-top:2px;background:none;border:0;
+        color:var(--ver-fg);font-weight:700;font-size:13px;padding:4px 2px;cursor:pointer}
+  .item-note{font-size:13px;color:var(--fg2);margin-top:10px;padding:9px 11px;background:var(--card-2);
+             border-radius:9px;border:1px solid var(--border-soft);white-space:pre-line}
+  .item-note b{font-weight:700;color:var(--fg1)}
+
+  /* ---- sign-off (always visible — the gate, never collapsed) ---- */
+  .signoff{margin:14px 0 4px;border:2px solid var(--ttc-gold);border-radius:14px;background:var(--card);overflow:hidden}
+  .signoff-head{padding:10px 14px;background:var(--ttc-gold);color:#3a2a10;font-size:13px;font-weight:800;
+                letter-spacing:.06em;text-transform:uppercase}
+  .signoff-body{padding:13px 14px 6px}
+  .signoff-options{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-top:10px}
+  .field{border:1px dashed var(--border);border-radius:9px;padding:8px 10px}
+  .field-label{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:700}
+  .field-value{font-size:14.5px;font-weight:700;margin-top:3px;line-height:1.35;word-break:break-word}
+  .field-value.empty{font-weight:600;color:var(--fg3)}
+  .field.filled{border-style:solid}
+
+  /* ---- tools (the appendices) ---- */
+  details.appx{border:1px solid var(--border);border-radius:14px;background:var(--card);margin:0 0 10px;
+               box-shadow:var(--shadow);overflow:hidden}
+  details.appx>summary{padding:13px 16px;cursor:pointer;font-weight:800;font-size:15px;list-style:none;
+        display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:var(--touch)}
+  details.appx>summary::-webkit-details-marker{display:none}
+  details.appx>summary::after{content:'›';color:var(--fg3);transition:transform .2s;flex:0 0 auto}
+  details.appx[open]>summary::after{transform:rotate(90deg)}
+  .appx-sub{font-size:12px;font-weight:600;color:var(--fg3);margin-top:2px}
+  .appx-not{font-size:12.5px;color:var(--fg3);font-style:italic;margin:0 0 12px}
+  .appx-body{padding:0 16px 14px}
+
+  #stages,.panel,.signoff{scroll-margin-top:calc(var(--touch) + 34px + env(safe-area-inset-top))}
 
   /* ---- interactive appendix forms (Appendix A scoring, B audit, C authority) ---- */
   .fm-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin:12px 0 4px}
@@ -403,16 +312,14 @@
   .fm-score .pending{color:var(--fg3);font-weight:600}
   .fm-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 
-  .fm-tablewrap{overflow-x:auto;margin-top:14px;border:1px solid var(--border);border-radius:12px}
-  table.fm-table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
-  table.fm-table th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);
-    padding:9px 10px;border-bottom:1px solid var(--border)}
-  table.fm-table td{padding:6px 8px;border-top:1px solid var(--border-soft);vertical-align:middle}
-  table.fm-table td.m{font-weight:600;font-size:13.5px;min-width:150px}
-  table.fm-table input{font:inherit;font-size:14px;width:100%;min-width:92px;padding:7px 8px;border:1px solid var(--border);
-    border-radius:8px;background:var(--bg);color:var(--fg1)}
-  td.var-auto{font-weight:700;font-size:13.5px}
-  td.var-auto .up{color:var(--no-fg)} td.var-auto .down{color:var(--ver-fg)} td.var-auto .flat{color:var(--fg3)}
+  /* Appendix B — one row per measure, its two fields stacked under the label. Never a wide table:
+     that is the one thing on this page that used to force sideways scrolling on a phone. */
+  .fm-row-b{padding:12px 2px;border-top:1px solid var(--border-soft)}
+  .fm-row-b:first-child{border-top:0}
+  .fm-row-b .fm-row-text{font-weight:700;margin-bottom:8px;font-size:14.5px}
+  .fm-row-b .fm-head{margin:0 0 6px}
+  .fm-var{margin-top:2px;font-size:13.5px;font-weight:700}
+  .fm-var .up{color:var(--no-fg)} .fm-var .down{color:var(--ver-fg)} .fm-var .flat{color:var(--fg3)}
 
   .fm-tally{margin-top:14px;padding:12px 13px;border:1px dashed var(--border);border-radius:12px;background:var(--card-2)}
   .fm-tally-h{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);font-weight:800}
@@ -451,6 +358,18 @@
   .foot a{color:var(--ttc-orange);font-weight:600}
   .loading{padding:50px 10px;text-align:center;color:var(--fg3)}
 
+  /* ---- stages key + strip, used only by the supervisor's crew list ---- */
+  .stages{display:flex;gap:3px;margin-top:7px}
+  .stage{flex:1 1 0;height:7px;border-radius:99px;background:var(--rail);overflow:hidden}
+  .stage.end{flex:.7 1 0;margin-left:3px}
+  .stage i{display:block;height:100%;background:var(--ring);border-radius:99px}
+  .stage.done i{background:var(--ttc-gold)}
+  .stage.waiting{box-shadow:0 0 0 1.5px var(--claim-br)}
+  .stages-key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--fg3);margin:-4px 0 12px}
+  .stages-key span{display:inline-flex;align-items:center;gap:5px}
+  .stages-key i{width:14px;height:6px;border-radius:99px;background:var(--rail)}
+  .stages-key i.p{background:var(--ring)} .stages-key i.d{background:var(--ttc-gold)} .stages-key i.w{box-shadow:0 0 0 1.5px var(--claim-br)}
+
   /* ---- evidence / reason sheet ---- */
   .sheet-overlay{position:fixed;inset:0;background:rgba(20,20,15,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
   .sheet-overlay[hidden]{display:none}
@@ -463,24 +382,17 @@
   .sheet .field-row textarea{min-height:70px;resize:vertical}
   .sheet-photo-preview{width:72px;height:72px;border-radius:10px;object-fit:cover;margin-top:6px;display:block}
   .sheet-photo-note{font-size:11.5px;color:var(--fg3);margin-top:5px}
-  .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+  .sheet-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
 
-  /* ---- field action: always in thumb reach, with honest record status ---- */
-  .next-action-bar{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:9px 12px calc(9px + env(safe-area-inset-bottom));
-       background:var(--card);background:color-mix(in srgb,var(--card) 94%,transparent);border-top:1px solid var(--border);box-shadow:0 -7px 20px rgba(42,58,37,.10);backdrop-filter:blur(12px)}
-  .next-action-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:10px}
-  .next-action-copy{flex:1;min-width:0}
-  .next-action-label{display:block;font-size:12.5px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ---- save-state indicator (now lives inline in the summary, not a sticky bar) ---- */
   .save-state{display:inline-flex;align-items:center;gap:5px;margin-top:2px;font-size:11.5px;color:var(--fg3)}
   .save-state::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ver-br)}
   .save-state[data-state="saving"]::before{background:var(--ttc-gold);animation:pulse 1s infinite}
   .save-state[data-state="offline"]::before,.save-state[data-state="error"]::before{background:var(--no-br)}
-  .next-action-bar .btn{flex:0 0 auto;white-space:nowrap}
   @keyframes pulse{50%{opacity:.35}}
-  @media(max-width:390px){.next-action-copy{max-width:52vw}.next-action-bar .btn{padding-left:11px;padding-right:11px}}
 
   /* ---- toast (undo, never a confirm dialog) ---- */
-  .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);
         background:var(--ttc-dark);color:#f1eee7;padding:10px 14px;border-radius:11px;font-size:13.5px;
         display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:60;max-width:calc(100vw - 32px)}
   .toast[hidden]{display:none}
@@ -504,11 +416,13 @@
 
 <script src="../../../data/people.js"></script>
 <script src="../../../data/passoff.js"></script>
+<script src="../../../data/passoff-guide.js"></script>
 <script src="../../../services/records.js"></script>
 <script>
 (function(){
   'use strict';
   var D = window.TTC_PASSOFF || null;
+  var GUIDE = window.TTC_PASSOFF_GUIDE || {};
   var root = document.getElementById('root');
   var overlay = document.getElementById('sheetOverlay');
   var sheetBody = document.getElementById('sheetBody');
@@ -525,8 +439,12 @@
   });
 
   /* ---------- helpers ---------- */
+  var SVGNS='http://www.w3.org/2000/svg';
   function el(tag,cls,txt){ var e=document.createElement(tag); if(cls)e.className=cls;
     if(txt!=null)e.textContent=txt; return e; }
+  function elWithLabel(cls,label,text){
+    var p=el('p',cls); p.appendChild(el('b',null,label+' ')); p.appendChild(document.createTextNode(text)); return p;
+  }
   function tick(){ var s=document.createElementNS('http://www.w3.org/2000/svg','svg');
     s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none'); s.setAttribute('stroke','currentColor');
     s.setAttribute('stroke-width','3.2'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
@@ -536,6 +454,30 @@
     s.setAttribute('stroke-width','2.2'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
     s.setAttribute('width','18'); s.setAttribute('height','18');
     var p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M9 18l6-6-6-6'); s.appendChild(p); return s; }
+  function clockIcon(){ var s=document.createElementNS(SVGNS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none');
+    s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.3'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+    var c=document.createElementNS(SVGNS,'circle'); c.setAttribute('cx','12'); c.setAttribute('cy','12'); c.setAttribute('r','9'); s.appendChild(c);
+    var p=document.createElementNS(SVGNS,'path'); p.setAttribute('d','M12 7v5l4 2'); s.appendChild(p); return s; }
+  function returnIcon(){ var s=document.createElementNS(SVGNS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none');
+    s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.3'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+    var p1=document.createElementNS(SVGNS,'path'); p1.setAttribute('d','M9 14L4 9l5-5'); s.appendChild(p1);
+    var p2=document.createElementNS(SVGNS,'path'); p2.setAttribute('d','M4 9h10a5 5 0 0 1 5 5v3'); s.appendChild(p2); return s; }
+  function lockIcon(){ var s=document.createElementNS(SVGNS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none');
+    s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.4'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+    var a=document.createElementNS(SVGNS,'rect'); a.setAttribute('x','5'); a.setAttribute('y','11'); a.setAttribute('width','14'); a.setAttribute('height','10'); a.setAttribute('rx','2');
+    var b=document.createElementNS(SVGNS,'path'); b.setAttribute('d','M8 11V7a4 4 0 0 1 8 0v4'); s.appendChild(a); s.appendChild(b); return s; }
+  // The one status circle used everywhere a standard's state is shown: the legend and every row.
+  function markIcon(state){
+    if(state==='verified') return tick();
+    if(state==='claimed') return clockIcon();
+    if(state==='returned') return returnIcon();
+    return null;
+  }
+  function markEl(state,size){
+    var m=el('span','mark '+(size||'lg')); m.setAttribute('data-state',state); m.setAttribute('aria-hidden','true');
+    var icon=markIcon(state); if(icon) m.appendChild(icon);
+    return m;
+  }
   function when(iso){ if(!iso) return ''; var d=new Date(iso);
     return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
   function relTime(ts){ if(!ts) return ''; var days=Math.floor((Date.now()-ts)/86400000);
@@ -959,12 +901,11 @@
     tally.appendChild(tg); paintTally(); tally.appendChild(tallyOut);
     host.appendChild(tally);
 
-    // Trainer and Date, the other two blanks on David's score line, are not typed — they are
-    // who saved it and when, which is the whole point of keeping the sheet.
+    // Whoever saved this sheet, and when — read from the record, not typed.
     var me=TTCRecords.person()||{};
     var whoLine = openData
-      ? 'Trainer: '+(openData.saved_by_name||personNameById(openData.saved_by||''))+'   ·   Date: '+String(openData.saved_at||'').slice(0,10)
-      : 'Trainer: '+(me.name||me.display_name||'')+'   ·   Date: '+todayISOForm();
+      ? 'Scored by: '+(openData.saved_by_name||personNameById(openData.saved_by||''))+'   ·   Date: '+String(openData.saved_at||'').slice(0,10)
+      : 'Scored by: '+(me.name||me.display_name||'')+'   ·   Date: '+todayISOForm();
     host.appendChild(el('p','fm-hint', whoLine));
 
     var acts=el('div','fm-actions');
@@ -1060,7 +1001,7 @@
 
   /* ---------- Appendix B — Estimate / Production Audit ---------- */
   // "Variance" is computed, not typed, wherever both numbers are numbers — that is the only
-  // column on this sheet whose value is arithmetic rather than judgement.
+  // figure on this sheet that is arithmetic rather than judgement.
   function numOf(raw){
     var t=String(raw==null?'':raw).replace(/[^0-9.\-]/g,'');
     if(!t || t==='-' || t==='.') return null;
@@ -1110,45 +1051,53 @@
       var fw=el('div','fm-actions'); fw.appendChild(fill); host.appendChild(fw);
     }
 
-    var wrap=el('div','fm-tablewrap'), t=el('table','fm-table');
-    var th=el('thead'), htr=el('tr');
-    headers.forEach(function(h){ htr.appendChild(el('th',null,h)); });
-    th.appendChild(htr); t.appendChild(th);
-    var tb=el('tbody');
+    // One row per measure, its two fields stacked underneath — never a wide table. Each field
+    // keeps David's own column header as its label, so nothing about his wording changes, only
+    // how it lays out on a narrow screen.
+    var rowsWrap=el('div','fm-rows');
     measures.forEach(function(m,i){
-      var tr=el('tr');
-      tr.appendChild(el('td','m',m));
-      var varCell=el('td','var-auto');
+      var row=el('div','fm-row-b');
+      row.appendChild(el('div','fm-row-text', m));
+      var grid=el('div','fm-head');
+
+      var estField=el('div','fm-f'); estField.appendChild(el('label',null,headers[1]||'Estimate'));
+      var estInp=document.createElement('input'); estInp.type='text'; estInp.value=draft.rows[i][0]||'';
+      estField.appendChild(estInp); grid.appendChild(estField);
+
+      var actField=el('div','fm-f'); actField.appendChild(el('label',null,headers[2]||'Actual'));
+      var actInp=document.createElement('input'); actInp.type='text'; actInp.value=draft.rows[i][1]||'';
+      actField.appendChild(actInp); grid.appendChild(actField);
+
+      row.appendChild(grid);
+      var varLine=el('div','fm-var');
       function paintVar(){
-        varCell.innerHTML='';
+        varLine.innerHTML='';
         var e=numOf(draft.rows[i][0]), a=numOf(draft.rows[i][1]);
         if(e!=null && a!=null){
           var diff=a-e, pct = e!==0 ? Math.round(diff/Math.abs(e)*100) : null;
           var cls = diff>0?'up':(diff<0?'down':'flat');
           var sign = diff>0?'+':'';
-          var txt = sign+(Math.round(diff*100)/100) + (pct==null?'':'  ('+sign+pct+'%)');
-          varCell.appendChild(el('span',cls,txt));
-          draft.rows[i][2]=txt;
+          var stored = sign+(Math.round(diff*100)/100) + (pct==null?'':'  ('+sign+pct+'%)');
+          var span=el('span',cls,(headers[3]||'Variance')+': '+stored);
+          varLine.appendChild(span);
+          draft.rows[i][2]=stored;
         } else {
-          var inp=document.createElement('input'); inp.type='text'; inp.placeholder='Notes';
-          inp.value=draft.rows[i][2]||'';
-          inp.oninput=function(){ draft.rows[i][2]=inp.value; };
-          if(readOnly) inp.disabled=true;
-          varCell.appendChild(inp);
+          var fnote=el('div','fm-f');
+          var noteInp=document.createElement('input'); noteInp.type='text'; noteInp.placeholder='Notes';
+          noteInp.value=draft.rows[i][2]||'';
+          noteInp.oninput=function(){ draft.rows[i][2]=noteInp.value; };
+          if(readOnly) noteInp.disabled=true;
+          fnote.appendChild(noteInp); varLine.appendChild(fnote);
         }
       }
-      [0,1].forEach(function(col){
-        var td=el('td');
-        var inp=document.createElement('input'); inp.type='text';
-        inp.value=draft.rows[i][col]||'';
-        inp.oninput=function(){ draft.rows[i][col]=inp.value; paintVar(); };
-        if(readOnly) inp.disabled=true;
-        td.appendChild(inp); tr.appendChild(td);
-      });
+      estInp.oninput=function(){ draft.rows[i][0]=estInp.value; paintVar(); };
+      actInp.oninput=function(){ draft.rows[i][1]=actInp.value; paintVar(); };
+      if(readOnly){ estInp.disabled=true; actInp.disabled=true; }
       paintVar();
-      tr.appendChild(varCell); tb.appendChild(tr);
+      row.appendChild(varLine);
+      rowsWrap.appendChild(row);
     });
-    t.appendChild(tb); wrap.appendChild(t); host.appendChild(wrap);
+    host.appendChild(rowsWrap);
 
     var acts=el('div','fm-actions');
     if(readOnly){
@@ -1266,37 +1215,8 @@
   var APPENDIX_FORMS={'appendix-a':renderAppendixA,'appendix-b':renderAppendixB,'appendix-c':renderAppendixC};
   var APPX_OPEN={};   // a save re-renders the page; an open appendix must not snap shut under the user
 
-  // The four lines at the top of David's paper form — Employee, Trainer, Start Date, Review Date —
-  // are blanks you fill in with a pen. On a phone they are dead decoration: the app already knows
-  // all four from the record trail, so they are shown as values, not as rules to write on. Nothing
-  // is invented; a value with nothing behind it yet says so.
-  function docFieldValue(label){
-    var recs=recMap(), ids=Object.keys(recs);
-    var l=String(label||'').toLowerCase();
-    if(l.indexOf('employee')===0) return subject ? subject.name : '';
-    if(l.indexOf('trainer')===0 || l.indexOf('tier 3 reviewer')===0){
-      var newest=null;
-      ids.forEach(function(id){ var r=recs[id];
-        if(r && r.state==='verified' && r.by_person_id && r.by_person_id!==subjectId()){
-          if(!newest || (r.ts||0)>(newest.ts||0)) newest=r;
-        }
-      });
-      if(newest) return personNameById(newest.by_person_id);
-      return canVerifyForms() ? ((TTCRecords.person()||{}).name || '') : '';
-    }
-    if(l.indexOf('start date')===0){
-      var first=null;
-      ids.forEach(function(id){ var t=recs[id]&&recs[id].ts; if(t && (first===null||t<first)) first=t; });
-      return first ? new Date(first).toISOString().slice(0,10) : '';
-    }
-    if(l.indexOf('review date')===0 || l==='date'){
-      var last=null;
-      ids.forEach(function(id){ var t=recs[id]&&recs[id].ts; if(t && (last===null||t>last)) last=t; });
-      return last ? new Date(last).toISOString().slice(0,10) : '';
-    }
-    return '';
-  }
-  // The same four blanks repeated under each tier's sign-off, answered from that tier's own items.
+  // The two blanks under each tier's sign-off that are FACTS, not typed rules on paper: who
+  // signed it off, and when. Read straight from that tier's own sign-off record.
   function levelFieldValue(L, label){
     var l=String(label||'').toLowerCase(), pass=levelPassItem(L), recs=recMap();
     if(l.indexOf('employee')===0) return subject ? subject.name : '';
@@ -1314,13 +1234,25 @@
     d.appendChild(el('div','field-value'+(value?'':' empty'), value || (emptyText||'Not yet')));
     return d;
   }
+  // "Started" in the summary — the earliest record this person has, not a blank to fill in.
+  // Kept as the raw timestamp (not a date-only string) so when() converts it in the visitor's own
+  // timezone instead of re-parsing a bare "YYYY-MM-DD" as UTC midnight, which can read a day early.
+  function firstRecordTs(){
+    var recs=recMap(), ids=Object.keys(recs), first=null;
+    ids.forEach(function(id){ var t=recs[id]&&recs[id].ts; if(t && (first===null||t<first)) first=t; });
+    return first;
+  }
 
   /* ---------- open/closed persistence, per signed-in person ---------- */
   var UI=null, UI_KEY=null;
   function loadUI(personId){
     UI_KEY='ttc-passoff-ui:'+personId;
-    try{ UI=JSON.parse(localStorage.getItem(UI_KEY)||'null'); }catch(e){ UI=null; }
-    if(!UI) UI={levels:{},sections:{}};
+    var raw=null; try{ raw=localStorage.getItem(UI_KEY); }catch(e){}
+    var isFirst=!raw;
+    try{ UI=JSON.parse(raw||'null'); }catch(e){ UI=null; }
+    if(!UI) UI={sections:{},stage:null};
+    if(UI.sections===undefined) UI.sections={};
+    if(UI.howto===undefined) UI.howto=isFirst;   // open "How this works" the first time only
   }
   function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify(UI)); }catch(e){} }
 
@@ -1368,113 +1300,33 @@
     return c.total>0 && c.verified===c.total && (!pass || itemState(pass.id)==='verified');
   }
 
-  /* ---------- role-driven capability ---------- */
-  function myRole(){ return TTCRecords.role(); }
-  function isSelfViewer(){ return true; } // this page always shows the signed-in person's own checklist (no picker)
-
-  /* ---------- filter (the four states, defaulted by role) ---------- */
-  var FILTER_KEY=null, filter='open';
-  function loadFilter(personId){
-    FILTER_KEY='ttc-passoff-filter:'+personId;
-    var stored=null; try{ stored=localStorage.getItem(FILTER_KEY); }catch(e){}
-    if(stored){ filter=stored; return; }
-    // Default by role — but ONLY when that filter actually matches something. A reviewer with an
-    // empty queue must not land on a page of empty sections; that reads as broken, not as "all clear".
-    // A crew member sees their WHOLE checklist by default. Filtering them to "Not started" hid the
-    // items they had just marked done — the work saved, vanished from view, and looked like nothing
-    // had happened (2026-09-22). The filter is a tool they can pick up, never a default that hides
-    // their own work. A reviewer still lands on their queue, but only when it actually has something.
-    var want = TTCRecords.can('verify_others') ? 'claimed' : 'all';
-    filter = (want === 'all' || countMatching(want) > 0) ? want : 'all';
-  }
-  // How many items anywhere in the document currently sit in this state.
-  function countMatching(f){
-    if(f==='all') return 1;
-    var n=0;
-    (D.levels||[]).forEach(function(L){
-      levelItems(L).forEach(function(i){ if(itemState(i.id)===f) n++; });
+  /* ---------- level locking (unchanged: a tier opens once the one before it is signed off) ---------- */
+  function computeLevelLocks(levels){
+    // levels = D.levels in document order. Returns id -> "opens after <title>" or null.
+    var locks={}, byId={}; levels.forEach(function(L){ byId[L.id]=L; });
+    var tierOrder=levels.filter(function(L){ return L.kind!=='endorsement'; });
+    tierOrder.forEach(function(L,i){
+      if(i===0){ locks[L.id]=null; return; }
+      var prev=tierOrder[i-1];
+      locks[L.id] = levelFullyVerified(prev) ? null : prev.title;
     });
-    return n;
+    var tier1=byId['tier1'];
+    levels.filter(function(L){ return L.kind==='endorsement'; }).forEach(function(L){
+      locks[L.id] = (tier1 && !levelFullyVerified(tier1)) ? tier1.title : null;
+    });
+    return locks;
   }
-  function setFilter(f){ filter=f; justChanged={}; try{ localStorage.setItem(FILTER_KEY,f); }catch(e){} }
-  var FILTER_LABELS={ all:'All', open:'Not started', claimed:'Waiting on review', verified:'Verified', returned:'Sent back' };
-  // Item ids changed during this visit — kept visible regardless of the active filter (see the
-  // filter predicate below). Cleared when the person changes the filter by hand, since at that
-  // point they have explicitly asked to see a particular slice.
-  var justChanged={};
 
-  /* ---------- item row ---------- */
-  function itemRow(it, levelLockTitle){
-    var st=itemState(it.id), rec=itemRecord(it.id);
-    var row=el('div','item'); row.setAttribute('data-state',st);
-
-    var mark=el('button','item-mark'); mark.appendChild(tick());
-    mark.setAttribute('aria-label','State: '+st); row.appendChild(mark);
-
-    var body=el('div','item-body'); row.appendChild(body);
-    body.appendChild(itemTextEl(it.text));
-
-    var meta=el('div','item-meta');
-    var label={open:'Not started',claimed:'Waiting on review',verified:'Verified',returned:'Sent back'}[st];
-    var chip=el('span','chip '+(st==='open'?'':st),label); meta.appendChild(chip);
-    if(rec&&rec.ts){
-      // Who did this, not just when. On the crew member's own page this is what tells them
-      // "marked off by David" rather than leaving them wondering how it got ticked.
-      var actor = rec.by_person_id ? personNameById(rec.by_person_id) : '';
-      var self = TTCRecords.person();
-      var byMe = self && rec.by_person_id === self.id;
-      var verb = st==='verified' ? 'Verified' : (st==='returned' ? 'Sent back' : 'Marked');
-      var who  = (!actor || byMe) ? '' : ' by '+actor;
-      var w=el('span','item-when', verb+who+' '+relTime(rec.ts));
-      w.title=exactTime(rec.ts); meta.appendChild(w);
-    }
-    body.appendChild(meta);
-
-    if(rec&&rec.note){ var n=el('div','item-note');
-      n.appendChild(el('b',null,st==='returned'?'Sent back: ':(st==='verified'?'Evidence: ':'Evidence: ')));
-      n.appendChild(document.createTextNode(rec.note)); body.appendChild(n); }
-
-    var canVerify = TTCRecords.can('verify_others');
-    var act=el('div','act');
-    if(levelLockTitle && !canVerify){
-      body.appendChild(el('p','locked-note','Opens after '+levelLockTitle+' sign-off.'));
-    } else if(!canVerify){
-      if(signoffPeers(it).length){
-        body.appendChild(el('p','locked-note','A trainer records this sign-off decision.'));
-      } else if(st==='open'||st==='returned'){
-        var b1=el('button','btn primary',st==='returned'?'Mark done again':'I have done this');
-        b1.onclick=function(){ openEvidenceSheet(it,'claim'); }; act.appendChild(b1);
-      } else if(st==='claimed'){
-        var b2=el('button','btn','Undo');
-        b2.onclick=function(){ writeState(it,'open','',null,'Undid your mark.'); }; act.appendChild(b2);
-      }
-    } else {
-      if(st==='claimed'||st==='open'){
-        // One tap, no form. David watched them do it; making him fill in a sheet to say so is
-        // friction that buys nothing. The note stays available for when he wants to add one.
-        var v=el('button','btn good', st==='claimed' ? 'Verify' : 'Mark off');
-        v.onclick=function(){ writeState(it,'verified','',null, st==='claimed'?'Verified.':'Marked off.'); };
-        act.appendChild(v);
-        var vn=el('button','btn small','Add a note');
-        vn.onclick=function(){ openEvidenceSheet(it,'verify'); }; act.appendChild(vn);
-      }
-      if(st==='claimed'){
-        var r=el('button','btn bad','Send back');
-        r.onclick=function(){ openReasonSheet(it); }; act.appendChild(r);
-      }
-      if(st==='verified'){
-        var u=el('button','btn','Undo verify');
-        u.onclick=function(){ writeState(it,'claimed',rec&&rec.note||'',null,'Undid the verify.'); }; act.appendChild(u);
-      }
-    }
-    mark.onclick=function(){ if(act.firstChild) act.firstChild.click(); };
-    if(act.childNodes.length) body.appendChild(act);
-    return row;
+  // Short label for the stepper and the crew-list strip: the part of David's own title before the
+  // dash for a tier ("Tier 1"), the part after it for an endorsement ("Plant Health Care (PHC)").
+  function shortName(L){
+    var t=String(L.title||''), parts=t.split(' — ');
+    if(parts.length<2) return t;
+    return L.kind==='endorsement' ? parts.slice(1).join(' — ') : parts[0];
   }
 
   function writeState(it, state, note, meta, undoMsg, prevState, prevNote){
     var composed=note||'';
-    justChanged[it.id]=true;
     setSaveState('saving');
     var targetId=isOwn() ? TTCRecords.person().id : subject.id;
     var peers=signoffPeers(it), save;
@@ -1498,7 +1350,7 @@
   function openEvidenceSheet(it, mode){
     sheetBody.innerHTML='';
     var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
-    sheetBody.appendChild(el('div','sheet-title', mode==='verify'?'Verify this item':'Mark this done'));
+    sheetBody.appendChild(el('div','sheet-title', mode==='verify'?'Add a note and pass':'I’ve shown this'));
     sheetBody.appendChild(el('p','sheet-item-text', it.text));
 
     var dateRow=el('div','field-row'); dateRow.appendChild(el('label',null,'Date'));
@@ -1509,8 +1361,10 @@
     var jobInput=document.createElement('input'); jobInput.type='text'; jobInput.placeholder='e.g. 48213';
     jobRow.appendChild(jobInput); sheetBody.appendChild(jobRow);
 
-    var noteRow=el('div','field-row'); noteRow.appendChild(el('label',null,'Note'));
-    var noteInput=document.createElement('textarea'); noteInput.placeholder='What happened, and where';
+    var noteRow=el('div','field-row');
+    noteRow.appendChild(el('label',null, mode==='verify' ? 'Note (optional)' : 'Where David can see it (optional)'));
+    var noteInput=document.createElement('textarea');
+    noteInput.placeholder = mode==='verify' ? 'What you saw' : 'The Smith bid on 9/24, photos in Jobber';
     noteRow.appendChild(noteInput); sheetBody.appendChild(noteRow);
 
     var photoRow=el('div','field-row'); photoRow.appendChild(el('label',null,'Photo (optional)'));
@@ -1529,7 +1383,7 @@
 
     var actions=el('div','sheet-actions');
     var cancel=el('button','btn','Cancel'); cancel.onclick=closeSheet; actions.appendChild(cancel);
-    var submit=el('button','btn '+(mode==='verify'?'good':'primary'), mode==='verify'?'Verify':'Save');
+    var submit=el('button','btn '+(mode==='verify'?'good':'primary'), mode==='verify'?'Pass':'Mark as shown');
     submit.onclick=function(){
       var parts=[];
       if(jobInput.value.trim()) parts.push('Job #'+jobInput.value.trim());
@@ -1539,7 +1393,7 @@
       var prevRec=itemRecord(it.id), prevState=prevRec?prevRec.state:'open', prevNote=prevRec?prevRec.note:'';
       closeSheet();
       writeState(it, mode==='verify'?'verified':'claimed', note, null,
-        mode==='verify'?'Verified.':'Marked done.', prevState, prevNote);
+        mode==='verify'?'Passed.':'Marked as shown. Waiting for David.', prevState, prevNote);
     };
     actions.appendChild(submit);
     sheetBody.appendChild(actions);
@@ -1552,8 +1406,8 @@
     var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
     sheetBody.appendChild(el('div','sheet-title','Send back'));
     sheetBody.appendChild(el('p','sheet-item-text', it.text));
-    var row=el('div','field-row'); row.appendChild(el('label',null,'What still needs doing'));
-    var ta=document.createElement('textarea'); ta.placeholder='Be specific — this is what they’ll see';
+    var row=el('div','field-row'); row.appendChild(el('label',null,'What still needs showing'));
+    var ta=document.createElement('textarea'); ta.placeholder='Be specific. This is what they will see.';
     row.appendChild(ta); sheetBody.appendChild(row);
     var actions=el('div','sheet-actions');
     var cancel=el('button','btn','Cancel'); cancel.onclick=closeSheet; actions.appendChild(cancel);
@@ -1569,298 +1423,416 @@
     overlay.hidden=false;
   }
 
-  /* ---------- section (collapsible row — same idiom as the appendix <details>) ---------- */
-  function sectionRow(S, levelLockTitle){
-    var items=S.items||[], c=countOf(items);
-    var isOpen = UI.sections[S.id];
-    var box=el('div','sect'); box.dataset.open=isOpen?'1':'0';
+  /* ---------- sheets for a tap on a standard row: who you are and its state decide which one ---------- */
+  function openLockedSheet(lockTitle){
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title','Not open yet'));
+    sheetBody.appendChild(el('p','sheet-item-text','Opens after '+lockTitle+' is signed off.'));
+    var actions=el('div','sheet-actions');
+    var ok=el('button','btn primary','Close'); ok.onclick=closeSheet; actions.appendChild(ok);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+  function openClaimedSheet(it){
+    var rec=itemRecord(it.id);
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title','Waiting for David'));
+    sheetBody.appendChild(el('p','sheet-item-text', it.text));
+    if(rec&&rec.note){ var n=el('div','item-note'); n.appendChild(el('b',null,'Your note: ')); n.appendChild(document.createTextNode(rec.note)); sheetBody.appendChild(n); }
+    var actions=el('div','sheet-actions');
+    var cancel=el('button','btn','Close'); cancel.onclick=closeSheet; actions.appendChild(cancel);
+    var back=el('button','btn bad','Take it back');
+    back.onclick=function(){ closeSheet(); writeState(it,'open','',null,'Taken back.', 'claimed', rec&&rec.note||''); };
+    actions.appendChild(back);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+  function openVerifiedSheet(it){
+    var rec=itemRecord(it.id);
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    sheetBody.appendChild(el('div','sheet-title','Passed'));
+    sheetBody.appendChild(el('p','sheet-item-text', it.text));
+    var who = rec&&rec.by_person_id ? personNameById(rec.by_person_id) : '';
+    var whenTxt = rec&&rec.ts ? when(rec.ts) : '';
+    sheetBody.appendChild(el('p',null, [who,whenTxt].filter(Boolean).join(' · ') || 'Passed.'));
+    if(rec&&rec.note){ var n=el('div','item-note'); n.appendChild(el('b',null,'Note: ')); n.appendChild(document.createTextNode(rec.note)); sheetBody.appendChild(n); }
+    var actions=el('div','sheet-actions');
+    var ok=el('button','btn primary','Close'); ok.onclick=closeSheet; actions.appendChild(ok);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+  function openSupervisorSheet(it){
+    var st=itemState(it.id), rec=itemRecord(it.id);
+    sheetBody.innerHTML='';
+    var close=el('button','sheet-close','×'); close.onclick=closeSheet; sheetBody.appendChild(close);
+    var titleTxt={open:'Not yet shown',claimed:'Waiting for David',verified:'Passed',returned:'Sent back'}[st]||'Standard';
+    sheetBody.appendChild(el('div','sheet-title', titleTxt));
+    sheetBody.appendChild(el('p','sheet-item-text', it.text));
+    if(rec&&rec.note){
+      var n=el('div','item-note'); n.appendChild(el('b',null, st==='returned'?'Sent back: ':'Evidence: '));
+      if(st!=='returned') n.appendChild(document.createTextNode(rec.note));
+      sheetBody.appendChild(n);
+    }
+    if(st==='verified' && rec){
+      var who=rec.by_person_id?personNameById(rec.by_person_id):''; var d=rec.ts?when(rec.ts):'';
+      var line=[who,d].filter(Boolean).join(' · '); if(line) sheetBody.appendChild(el('p',null,line));
+    }
+    var actions=el('div','sheet-actions');
+    if(st==='open'||st==='claimed'){
+      var pass=el('button','btn good','Passed');
+      pass.onclick=function(){ closeSheet(); writeState(it,'verified','',null,'Passed.'); };
+      actions.appendChild(pass);
+      var note=el('button','btn','Add a note and pass');
+      note.onclick=function(){ closeSheet(); openEvidenceSheet(it,'verify'); };
+      actions.appendChild(note);
+    }
+    if(st==='claimed'){
+      var back=el('button','btn bad','Send back');
+      back.onclick=function(){ closeSheet(); openReasonSheet(it); };
+      actions.appendChild(back);
+    }
+    if(st==='verified'){
+      var undo=el('button','btn','Undo pass');
+      undo.onclick=function(){ closeSheet(); writeState(it,'claimed',rec&&rec.note||'',null,'Undid the pass.'); };
+      actions.appendChild(undo);
+    }
+    var cancel=el('button','btn','Close'); cancel.onclick=closeSheet; actions.appendChild(cancel);
+    sheetBody.appendChild(actions);
+    overlay.hidden=false;
+  }
+  function openStandardSheet(it, lockTitle){
+    var canVerify=TTCRecords.can('verify_others');
+    if(lockTitle && !canVerify){ openLockedSheet(lockTitle); return; }
+    if(canVerify){ openSupervisorSheet(it); return; }
+    var st=itemState(it.id);
+    if(st==='open'||st==='returned'){ openEvidenceSheet(it,'claim'); return; }
+    if(st==='claimed'){ openClaimedSheet(it); return; }
+    if(st==='verified'){ openVerifiedSheet(it); return; }
+  }
 
-    var head=el('button','sect-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
-    var titles=el('div','sect-titles'); titles.appendChild(el('div','sect-title',S.title));
-    // One dot per item, coloured by state: what's inside, readable without opening it.
-    var dots=el('div','sect-dots'); dots.setAttribute('aria-hidden','true');
-    items.forEach(function(i){ var st=itemState(i.id);
-      dots.appendChild(el('i',{verified:'v',claimed:'c',returned:'r'}[st]||'')); });
-    if(items.length) titles.appendChild(dots);
+  /* ---------- a standard row: a status circle + David's full text, tap it to act ---------- */
+  function standardSubLine(st, rec){
+    var marks=GUIDE.marks||{};
+    if(st==='claimed') return (marks.claimed&&marks.claimed.label)||'Waiting for David';
+    if(st==='verified'){
+      var actor = rec&&rec.by_person_id ? personNameById(rec.by_person_id) : '';
+      var d = rec&&rec.ts ? when(rec.ts) : '';
+      return ((marks.verified&&marks.verified.label)||'Passed')+(actor?' · '+actor:'')+(d?' · '+d:'');
+    }
+    if(st==='returned') return ((marks.returned&&marks.returned.label)||'Sent back')+(rec&&rec.note?': '+rec.note:'');
+    return '';
+  }
+  function standardRow(it, lockTitle){
+    var st=itemState(it.id), rec=itemRecord(it.id);
+    var row=el('div','std'); row.setAttribute('data-state',st); row.setAttribute('tabindex','0'); row.setAttribute('role','button');
+    row.appendChild(markEl(st,'lg'));
+
+    var body=el('div','std-body');
+    body.appendChild(itemTextEl(it.text));
+    var sub=standardSubLine(st, rec);
+    if(sub) body.appendChild(el('div','std-sub', sub));
+
+    var canVerify=TTCRecords.can('verify_others');
+    if(canVerify && st==='claimed' && !lockTitle){
+      var passBtn=el('button','std-pass-inline','Pass');
+      passBtn.type='button';
+      passBtn.onclick=function(ev){ ev.stopPropagation(); writeState(it,'verified','',null,'Passed.'); };
+      body.appendChild(passBtn);
+    }
+    row.appendChild(body);
+
+    function open(){ openStandardSheet(it, lockTitle); }
+    row.onclick=open;
+    row.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); open(); } });
+    return row;
+  }
+
+  /* ---------- a lettered group: a flat row that expands to its standards ---------- */
+  function groupRow(S, guideS, lockTitle){
+    guideS = guideS || {};
+    var items=S.items||[], c=countOf(items);
+    var m=/^([A-Za-z0-9]+)\.\s*(.*)$/.exec(S.title||'');
+    var letter = m ? m[1] : '';
+    var titleRest = m ? m[2] : (S.title||'');
+    var allDone = c.total>0 && c.verified===c.total;
+
+    var isOpen=!!UI.sections[S.id];
+    var box=el('div','grp'); box.dataset.open=isOpen?'1':'0'; box.id='grp-'+S.id;
+
+    var head=el('button','grp-head'); head.type='button'; head.setAttribute('aria-expanded',isOpen?'true':'false');
+    head.appendChild(el('span','grp-letter'+(allDone?' done':''), letter));
+    var titles=el('div','grp-titles');
+    titles.appendChild(el('div','grp-title', titleRest));
+    if(guideS.short) titles.appendChild(el('div','grp-short', guideS.short));
     head.appendChild(titles);
-    var hint=el('div','sect-hint');
-    var countCls = c.total&&c.verified===c.total ? 'all-done' : (c.claimed?'has-waiting':'');
-    var countLabel = c.total&&c.verified===c.total ? '✓ '+c.verified+'/'+c.total : (c.claimed?c.claimed+' waiting · ':'')+c.verified+'/'+c.total;
-    hint.appendChild(el('span','sect-count tabular '+countCls, countLabel));
-    head.appendChild(hint);
-    head.appendChild(el('div','sect-chev','›'));
+    var countTxt = allDone ? ('done · '+c.verified+'/'+c.total) : (c.claimed ? (c.claimed+' waiting · '+c.verified+'/'+c.total) : (c.verified+'/'+c.total));
+    head.appendChild(el('span','grp-count'+(allDone?' done':''), countTxt));
+    head.appendChild(el('span','grp-chev','›'));
     head.onclick=function(){
-      var open=box.dataset.open==='1';
-      box.dataset.open=open?'0':'1';
-      head.setAttribute('aria-expanded', open?'false':'true');
+      var open=box.dataset.open==='1'; box.dataset.open=open?'0':'1';
+      head.setAttribute('aria-expanded',open?'false':'true');
       UI.sections[S.id]=!open; saveUI();
     };
     box.appendChild(head);
 
-    var body=el('div','sect-body');
-    if(S.intro&&S.intro.length){ var si=el('div','blocks'); blocks(S.intro,si); body.appendChild(si); }
-    var shown=0;
-    items.forEach(function(i){
-      var st=itemState(i.id);
-      // Never let the thing you just acted on disappear. Marking an item done changes its state,
-      // and under a "Not started" filter that would hide it the instant you saved — which reads as
-      // nothing having happened. Anything touched this session stays visible until the next reload.
-      if(filter!=='all' && st!==filter && !justChanged[i.id]) return;
-      shown++;
-      body.appendChild(itemRow(i, levelLockTitle));
-    });
-    if(!shown){
-      if(!items.length){ body.appendChild(el('p','locked-note','No items in this section.')); }
-      else { box.classList.add('is-filtered-out'); }   // hidden entirely; the filter bar explains why
-    }
-    if(S.after&&S.after.length){ var sa=el('div','blocks'); blocks(S.after,sa); body.appendChild(sa); }
+    var body=el('div','grp-body');
+    if(guideS.for) body.appendChild(elWithLabel('grp-note','What it’s for:', guideS.for));
+    if(guideS.how) body.appendChild(elWithLabel('grp-note','How it’s checked:', guideS.how));
+    items.forEach(function(it){ body.appendChild(standardRow(it, lockTitle)); });
     box.appendChild(body);
     return box;
   }
 
-  /* ---------- level locking ---------- */
-  function computeLevelLocks(levels){
-    // levels = D.levels in document order. Returns id -> "opens after <title>" or null.
-    var locks={}, byId={}; levels.forEach(function(L){ byId[L.id]=L; });
-    var tierOrder=levels.filter(function(L){ return L.kind!=='endorsement'; });
-    tierOrder.forEach(function(L,i){
-      if(i===0){ locks[L.id]=null; return; }
-      var prev=tierOrder[i-1];
-      locks[L.id] = levelFullyVerified(prev) ? null : prev.title;
-    });
-    var tier1=byId['tier1'];
-    levels.filter(function(L){ return L.kind==='endorsement'; }).forEach(function(L){
-      locks[L.id] = (tier1 && !levelFullyVerified(tier1)) ? tier1.title : null;
-    });
-    return locks;
+  /* ---------- stage sign-off: David's decision for the whole stage, never a standard row ---------- */
+  function signoffBlock(L, guideL, lockTitle){
+    var so=el('div','signoff'); so.id='signoff-'+L.id;
+    so.appendChild(el('div','signoff-head','David’s sign-off'));
+    var body=el('div','signoff-body');
+    if(guideL.signoff) body.appendChild(el('p',null,guideL.signoff));
+
+    var options=(L.signoff&&L.signoff.items)||[];
+    var canVerify=TTCRecords.can('verify_others');
+    var current=options.filter(function(o){ return itemState(o.id)==='verified'; })[0];
+
+    if(canVerify && !lockTitle){
+      var seg=el('div','signoff-options');
+      options.forEach(function(o){
+        var picked=itemState(o.id)==='verified';
+        var b=el('button','btn'+(picked?' good':''), o.text); b.type='button';
+        b.setAttribute('aria-pressed', picked?'true':'false');
+        b.onclick=function(){
+          var prevRec=itemRecord(o.id), prevState=prevRec?prevRec.state:'open', prevNote=prevRec?prevRec.note:'';
+          if(picked) writeState(o,'open','',null,'Undid the sign-off.', prevState, prevNote);
+          else writeState(o,'verified','',null,'Recorded: '+o.text+'.', prevState, prevNote);
+        };
+        seg.appendChild(b);
+      });
+      body.appendChild(seg);
+    } else {
+      body.appendChild(el('p',null, current ? ('Current decision: '+current.text) :
+        (lockTitle ? 'Opens after '+lockTitle+' is signed off.' : 'Not signed off yet.')));
+    }
+
+    if(L.signoff.fields && L.signoff.fields.length){
+      var ff=el('div','fields');
+      L.signoff.fields.forEach(function(f){
+        ff.appendChild(fieldBlock(f.label, levelFieldValue(L,f.label), /notes/i.test(f.label)?'No notes':'Not signed off'));
+      });
+      body.appendChild(ff);
+    }
+    so.appendChild(body);
+    return so;
   }
 
-  /* ---------- hero: "what's next" ---------- */
-  /* ---------- progress visuals ---------- */
-  var SVGNS='http://www.w3.org/2000/svg';
-  function ring(pct, size, stroke){
-    var r=(size-stroke)/2, c=2*Math.PI*r, p=Math.max(0,Math.min(1,pct||0));
-    var svg=document.createElementNS(SVGNS,'svg');
-    svg.setAttribute('class','ring'+(p>=1?' full':'')); svg.setAttribute('width',size); svg.setAttribute('height',size);
-    svg.setAttribute('viewBox','0 0 '+size+' '+size); svg.setAttribute('aria-hidden','true');
-    function circ(cls){ var e=document.createElementNS(SVGNS,'circle'); e.setAttribute('class',cls);
-      e.setAttribute('cx',size/2); e.setAttribute('cy',size/2); e.setAttribute('r',r); e.setAttribute('stroke-width',stroke); return e; }
-    svg.appendChild(circ('trk'));
-    var v=circ('val'); v.setAttribute('stroke-dasharray',c.toFixed(2)); v.setAttribute('stroke-dashoffset',(c*(1-p)).toFixed(2));
-    v.setAttribute('transform','rotate(-90 '+size/2+' '+size/2+')');
-    if(p>0) svg.appendChild(v);
-    return svg;
-  }
-  function lockIcon(){ var s=document.createElementNS(SVGNS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none');
-    s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2.4'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
-    var a=document.createElementNS(SVGNS,'rect'); a.setAttribute('x','5'); a.setAttribute('y','11'); a.setAttribute('width','14'); a.setAttribute('height','10'); a.setAttribute('rx','2');
-    var b=document.createElementNS(SVGNS,'path'); b.setAttribute('d','M8 11V7a4 4 0 0 1 8 0v4'); s.appendChild(a); s.appendChild(b); return s; }
-  // A pipeline bar: verified | waiting on review | sent back | not started, in proportion.
-  function pipe(c){
-    var bar=el('div','pipe'), t=c.total||1, open=Math.max(0,c.total-c.verified-c.claimed-c.returned);
-    [['v',c.verified],['c',c.claimed],['r',c.returned],['o',open]].forEach(function(seg){
-      if(!seg[1]) return; var sp=el('span',seg[0]); sp.style.flex='0 0 '+(seg[1]/t*100)+'%'; bar.appendChild(sp); });
-    bar.setAttribute('role','img');
-    bar.setAttribute('aria-label',c.verified+' verified, '+c.claimed+' waiting on review, '+c.returned+' sent back, '+open+' not started');
-    return bar;
-  }
-  // The mark inside a level's ring: its own tier number ("Tier 1" -> 1), T for the trainee level,
-  // a star for an endorsement. Position in the list ("Tier 1" is second) was misleading.
-  function levelBadge(L){
-    if(L.kind==='endorsement') return '★';
-    var m=/Tier\s+(\d+)/i.exec(String(L.title||'')); if(m) return m[1];
-    return /trainee/i.test(String(L.title||'')) ? 'T' : String((D.levels||[]).indexOf(L)+1);
-  }
-  function allLevelItems(){ var out=[]; (D.levels||[]).forEach(function(L){ out=out.concat(levelItems(L)); }); return out; }
-  // Short label for the path: the part of David's own title before the dash for a tier
-  // ("Tier 1"), the part after it for an endorsement ("Plant Health Care (PHC)"). Nothing reworded.
-  function shortName(L){
-    var t=String(L.title||''), parts=t.split(' — ');
-    if(parts.length<2) return t;
-    return L.kind==='endorsement' ? parts.slice(1).join(' — ') : parts[0];
-  }
-  // Counted over the same 110 requirements as the ring. Sign-off lines are mutually exclusive
-  // decisions ("Pass", "Not ready"), not requirements, so they never count toward progress.
-  function verifiedThisWeek(){
-    var recs=recMap(), since=Date.now()-7*24*3600*1000, n=0;
-    allLevelItems().forEach(function(i){ var r=recs[i.id]; if(r&&r.state==='verified'&&(r.ts||0)>=since) n++; });
-    return n;
-  }
-  function jumpToLevel(L){
-    UI.levels[L.id]=true; saveUI(); rerender();
-    var t=document.getElementById('lvl-'+L.id); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
-  }
-  function showOnly(state){
-    setFilter(state); rerender();
-    var t=document.getElementById('ladder'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+  /* ---------- summary: flat, the first thing on the page ---------- */
+  function renderSummary(cl, curLevelObj){
+    var box=el('div','summary');
+    var me=TTCRecords.person()||{};
+    var name = subject ? subject.name : (me.name||me.display_name||'');
+    box.appendChild(el('h1',null,name));
+    box.appendChild(el('p','summary-line','Trainer: '+((GUIDE.trainer&&GUIDE.trainer.name)||'David Thunell')));
+    var startedTs=firstRecordTs();
+    if(startedTs) box.appendChild(el('p','summary-line','Started '+when(startedTs)));
+
+    if(cl && !cl.allDone){
+      var gl=(GUIDE.levels||{})[cl.id]||{};
+      var stageBox=el('div','summary-stage');
+      stageBox.appendChild(el('div','summary-stage-name', gl.name||cl.title));
+      var bar=el('div','crew-bar'); var fill=el('i'); fill.style.width=(cl.total?Math.round(cl.verified/cl.total*100):0)+'%'; bar.appendChild(fill);
+      stageBox.appendChild(bar);
+      stageBox.appendChild(el('div','summary-stage-count', cl.verified+' of '+cl.total+' standards passed'));
+      box.appendChild(stageBox);
+
+      if(curLevelObj){
+        var cnt=countOf(levelItems(curLevelObj));
+        var notes=[];
+        if(cnt.claimed) notes.push(cnt.claimed+' waiting for David');
+        if(cnt.returned) notes.push(cnt.returned+' sent back');
+        if(notes.length) box.appendChild(el('p','summary-notes', notes.join('   ·   ')));
+      }
+
+      var btnLabel = cl.waitingForSignoff
+        ? 'Continue: '+(gl.name||cl.title)+' sign-off'
+        : 'Continue: '+(cl.nextSection?cl.nextSection.title:(gl.name||cl.title));
+      var btn=el('button','btn primary full', btnLabel); btn.type='button';
+      btn.onclick=function(){ goToCurrentStage(cl); };
+      box.appendChild(btn);
+    } else if(cl && cl.allDone){
+      box.appendChild(el('p','summary-notes','Every stage is complete.'));
+    }
+
+    var status=el('p','save-state',saveStateText()); status.id='save-state'; status.setAttribute('data-state',saveState);
+    box.appendChild(status);
+    return box;
   }
 
-  function stageStrip(recs){
-    var strip=el('div','stages'); strip.setAttribute('role','img');
-    var said=[];
-    (D.levels||[]).forEach(function(L){
-      var items=levelItems(L), v=0, c=0;
-      items.forEach(function(i){ var r=recs[i.id]; if(r&&r.state==='verified') v++; else if(r&&r.state==='claimed') c++; });
-      var done=items.length&&v===items.length;
-      var seg=el('span','stage'+(L.kind==='endorsement'?' end':'')+(done?' done':'')+(c?' waiting':''));
-      var f=el('i'); f.style.width=(items.length?v/items.length*100:0)+'%'; seg.appendChild(f);
-      seg.title=shortName(L)+': '+v+'/'+items.length+(c?', '+c+' waiting':'');
-      said.push(seg.title);
-      strip.appendChild(seg);
+  /* ---------- how this works: David's own explanation + the 4-mark legend ---------- */
+  function renderHowThisWorks(){
+    var d=document.createElement('details'); d.className='howto'; if(UI.howto) d.open=true;
+    d.appendChild(el('summary',null,'How this works'));
+    var body=el('div','blocks');
+
+    var ul=el('ul'); (GUIDE.how_it_works||[]).forEach(function(t){ ul.appendChild(el('li',null,t)); }); body.appendChild(ul);
+
+    var legend=el('div','legend');
+    ['open','claimed','verified','returned'].forEach(function(st){
+      var m=(GUIDE.marks||{})[st]||{};
+      var row=el('div','legend-row');
+      row.appendChild(markEl(st,'sm'));
+      var txt=el('div','legend-text'); txt.appendChild(el('b',null,m.label||st)); txt.appendChild(el('span',null,m.help||''));
+      row.appendChild(txt);
+      legend.appendChild(row);
     });
-    strip.setAttribute('aria-label',said.join('; '));
-    return strip;
+    body.appendChild(legend);
+
+    if(D.intro && D.intro.length){
+      var more=document.createElement('details'); more.className='more';
+      more.appendChild(el('summary',null,'David’s full instructions'));
+      var ib=el('div','blocks'); blocks(D.intro, ib); more.appendChild(ib);
+      body.appendChild(more);
+    }
+    d.appendChild(body);
+    d.addEventListener('toggle',function(){ UI.howto=d.open; saveUI(); });
+    return d;
   }
 
-  // The whole journey on one strip. Tiers run in order; the two endorsements open after Tier 1,
-  // so they sit on their own row rather than pretending to be steps five and six.
-  function pathCard(cl){
+  /* ---------- stages: a stepper, not a document ---------- */
+  function renderStages(cl){
+    var wrap=el('div','stagebar-wrap'); wrap.id='stages';
     var levels=D.levels||[], locks=computeLevelLocks(levels), canVerify=TTCRecords.can('verify_others');
-    var card=el('div','path');
+    var GL=GUIDE.levels||{};
     var tiers=levels.filter(function(L){ return L.kind!=='endorsement'; });
     var ends=levels.filter(function(L){ return L.kind==='endorsement'; });
-    var doneTiers=tiers.filter(levelFullyVerified).length;
-    var h=el('div','path-h'); h.appendChild(document.createTextNode('Your path'));
-    h.appendChild(el('span',null,doneTiers+' of '+tiers.length+' tiers passed')); card.appendChild(h);
 
-    function node(L, i){
-      var cnt=countOf(levelItems(L)), done=levelFullyVerified(L);
-      var locked=!!locks[L.id] && !done;
-      var current=cl && !cl.allDone && cl.id===L.id;
-      var b=el('button','pnode'+(done?' is-done':'')+(current?' is-current':'')+(locked?' is-locked':''));
-      b.type='button'; b.title=L.title;
-      b.setAttribute('aria-label',L.title+': '+cnt.verified+' of '+cnt.total+' verified'+(locked?', locked':'')+(current?', current':''));
-      var disc=el('div','disc'); disc.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,50,5));
-      var ctr=el('div','ctr');
-      if(done) ctr.appendChild(tick()); else if(locked && !canVerify) ctr.appendChild(lockIcon());
-      else ctr.textContent = levelBadge(L);
-      disc.appendChild(ctr); b.appendChild(disc);
-      b.appendChild(el('div','lbl',shortName(L)));
-      if(current) b.appendChild(el('div','here','You are here'));
-      else if(cnt.claimed) b.appendChild(el('div','wait',cnt.claimed+' waiting'));
-      else b.appendChild(el('div','cnt',cnt.verified+'/'+cnt.total));
-      b.onclick=function(){ jumpToLevel(L); };
+    function seg(L){
+      var done=levelFullyVerified(L);
+      var lockTitleRaw=locks[L.id]; var locked=!!lockTitleRaw && !canVerify;
+      var current=!!(cl && !cl.allDone && cl.id===L.id);
+      var cnt=countOf(levelItems(L));
+      var b=el('button','stagebtn'+(done?' is-done':'')+(current?' is-current':'')+(locked?' is-locked':''));
+      b.type='button';
+      b.setAttribute('aria-selected', UI.stage===L.id?'true':'false');
+      if(done){ var ic=tick(); ic.setAttribute('width','16'); ic.setAttribute('height','16'); b.appendChild(ic); }
+      else if(locked){ var lk=lockIcon(); lk.setAttribute('width','16'); lk.setAttribute('height','16'); b.appendChild(lk); }
+      b.appendChild(el('span','stagebtn-lbl', (GL[L.id]&&GL[L.id].short)||shortName(L)));
+      var cap = done?'Passed':(current?'Current':(locked?'Locked':(cnt.verified+'/'+cnt.total)));
+      b.appendChild(el('span','stagebtn-cap', cap));
+      var a11yName=(GL[L.id]&&GL[L.id].name)||L.title;
+      b.setAttribute('aria-label', a11yName+': '+(done?'passed':(locked?'locked, opens after '+lockTitleRaw:(cnt.verified+' of '+cnt.total+' passed'))));
+      b.onclick=function(){
+        UI.stage=L.id; saveUI(); render();
+        var t=document.getElementById('panel'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+      };
       return b;
     }
-    var row=el('div','path-row');
-    tiers.forEach(function(L,i){
-      if(i){ var link=el('div','plink'+(levelFullyVerified(tiers[i-1])?' on':'')); row.appendChild(link); }
-      row.appendChild(node(L,i));
-    });
-    card.appendChild(row);
+
+    var row1=el('div','stages-row'); row1.setAttribute('role','tablist'); row1.setAttribute('aria-label','Stages');
+    tiers.forEach(function(L){ row1.appendChild(seg(L)); });
+    wrap.appendChild(row1);
     if(ends.length){
-      card.appendChild(el('div','path-sub','Specialty endorsements · open after Tier 1'));
-      var r2=el('div','path-row ends'); ends.forEach(function(L,i){ r2.appendChild(node(L,i)); }); card.appendChild(r2);
+      wrap.appendChild(el('div','stages-sub','Specialties'));
+      var row2=el('div','stages-row'); row2.setAttribute('role','tablist'); row2.setAttribute('aria-label','Specialty stages');
+      ends.forEach(function(L){ row2.appendChild(seg(L)); });
+      wrap.appendChild(row2);
     }
-    return card;
+    return wrap;
   }
-
-  function heroCard(cl){
-    var card=el('div','hero');
-    if(!cl){ card.appendChild(el('div','hero-title','Loading your standing…')); return card; }
-
-    // Top: the whole pass-off in one ring, and the four states as tappable counts.
-    var all=countOf(allLevelItems()), open=Math.max(0,all.total-all.verified-all.claimed-all.returned);
-    var top=el('div','hero-top');
-    var hr=el('div','hero-ring'); hr.appendChild(ring(all.total?all.verified/all.total:0,84,8));
-    var ctr=el('div','ctr'); ctr.appendChild(el('b',null,(all.total?Math.round(all.verified/all.total*100):0)+'%'));
-    ctr.appendChild(el('small',null,all.verified+' / '+all.total)); hr.appendChild(ctr); top.appendChild(hr);
-    var stats=el('div','hero-stats');
-    [['v','verified','Verified',all.verified],['c','claimed','Waiting on review',all.claimed],
-     ['r','returned','Sent back',all.returned],['o','open','Not started',open]].forEach(function(x){
-      var b=el('button','stat'); b.type='button'; b.appendChild(el('i',x[0]));
-      var t=el('div'); t.appendChild(el('b',null,String(x[3]))); t.appendChild(el('span',null,x[2])); b.appendChild(t);
-      b.setAttribute('aria-label','Show '+x[2].toLowerCase()+': '+x[3]);
-      b.onclick=function(){ showOnly(x[1]); };
-      stats.appendChild(b);
-    });
-    top.appendChild(stats); card.appendChild(top);
-    card.appendChild(pipe(all));
-    var week=verifiedThisWeek();
-    if(week && !cl.allDone) card.appendChild(el('div','hero-momentum','+'+week+' verified in the last 7 days'));
-    else card.appendChild(el('div','hero-momentum',' '));
-    card.appendChild(el('div','hero-divider'));
-
-    if(cl.allDone){
-      card.appendChild(el('div','hero-kicker','STANDING'));
-      card.appendChild(el('div','hero-title','Every level complete.'));
-      return card;
-    }
-    card.appendChild(el('div','hero-kicker', cl.kind==='endorsement'?'CURRENT — SPECIALTY ENDORSEMENT':'CURRENT TIER'));
-    card.appendChild(el('div','hero-title', cl.title));
-    if(cl.purpose){
-      var more=document.createElement('details'); more.className='more';
-      more.appendChild(el('summary',null,'What this tier allows'));
-      more.appendChild(el('div','hero-purpose', cl.purpose));
-      card.appendChild(more);
-    }
-    var lvl=(D.levels||[]).filter(function(L){ return L.id===cl.id; })[0];
-    if(lvl){ var lp=pipe(countOf(levelItems(lvl))); card.appendChild(lp); }
-    if(cl.waitingForSignoff){
-      card.appendChild(el('div','hero-next','Ready for sign-off'));
-    } else if(cl.nextSection){
-      card.appendChild(el('div','hero-next','Next up: '+cl.nextSection.title+' — '+(cl.nextSection.total-cl.nextSection.verified)+' to go'));
-    }
-    var levelsFlat=TTCRecords.passoffLevelsFlat();
-    var gateNext = levelsFlat[cl.order+1];
-    card.appendChild(el('div','hero-gate', cl.waitingForSignoff
-      ? 'All '+cl.total+' training requirements are verified. A trainer now needs to record the sign-off.'
-      : cl.remaining+' item'+(cl.remaining===1?'':'s')+' stand between here and this '+(cl.kind==='endorsement'?'endorsement':'tier')+'’s sign-off'+(gateNext?', which opens '+gateNext.title:'')+'.'));
-    var jump=el('button','btn primary small',cl.waitingForSignoff?'Open sign-off':'Jump to it');
-    jump.onclick=function(){ openCurrentAction(cl); };
-    card.appendChild(jump);
-    return card;
-  }
-  function openCurrentAction(cl){
+  function goToCurrentStage(cl){
     if(!cl) return;
-    UI.levels[cl.id]=true;
+    UI.stage=cl.id;
+    if(cl.waitingForSignoff){
+      saveUI(); render();
+      var t=document.getElementById('signoff-'+cl.id); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
     if(cl.nextSection) UI.sections[cl.nextSection.id]=true;
-    saveUI(); rerender();
-    var target=document.getElementById(cl.waitingForSignoff?'signoff-'+cl.id:'lvl-'+cl.id);
+    saveUI(); render();
+    var target=document.getElementById(cl.nextSection?('grp-'+cl.nextSection.id):'panel');
     if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
   }
-
-  function nextActionBar(cl){
-    var bar=el('div','next-action-bar');
-    var inner=el('div','next-action-inner');
-    var copy=el('div','next-action-copy');
-    var label='Your progress is saved.';
-    if(cl && !cl.allDone) label=cl.waitingForSignoff ? cl.title+' is ready for sign-off' :
-      (cl.nextSection ? 'Next: '+cl.nextSection.title : 'Continue '+cl.title);
-    else if(cl && cl.allDone) label='Every level is complete.';
-    copy.appendChild(el('span','next-action-label',label));
-    var status=el('span','save-state',saveStateText()); status.id='save-state'; status.setAttribute('data-state',saveState); copy.appendChild(status);
-    inner.appendChild(copy);
-    if(cl && !cl.allDone){
-      var action=el('button','btn primary',cl.waitingForSignoff?'Open sign-off':'Continue');
-      action.onclick=function(){ openCurrentAction(cl); };
-      inner.appendChild(action);
-    }
-    bar.appendChild(inner);
-    return bar;
+  function ensureDefaultStage(cl){
+    var ids=(D.levels||[]).map(function(L){ return L.id; });
+    if(!UI.stage || ids.indexOf(UI.stage)===-1){ UI.stage = cl ? cl.id : (ids[0]||null); saveUI(); }
   }
 
-  /* ---------- filters bar ---------- */
-  // No document-wide counts on these chips, deliberately — a global number here is exactly the
-  // 127-item denominator the ladder is designed never to show. These just narrow what's visible
-  // inside whichever sections are open; the counts that DO show are always per-gate (level/section).
-  function filterBar(){
-    var bar=el('div','filters'); bar.setAttribute('role','tablist');
-    ['open','claimed','verified','returned','all'].forEach(function(f){
-      var chip=el('button','filter-chip'); chip.setAttribute('role','tab'); chip.setAttribute('aria-pressed', filter===f?'true':'false');
-      chip.appendChild(document.createTextNode(FILTER_LABELS[f]));
-      chip.onclick=function(){ setFilter(f); rerender(); };
-      bar.appendChild(chip);
+  /* ---------- the selected stage's panel: heading, David's wording, groups, sign-off ---------- */
+  function renderStagePanel(L, cl){
+    var guideL=(GUIDE.levels||{})[L.id]||{};
+    var canVerify=TTCRecords.can('verify_others');
+    var lockTitleRaw=computeLevelLocks(D.levels||[])[L.id];
+    var lockTitle=(lockTitleRaw && !canVerify) ? lockTitleRaw : null;
+
+    var panel=el('div','panel'); panel.id='panel';
+    panel.appendChild(el('h2','panel-title', guideL.name||L.title));
+    if(lockTitle) panel.appendChild(el('p','panel-locked','Opens after '+lockTitle+' is signed off.'));
+    if(guideL.clears) panel.appendChild(elWithLabel('panel-clears','Passing clears you for:', guideL.clears));
+    if(guideL.before) panel.appendChild(elWithLabel('panel-before','Before this stage:', guideL.before));
+
+    if(L.purpose || L.meta_table){
+      var d=document.createElement('details'); d.className='more';
+      d.appendChild(el('summary',null,'David’s wording'));
+      var b=el('div','blocks');
+      if(L.purpose) b.appendChild(el('p',null,L.purpose));
+      if(L.meta_table) b.appendChild(tableOf(L.meta_table));
+      d.appendChild(b); panel.appendChild(d);
+    }
+
+    var glist=el('div','grp-list');
+    (L.sections||[]).forEach(function(S){ glist.appendChild(groupRow(S, guideL.sections&&guideL.sections[S.id], lockTitle)); });
+    panel.appendChild(glist);
+
+    if(L.signoff) panel.appendChild(signoffBlock(L, guideL, lockTitle));
+    return panel;
+  }
+
+  /* ---------- tools: the three appendices, clearly set apart from the ladder above ---------- */
+  function renderTools(){
+    var wrap=document.createElement('div');
+    wrap.appendChild(el('h2','part','Tools for every visit and job'));
+    var GT=GUIDE.tools||{};
+    (D.appendices||[]).forEach(function(A){
+      var meta=GT[A.id]||{};
+      var dtl=el('details','appx');
+      var s=document.createElement('summary');
+      var lbl=el('div',null);
+      lbl.appendChild(el('div',null, meta.name||A.title));
+      if(meta.david) lbl.appendChild(el('div','appx-sub', meta.david));
+      s.appendChild(lbl);
+      dtl.appendChild(s);
+      var bb=el('div','appx-body blocks');
+      if(meta.for) bb.appendChild(el('p','note-block', meta.for));
+      if(meta.not) bb.appendChild(el('p','appx-not', meta.not));
+      var form=APPENDIX_FORMS[A.id];
+      if(form){
+        dtl.open=!!APPX_OPEN[A.id];
+        form(A,bb);
+        // Anything tapped inside a form re-renders the page; the appendix it happened in must
+        // still be open afterwards. Capture-phase, so it runs before the handler that re-renders.
+        bb.addEventListener('click', function(){ APPX_OPEN[A.id]=true; }, true);
+      } else blocks(A.blocks,bb);
+      s.addEventListener('click',function(){ APPX_OPEN[A.id]=!dtl.open; });   // fires before the state flips
+      dtl.addEventListener('toggle',function(){ APPX_OPEN[A.id]=dtl.open; });  // and covers keyboard/programmatic opens
+      dtl.appendChild(bb); wrap.appendChild(dtl);
     });
-    return bar;
+    return wrap;
+  }
+
+  function renderFooter(){
+    var f=el('div','foot');
+    f.appendChild(document.createTextNode('The standards are word for word from David’s Qualified Estimator Pass-Off. '));
+    var a=el('a',null,'Download the original (.docx)'); a.href='../../../files/training/qualified-estimator-pass-off.docx';
+    f.appendChild(a);
+    return f;
   }
 
   /* ---------- main render ---------- */
   var currentLevelCache=null;
   function refreshAndRerender(){
-    TTCRecords.passoffCurrentLevel(subject?subject.id:TTCRecords.person().id).then(function(cl){ currentLevelCache=cl; rerender(); });
+    TTCRecords.passoffCurrentLevel(subject?subject.id:TTCRecords.person().id).then(function(cl){ currentLevelCache=cl; render(); });
   }
-  function rerender(){ render(); }
 
   function render(){
     root.innerHTML='';
@@ -1869,169 +1841,28 @@
 
     if(!isOwn()){
       var wb=el('div','working-on');
+      wb.appendChild(document.createTextNode('You’re working on '));
       wb.appendChild(el('b',null, subject.name));
-      wb.appendChild(document.createTextNode('’s pass-off — anything you mark here is recorded against them, by you.'));
-      var back=el('a','working-on-back','Back to my own →'); back.href='./';
+      wb.appendChild(document.createTextNode('’s pass-off.'));
+      var back=el('a','working-on-back','Back to mine'); back.href='./';
       wb.appendChild(back);
       root.appendChild(wb);
     }
-    var h=el('div','doc-head');
-    h.appendChild(el('p','doc-eyebrow','Total Tree Care'));
-    h.appendChild(el('h1',null,D.title||'Qualified Estimator Pass-Off'));
-    if(D.subtitle) h.appendChild(el('p','doc-sub',D.subtitle));
-    root.appendChild(h);
-
-    root.appendChild(heroCard(currentLevelCache));
-    root.appendChild(pathCard(currentLevelCache));
-
-    // David's purpose note and "How to Use This Pass-Off" stay word for word; they fold away so the
-    // progress is what you see first. Open/closed is remembered per person.
-    if(D.intro&&D.intro.length){
-      var how=document.createElement('details'); how.className='howto'; if(UI.intro) how.open=true;
-      how.appendChild(el('summary',null,'How this pass-off works'));
-      var ib=el('div','blocks'); blocks(D.intro,ib); how.appendChild(ib);
-      how.addEventListener('toggle',function(){ UI.intro=how.open; saveUI(); });
-      root.appendChild(how);
-    }
-    if(D.header_fields&&D.header_fields.length){
-      var hf=el('div','fields');
-      D.header_fields.forEach(function(f){
-        hf.appendChild(fieldBlock(f.label, docFieldValue(f.label),
-          /trainer/i.test(f.label) ? 'Nobody yet' : (/date/i.test(f.label) ? 'Not started' : '')));
-      });
-      root.appendChild(hf);
-    }
-
-    var ladderH=el('h2','part','The ladder'); ladderH.id='ladder'; root.appendChild(ladderH);
-    root.appendChild(filterBar());
 
     var levels=D.levels||[];
-    var locks=computeLevelLocks(levels);
-    var canVerify=TTCRecords.can('verify_others');
+    var curLevelObj = currentLevelCache ? levels.filter(function(x){ return x.id===currentLevelCache.id; })[0]||null : null;
 
-    // One honest line when a chosen filter matches nothing, instead of a page of empty sections.
-    if(filter!=='all' && countMatching(filter)===0){
-      var em=el('div','filter-empty');
-      em.appendChild(el('b',null,'Nothing is “'+FILTER_LABELS[filter]+'” right now. '));
-      em.appendChild(document.createTextNode(
-        filter==='claimed' ? 'When someone marks an item done it lands here for review.'
-        : 'Switch the filter above to see the rest of the pass-off.'));
-      root.appendChild(em);
-    }
+    root.appendChild(renderSummary(currentLevelCache, curLevelObj));
+    root.appendChild(renderHowThisWorks());
+    root.appendChild(renderStages(currentLevelCache));
 
-    levels.forEach(function(L){
-      var items=levelItems(L), cnt=countOf(items), isComplete=levelFullyVerified(L), pass=levelPassItem(L);
-      var lockTitle = locks[L.id];
-      var isLocked = !!lockTitle && !canVerify;
-      var isOpen = UI.levels[L.id];
-      var box=el('div','level'+(L.kind==='endorsement'?' is-endorsement':'')+(isComplete?' is-done':'')+(isLocked?' is-locked':'')+(isOpen?' is-open':''));
-      box.id='lvl-'+L.id;
+    var stageId = (UI.stage && levels.some(function(x){ return x.id===UI.stage; }))
+      ? UI.stage : (currentLevelCache?currentLevelCache.id:(levels[0]&&levels[0].id));
+    var L = levels.filter(function(x){ return x.id===stageId; })[0];
+    if(L) root.appendChild(renderStagePanel(L, currentLevelCache));
 
-      var head=el('button','level-head'); head.setAttribute('aria-expanded', isOpen?'true':'false');
-      var lr=el('div','level-ring'); lr.appendChild(ring(cnt.total?cnt.verified/cnt.total:0,42,4));
-      var lc=el('div','ctr');
-      if(isComplete) lc.appendChild(tick()); else if(isLocked) lc.appendChild(lockIcon());
-      else lc.textContent = levelBadge(L);
-      lr.appendChild(lc); head.appendChild(lr);
-      var tt=el('div','level-titles');
-      tt.appendChild(el('div','level-title',L.title));
-      tt.appendChild(el('div','level-kind',L.kind==='endorsement'?'Specialty endorsement':'Tier'));
-      if(lockTitle) tt.appendChild(el('div','level-lock-chip','Opens after '+lockTitle+' sign-off'));
-      head.appendChild(tt);
-      var cc=el('div','level-count tabular'); var b=el('b',null,cnt.verified+'/'+cnt.total);
-      cc.appendChild(b);
-      if(cnt.claimed) cc.appendChild(el('span','sub c',cnt.claimed+' waiting'));
-      else if(cnt.returned) cc.appendChild(el('span','sub r',cnt.returned+' sent back'));
-      else cc.appendChild(el('span','sub v',cnt.verified===cnt.total&&!isComplete&&pass?'ready to sign off':'verified'));
-      head.appendChild(cc);
-      head.appendChild(el('div','level-chev','›'));
-      head.onclick=function(){
-        var open=box.classList.toggle('is-open');
-        head.setAttribute('aria-expanded', open?'true':'false');
-        UI.levels[L.id]=open; saveUI();
-      };
-      box.appendChild(head);
-
-      box.appendChild(pipe(cnt));
-
-      var body=el('div','level-body');
-      if(L.purpose){
-        var lp=document.createElement('details'); lp.className='more in-level';
-        lp.appendChild(el('summary',null, L.kind==='endorsement'?'What this endorsement allows':'What this tier allows'));
-        lp.appendChild(el('p','level-purpose',L.purpose)); body.appendChild(lp);
-      }
-      if(L.meta_table){
-        var mt=document.createElement('details'); mt.className='more in-level';
-        mt.appendChild(el('summary',null,'Authority and review details'));
-        mt.appendChild(tableOf(L.meta_table)); body.appendChild(mt);
-      }
-
-      (L.sections||[]).forEach(function(S){ body.appendChild(sectionRow(S, isLocked?lockTitle:null)); });
-
-      if(L.signoff){
-        var so=el('div','signoff'); so.id='signoff-'+L.id;
-        so.appendChild(el('div','signoff-head',L.signoff.title||'Sign-off'));
-        var sb=el('div','signoff-body');
-        if(L.signoff.intro&&L.signoff.intro.length){ var g=el('div','blocks'); blocks(L.signoff.intro,g); sb.appendChild(g); }
-        (L.signoff.items||[]).forEach(function(i){ sb.appendChild(itemRow(i, isLocked?lockTitle:null)); });
-        if(L.signoff.fields&&L.signoff.fields.length){
-          var ff=el('div','fields');
-          L.signoff.fields.forEach(function(f){
-            ff.appendChild(fieldBlock(f.label, levelFieldValue(L, f.label),
-              /notes/i.test(f.label) ? 'No notes' : 'Not signed off'));
-          });
-          sb.appendChild(ff);
-        }
-        so.appendChild(sb); body.appendChild(so);
-      }
-      box.appendChild(body);
-      root.appendChild(box);
-    });
-
-    if(D.appendices&&D.appendices.length){
-      root.appendChild(el('h2','part','Appendices'));
-      D.appendices.forEach(function(A){
-        var d=el('details','appx'), s=el('summary',null,A.title); d.appendChild(s);
-        var bb=el('div','appx-body blocks');
-        var form=APPENDIX_FORMS[A.id];
-        if(form){
-          d.open = !!APPX_OPEN[A.id];
-          form(A,bb);
-          // Anything tapped inside a form re-renders the page; the appendix it happened in must
-          // still be open afterwards. Capture-phase, so it runs before the handler that re-renders.
-          bb.addEventListener('click', function(){ APPX_OPEN[A.id]=true; }, true);
-        }
-        else blocks(A.blocks,bb);
-        s.addEventListener('click',function(){ APPX_OPEN[A.id]=!d.open; });   // fires before the state flips
-        d.addEventListener('toggle',function(){ APPX_OPEN[A.id]=d.open; });    // and covers keyboard/programmatic opens
-        d.appendChild(bb); root.appendChild(d);
-      });
-    }
-
-    var f=el('div','foot');
-    f.appendChild(document.createTextNode('Every word on this page is David’s, taken from the original document. '));
-    var a=el('a',null,'Download the original (.docx)'); a.href='../../../files/training/qualified-estimator-pass-off.docx';
-    f.appendChild(a); root.appendChild(f);
-    root.appendChild(nextActionBar(currentLevelCache));
-  }
-
-  function setDefaultOpenState(){
-    var levels=D.levels||[];
-    var haveAnyLevelPref = levels.some(function(L){ return Object.prototype.hasOwnProperty.call(UI.levels,L.id); });
-    if(haveAnyLevelPref) return;
-    for(var i=0;i<levels.length;i++){
-      var L=levels[i];
-      if(!levelFullyVerified(L)){
-        UI.levels[L.id]=true;
-        var secs=L.sections||[];
-        for(var j=0;j<secs.length;j++){
-          var S=secs[j], its=S.items||[], c=countOf(its);
-          if(!(c.total&&c.verified===c.total)){ UI.sections[S.id]=true; break; }
-        }
-        break;
-      }
-    }
-    saveUI();
+    root.appendChild(renderTools());
+    root.appendChild(renderFooter());
   }
 
   // A reviewer opening the pass-off gets their CREW, not a 127-item document. Anyone with items
@@ -2110,6 +1941,22 @@
       if(!people.length) list.appendChild(el('p','crew-quiet','No crew members found.'));
     }).catch(function(err){ sum.textContent='Could not load the crew: '+(err.message||'unknown error'); });
   }
+  function stageStrip(recs){
+    var strip=el('div','stages'); strip.setAttribute('role','img');
+    var said=[];
+    (D.levels||[]).forEach(function(L){
+      var items=levelItems(L), v=0, c=0;
+      items.forEach(function(i){ var r=recs[i.id]; if(r&&r.state==='verified') v++; else if(r&&r.state==='claimed') c++; });
+      var done=items.length&&v===items.length;
+      var seg=el('span','stage'+(L.kind==='endorsement'?' end':'')+(done?' done':'')+(c?' waiting':''));
+      var f=el('i'); f.style.width=(items.length?v/items.length*100:0)+'%'; seg.appendChild(f);
+      seg.title=shortName(L)+': '+v+'/'+items.length+(c?', '+c+' waiting':'');
+      said.push(seg.title);
+      strip.appendChild(seg);
+    });
+    strip.setAttribute('aria-label',said.join('; '));
+    return strip;
+  }
 
   var stopAutoSync=null;
 
@@ -2129,7 +1976,7 @@
     if(!isOwn()) subjectRecords=bundle.passoff;
     formsRecords=bundle.forms;
     currentLevelCache=TTCRecords.currentLevelFromRecords(bundle.passoff);
-    if(D) setDefaultOpenState();
+    if(D) ensureDefaultStage(currentLevelCache);
     setSaveState(TTCRecords.configured()?'synced':'local');
     render();
   }
@@ -2156,7 +2003,6 @@
       : { id:self.id, name:self.name||self.display_name||'' };
     root.innerHTML='<div class="loading">Loading…</div>';
     loadUI(subject.id);
-    loadFilter(subject.id);
     maybeMigrateLegacy(self).then(function(){
       return loadSubjectBundle();
     }).then(function(bundle){
