@@ -54,7 +54,17 @@
       '.ttc-pb img{width:100%;height:100%;object-fit:cover;display:block}' +
       '.ttc-pb.is-out{background:transparent;border-style:dashed;border-color:rgba(241,238,231,.4)}' +
       '.ttc-pb svg{width:17px;height:17px}' +
-      '.topbar .topbar-title{margin-right:0}';
+      '.topbar .topbar-title{margin-right:0}' +
+      // Viewing someone else's page: a strip inside the sticky top bar, so it never scrolls away.
+      '.topbar.ttc-has-viewing{flex-wrap:wrap}' +
+      '.ttc-viewing{flex:1 0 100%;order:99;display:flex;align-items:center;gap:10px;margin-top:8px;' +
+        'padding:8px 12px;border-radius:10px;background:#f3d9a4;color:#1f2419;font-size:13.5px;line-height:1.3}' +
+      '.ttc-viewing .ttc-vi{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;' +
+        'background:#1f2419;color:#f3d9a4;font-size:11px;font-weight:800}' +
+      '.ttc-viewing .ttc-vt{flex:1 1 auto;min-width:0}' +
+      '.ttc-viewing b{font-weight:800}' +
+      '.ttc-viewing small{display:block;font-size:12px;opacity:.78}' +
+      '.ttc-viewing a{flex:0 0 auto;font-weight:800;color:#1f2419;text-decoration:underline;white-space:nowrap}';
     document.head.appendChild(s);
   }
 
@@ -89,21 +99,58 @@
     }
   }
 
+  // The circle is ALWAYS the signed-in person and always opens their own profile. When a supervisor
+  // opens someone else's page (?person=<id>), a strip in the top bar says whose page it is and who is
+  // signed in, with the way back (Joseph, 2026-09-25: make it obvious he is still himself, viewing
+  // another person's page).
+  function viewingStrip(bar, viewed, self) {
+    var strip = bar.querySelector('.ttc-viewing');
+    if (!viewed) {
+      if (strip) strip.parentNode.removeChild(strip);
+      bar.classList.remove('ttc-has-viewing');
+      document.documentElement.classList.remove('ttc-viewing-other');
+      return;
+    }
+    if (!strip) {
+      strip = document.createElement('div'); strip.className = 'ttc-viewing';
+      strip.setAttribute('role', 'status');
+      bar.appendChild(strip);
+    }
+    while (strip.firstChild) strip.removeChild(strip.firstChild);
+    var vname = viewed.display_name || viewed.name || 'another person';
+    var ini = document.createElement('span'); ini.className = 'ttc-vi'; ini.setAttribute('aria-hidden', 'true');
+    ini.textContent = initials(vname) || '?'; strip.appendChild(ini);
+    var t = document.createElement('span'); t.className = 'ttc-vt';
+    t.appendChild(document.createTextNode('Viewing '));
+    var b = document.createElement('b'); b.textContent = vname; t.appendChild(b);
+    if (self && (self.name || self.display_name)) {
+      var sm = document.createElement('small'); sm.textContent = 'Signed in as ' + (self.name || self.display_name);
+      t.appendChild(sm);
+    }
+    strip.appendChild(t);
+    var back = document.createElement('a'); back.href = location.pathname; back.textContent = 'Back to mine';
+    strip.appendChild(back);
+    bar.classList.add('ttc-has-viewing');
+    document.documentElement.classList.add('ttc-viewing-other');
+  }
+
   function mountOne(bar) {
     if (!bar || bar.querySelector('.ttc-pb')) return;
     style();
     var a = document.createElement('a');
     var targetId = contextPersonId();
     a.className = 'ttc-pb';
-    a.href = PROFILE_HREF + (targetId ? '?person=' + encodeURIComponent(targetId) : '');
+    a.href = PROFILE_HREF;                    // your own profile, even while viewing someone else's page
     bar.appendChild(a);                       // always last, so it sits top right
-    paint(a, targetId ? rosterPerson(targetId) : storedPerson(), !!targetId);
+    paint(a, storedPerson(), false);
 
     var apply = function () {
       try {
-        var self = window.TTCRecords && TTCRecords.person && TTCRecords.person();
-        var context = targetId && rosterPerson(targetId);
-        paint(a, context || self || storedPerson(), !!targetId);
+        var self = (window.TTCRecords && TTCRecords.person && TTCRecords.person()) || storedPerson();
+        paint(a, self, false);
+        var seesOthers = !!(window.TTCRecords && TTCRecords.can && TTCRecords.can('see_everyone'));
+        var other = targetId && self && targetId !== self.id && seesOthers;
+        viewingStrip(bar, other ? (rosterPerson(targetId) || { name: '' }) : null, self);
       } catch (e) {}
     };
     if (!window.TTCRecords) return;

@@ -282,6 +282,8 @@
   .appx-body{padding:0 16px 14px}
 
   #stages,.panel,.signoff,[id^="grp-"]{scroll-margin-top:calc(var(--touch) + 34px + env(safe-area-inset-top))}
+  html.ttc-viewing-other #stages,html.ttc-viewing-other .panel,html.ttc-viewing-other .signoff,
+  html.ttc-viewing-other [id^="grp-"]{scroll-margin-top:calc(var(--touch) + 34px + 56px + env(safe-area-inset-top))}
 
   /* ---- interactive appendix forms (Appendix A scoring, B audit, C authority) ---- */
   .fm-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin:12px 0 4px}
@@ -1839,15 +1841,8 @@
     if(!D){ var w=el('div','loading');
       w.textContent='The pass-off data file has not been generated yet (data/passoff.js).'; root.appendChild(w); return; }
 
-    if(!isOwn()){
-      var wb=el('div','working-on');
-      wb.appendChild(document.createTextNode('You’re working on '));
-      wb.appendChild(el('b',null, subject.name));
-      wb.appendChild(document.createTextNode('’s pass-off.'));
-      var back=el('a','working-on-back','Back to mine'); back.href='./';
-      wb.appendChild(back);
-      root.appendChild(wb);
-    }
+    // Viewing someone else's pass-off: shared/profile-button.js puts a "Viewing <name> · Signed in as
+    // <you> · Back to mine" strip in the sticky top bar, on every page that takes ?person=.
 
     var levels=D.levels||[];
     var curLevelObj = currentLevelCache ? levels.filter(function(x){ return x.id===currentLevelCache.id; })[0]||null : null;
