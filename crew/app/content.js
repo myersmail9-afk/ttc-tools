@@ -55,10 +55,21 @@ window.TTC_CONTENT = {
   brain: {
     label: "David's Brain",
     desc: "Answers from David's notes, with sources",
-    href: "pages/brain/"
+    href: "pages/brain/",
+    roles: ["supervisor"]
   },
 
   sections: [
+    {
+      // Crew view (Joseph, 2026-09-25): the crew see the original TTC Employee Resources links, the Chip Drop app,
+      // the watering helper, Emergency Contacts and the two estimator trainings. Everything else is marked
+      // roles: ["supervisor"] (David and Joseph still see it; flip a tile back to the crew when it is ready).
+      id: "resources", title: "TTC Employee Resources", icon: "book", roles: ["crew"],
+      blurb: "The original resources sheet, all in one place.",
+      tiles: [
+        { id: "employee-resources-sheet", label: "Employee Resources Sheet (original)", desc: "The Google Sheet button grid this app replaces. Still the place to edit the underlying sheets.", href: "https://docs.google.com/spreadsheets/d/1XjYf1F-ODZ6Yv4_I_jzocY6d1GdiI6JoNH2dc38WrMQ/edit", kind: "sheet" },
+      ]
+    },
     {
       id: "safety", title: "Safety", icon: "shield", roles: ["crew"],
       blurb: "The rules we run every job by, and where to report a problem.",
@@ -67,12 +78,12 @@ window.TTC_CONTENT = {
         { id: "sds", label: "SDS", desc: "Safety data sheets for what's on the truck", href: "https://docs.google.com/spreadsheets/d/16qMsPAAIcLdy4QMwRx_YgNPkragbkOtuwEosZVQmvBE/edit", kind: "sheet", search: "chemical msds spray" },
         { id: "vehicle-inspection", label: "Vehicle Inspection", desc: "Daily truck and chipper check", href: "https://docs.google.com/forms/d/e/1FAIpQLScYjkpADn8gAQM34xFBsd9q3PP3La7fPkkILyDL1ypFj4lSxg/viewform", kind: "form", search: "truck dvir pre-trip" },
         { id: "incident", label: "Incidents and Close Calls", desc: "Report it the same day, even if nobody got hurt", href: "https://docs.google.com/forms/d/e/1FAIpQLSdijMRGLmR2iPa-46OTICbbmanxr1vwyz52VgOW4afDplgsRg/viewform", kind: "form", search: "accident injury near miss damage" },
-        { id: "cell-phone-policy", label: "Cell Phone Safety Policy", desc: "No phone use while driving, personal or company vehicle", href: "https://drive.google.com/file/d/0B8tiA6chj-h-V1ZDWDdoa2wwY2FDRVhhREtabXJybk56MG1R/view?resourcekey=0-oodsrPvIbCkyjDz3WngXwg", kind: "pdf", search: "driving texting" }
+        { id: "cell-phone-policy", roles: ["supervisor"], label: "Cell Phone Safety Policy", desc: "No phone use while driving, personal or company vehicle", href: "https://drive.google.com/file/d/0B8tiA6chj-h-V1ZDWDdoa2wwY2FDRVhhREtabXJybk56MG1R/view?resourcekey=0-oodsrPvIbCkyjDz3WngXwg", kind: "pdf", search: "driving texting" }
       ]
     },
 
     {
-      id: "handbook", title: "Handbook", icon: "book", roles: ["crew"],
+      id: "handbook", title: "Handbook", icon: "book", roles: ["supervisor"],
       blurb: "The 2020 book, as written, and what might change next edition.",
       tiles: [
         { id: "handbook-2020", label: "Policies and Procedures Book (2020)", desc: "Read it here, word for word, with our photos. Printed pages and the PDF are one tap away.", href: "pages/handbook/read/", kind: "file", search: "handbook rules uniform training schedule compensation knots" },
@@ -112,7 +123,7 @@ window.TTC_CONTENT = {
       tiles: [
         { id: "chip-drop-app", label: "Chip Drop App", desc: "Drops near you, log loads, get to The Lot", href: "https://myersmail9-afk.github.io/ttc-tools/crew/chip-drop/", kind: "app", search: "chips mulch lot" },
         { id: "chip-drop-client-form", label: "Chip Drop Sign-Up (for customers)", desc: "The form a customer fills out to get on the chip list", href: "https://docs.google.com/forms/d/e/1FAIpQLSf6kfeS5jq3MPyNVsNnrjrBppOrsFHcbFBv7woEcsTtB54gBQ/viewform", kind: "form", search: "chips mulch" },
-        { id: "chip-drop-calculator", label: "Chip Drop Savings Calculator", desc: "What free chips save versus buying mulch", href: "https://myersmail9-afk.github.io/ttc-tools/chip-drop-calculator/", kind: "app" }
+        { id: "chip-drop-calculator", roles: ["supervisor"], label: "Chip Drop Savings Calculator", desc: "What free chips save versus buying mulch", href: "https://myersmail9-afk.github.io/ttc-tools/chip-drop-calculator/", kind: "app" }
       ]
     },
 
@@ -126,7 +137,7 @@ window.TTC_CONTENT = {
         { id: "estimator-field-manual", label: "Estimator Field Manual", desc: "Consultations, prescriptive specs, production estimating, and PHC discovery, the field reference", href: "pages/training/estimator-field-manual/", kind: "file", search: "estimator bid consultation specifications production phc" },
         { id: "estimator-pass-off", label: "Qualified Estimator Pass-Off", desc: "The tiered path from Estimator Trainee to independent estimating authority, trackable live", href: "pages/training/estimator-pass-off/index.html", kind: "file", search: "estimator training tier certification pass off" },
         { id: "knots", label: "Knot Tying", desc: "Climbing Arborist knot guide, with videos", href: "https://www.climbingarborist.com/knot-tying/", kind: "link", search: "rope hitch bowline" },
-        { id: "my-profile", label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
+        { id: "my-profile", roles: ["supervisor"], label: "My Profile", desc: "Your badge wall and pass-off standing", href: "pages/me/", kind: "app", search: "badges certifications photo about" },
         { id: "crew-overview", label: "Crew Overview", desc: "One row per person: badges, pass-off progress, what's waiting on review", href: "pages/team/", kind: "app", roles: ["supervisor"], search: "roster team insights expiring" },
         { id: "review-queue", label: "Review Queue", desc: "David's inbox — every claimed pass-off item, with batch verify", href: "pages/review/", kind: "app", roles: ["supervisor"], search: "verify batch approve sign off" },
         { id: "tree-calls", label: "Tree Calls", desc: "Customer trees waiting on David's call — photos, history, submit an answer", href: "pages/calls/", kind: "app", roles: ["supervisor"], search: "david decision verdur customer photos quote treat skip" }
@@ -138,7 +149,7 @@ window.TTC_CONTENT = {
       blurb: "Two things worth sharing with a customer on site.",
       tiles: [
         { id: "tree-watering", label: "Tree Watering Calculator", desc: "How much and how often to water, by tree size and weather", href: "https://myersmail9-afk.github.io/ttc-tools/tree-watering/", kind: "app", search: "water irrigation" },
-        { id: "website", label: "totaltreecareutah.com", desc: "The company website", href: "https://www.totaltreecareutah.com/", kind: "link" }
+        { id: "website", roles: ["supervisor"], label: "totaltreecareutah.com", desc: "The company website", href: "https://www.totaltreecareutah.com/", kind: "link" }
       ]
     },
 
@@ -151,7 +162,6 @@ window.TTC_CONTENT = {
         { id: "chip-drop-qa", label: "Chip Drop QA", desc: "Check every new pin before setting it Active", href: "https://myersmail9-afk.github.io/ttc-tools/chip-drop-qa/", kind: "app" },
         { id: "phc-calendar", label: "PHC Calendar", desc: "Growing degree days and every open PHC job by window", href: "https://myersmail9-afk.github.io/ttc-tools/phc-calendar/", kind: "app", search: "gdd spray window" },
         { id: "rate-analysis", label: "Rate Analysis", desc: "Net dollars per hour by bidder, refreshed nightly from Jobber", href: "https://myersmail9-afk.github.io/ttc-rate-analysis/", kind: "app", search: "bids win loss" },
-        { id: "employee-resources-sheet", label: "Employee Resources Sheet (original)", desc: "The Google Sheet button grid this app replaces. Still the place to edit the underlying sheets.", href: "https://docs.google.com/spreadsheets/d/1XjYf1F-ODZ6Yv4_I_jzocY6d1GdiI6JoNH2dc38WrMQ/edit", kind: "sheet" },
         { id: "chip-drops-sheet", label: "Chip Drops Live (v2)", desc: "The sheet behind the Chip Drop App", href: "https://docs.google.com/spreadsheets/d/1VLwiva5-3ZHEGjLe_coKDKy5cgRAgGHzDHOz4wOsQPA/edit", kind: "sheet" },
         { id: "review-tally-sheet", label: "Crew Review Tally", desc: "The sheet behind the leaderboard", href: "https://docs.google.com/spreadsheets/d/1MGuOKTQkaoeb-USFJnhydKDL311ZpvTf_kchJYuhGeo/edit", kind: "sheet" },
         { id: "cancellation-list", label: "Cancellation List", desc: "Come-anytime clients to slot in when a job cancels", href: "https://docs.google.com/spreadsheets/d/1IsDAergCdmbg6GqjAmH7b88EdH0N4MgcuVhH_7bmYZQ/edit", kind: "sheet", search: "bbt fill in" },
