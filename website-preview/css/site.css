@@ -521,7 +521,13 @@ a:hover { color: var(--ttc-orange); }
 }
 .hero-slides__dot.is-active { background: var(--text-on-dark); }
 .hero-slides__label { color: var(--text-on-dark); font-size: var(--fs-small); white-space: nowrap; padding: 0 var(--space-2); opacity: .9; }
-@media (max-width: 640px) { .hero-slides__label { display: none; } }
+/* Phones: 17 dots pushed the next arrow and pause off screen (2026-09-27), so swap the dots for the label */
+@media (max-width: 640px) {
+  .hero-slides__controls { width: calc(100vw - var(--space-4) * 2); justify-content: space-between; bottom: var(--space-4); }
+  .hero-slides__dots { display: none; }
+  .hero-slides__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; order: 2; }
+  .hero-slides__prev { order: 1; } .hero-slides__pause { order: 3; } .hero-slides__next { order: 4; }
+}
 
 /* ---- Gallery grid ---- */
 .gallery-grid { gap: 20px; }
@@ -597,7 +603,8 @@ a:focus-visible .avatar { outline: 3px solid var(--ttc-gold); outline-offset: 2p
   background: var(--ttc-green); color: var(--text-on-dark); font-size: 12px; font-weight: var(--fw-strong);
   padding: 4px 12px; border-radius: var(--r-pill);
 }
-.ladder__rung--branch { border: 1px dashed var(--border); background: var(--bg-alt); box-shadow: none; }
+/* side-track credentials: same white tile as the rest (Joseph 2026-09-27); only the gold dot marks them */
+.ladder__rung--branch { }
 .ladder__rung--branch::before { background: var(--ttc-gold); }
 .ladder__tier {
   display: inline-block; font-family: var(--font-body); font-size: var(--fs-eyebrow); font-weight: var(--fw-strong);
@@ -611,15 +618,15 @@ a:focus-visible .avatar { outline: 3px solid var(--ttc-gold); outline-offset: 2p
   .ladder { padding-left: 0; }
   .ladder::before { display: none; }
   .ladder__rung::before { display: none; }
-  .ladder li:nth-child(1) { margin-left: var(--space-9); }
-  .ladder li:nth-child(2) { margin-left: calc(var(--space-9) - var(--space-3)); }
-  .ladder li:nth-child(3) { margin-left: var(--space-8); }
-  .ladder li:nth-child(4) { margin-left: calc(var(--space-8) - var(--space-3)); }
-  .ladder li:nth-child(5) { margin-left: var(--space-7); }
-  .ladder li:nth-child(6) { margin-left: calc(var(--space-7) - var(--space-3)); }
-  .ladder li:nth-child(7) { margin-left: var(--space-6); }
-  .ladder li:nth-child(8) { margin-left: var(--space-5); }
-  .ladder li:nth-child(n+9) { margin-left: 0; }
+  .ladder > li:nth-child(1) { margin-left: var(--space-9); }
+  .ladder > li:nth-child(2) { margin-left: calc(var(--space-9) - var(--space-3)); }
+  .ladder > li:nth-child(3) { margin-left: var(--space-8); }
+  .ladder > li:nth-child(4) { margin-left: calc(var(--space-8) - var(--space-3)); }
+  .ladder > li:nth-child(5) { margin-left: var(--space-7); }
+  .ladder > li:nth-child(6) { margin-left: calc(var(--space-7) - var(--space-3)); }
+  .ladder > li:nth-child(7) { margin-left: var(--space-6); }
+  .ladder > li:nth-child(8) { margin-left: var(--space-5); }
+  .ladder > li:nth-child(n+9) { margin-left: 0; }
 }
 
 /* ---- Topic chips + testimonial grid ---- */
@@ -708,3 +715,58 @@ a:focus-visible .avatar { outline: 3px solid var(--ttc-gold); outline-offset: 2p
 
 .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ttc-orange-dk); font-weight: var(--fw-strong); text-decoration: none; margin-bottom: var(--space-5); }
 .back-link:hover { color: var(--ttc-orange); text-decoration: underline; }
+
+/* ---- Round 2b (2026-09-27): no-crop gallery, photo focus points, services quick list ---- */
+/* Gallery: every photo keeps its own shape, in rows that fill the width (nothing cropped) */
+.gallery-grid { --g-row: 150px; display: flex; flex-wrap: wrap; gap: 12px; }
+@media (min-width: 640px) { .gallery-grid { --g-row: 200px; gap: 16px; } }
+@media (min-width: 1024px) { .gallery-grid { --g-row: 240px; gap: 20px; } }
+.gallery-grid a { display: block; overflow: hidden; border-radius: var(--r-md); }
+.gallery-grid img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-grid .gallery-fill { flex: 1000 1 0; }
+
+/* Photo focus points: where each photo's subject sits, so card and hero crops keep heads and trucks
+   in frame. Change a percentage to move the frame (first = left/right, second = up/down). */
+img[src*="EEB_9156"], img[src*="EEB_9165"] { object-position: center 14%; }
+img[src*="EEB_0137"] { object-position: center 60%; }
+img[src*="EEB_1746"] { object-position: center 62%; }
+img[src*="EEB_1669"] { object-position: center 70%; }
+img[src*="EEB_1585"] { object-position: center 55%; }
+img[src*="Kevan-Cutting-Large-Willow"] { object-position: 40% 60%; }
+img[src*="Kevan-Cutting-Firewood"] { object-position: 40% 15%; }
+img[src*="tree-consulting"] { object-position: 40% center; }
+img[src*="iron-chlorosis"] { object-position: center 45%; }
+
+/* Services quick list: every service as a plain link, above the photo cards */
+.svc-quick { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-5); }
+.svc-quick h2 { margin-top: 0; }
+.svc-quick ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--space-2); }
+@media (min-width: 640px) { .svc-quick ul { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .svc-quick ul { grid-template-columns: repeat(3, 1fr); } }
+.svc-quick a {
+  display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--r-md); font-weight: 600; font-size: 18px; text-decoration: none;
+}
+.svc-quick a::after { content: "›"; font-size: 24px; line-height: 1; margin-left: var(--space-2); }
+.svc-quick a:hover, .svc-quick a:focus-visible { background: var(--bg); }
+.svc-quick__more { margin: var(--space-4) 0 0; }
+
+/* Ladder on phones: the "5 on our crew" badge sat on top of the tier label, so it gets its own line */
+@media (max-width: 640px) {
+  .ladder__rung--highlight { padding-top: calc(var(--space-5) + 32px); }
+  .ladder__rung--highlight::after { top: var(--space-4); left: var(--space-5); right: auto; }
+}
+
+/* Ladder crew: a small round face + name for each person (Joseph 2026-09-27) */
+ul.ladder__crew { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.ladder__person { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; color: var(--text); text-decoration: none; font-weight: var(--fw-medium); }
+a.ladder__person:hover span:last-child { text-decoration: underline; }
+
+/* Other licenses and qualifications (outside the ladder), same white tiles */
+.quals-section { padding-top: 0; }
+.quals-section .lead { max-width: 68ch; }
+.quals { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 900px) { .quals { grid-template-columns: repeat(3, 1fr); } }
+.qual { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-5); }
+.qual h3 { margin: 0 0 4px; }
+.qual p { margin: 0 0 var(--space-2); color: var(--text-muted); }
