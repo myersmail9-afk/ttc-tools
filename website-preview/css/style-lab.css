@@ -1,9 +1,13 @@
 /* ============================================================
    STYLE LAB — preview only (Joseph, 2026-09-27).
    Loaded ONLY on the review preview's homepage, by build.py --prefix. The real site never loads it.
-   Switches: html.hs-scroll (hero photo scrolls; stays put is the standard) and html.look-1 / look-2 / look-3 (homepage looks).
-   When Joseph picks a look, move its rules into site.css (drop the html.look-N prefix) and delete the rest.
-   ============================================================ */
+   Option 1 = the standard (site.css, "html:not(.look-alt)") — untouched, no class added.
+   Options 2-6 are ENRICHMENTS on top of the standard: html.fx-2 … html.fx-6 (never html.look-alt).
+   Also: html.hs-scroll (hero photo scrolls; stays put is the standard).
+   When Joseph picks one, move its rules into site.css (drop the html.fx-N prefix) and delete the rest.
+   All motion respects prefers-reduced-motion (see the global override in site.css, plus the belt-and-
+   suspenders rules below) and runs only on .page-home. Everything degrades to plain, visible content
+   if JS doesn't run — see style-lab.js for the reveal/fallback logic. */
 
 /* ---------- The panel ---------- */
 .lab-toggle {
@@ -36,73 +40,144 @@
 
 /* Hero photo: "Stays put" is now the standard in site.css; html.hs-scroll (below, via JS) turns it off. */
 
-/* ---------- Look 1: Full Screen ----------
-   The photo fills the whole first screen; bigger headline; gold proof strip. */
-html.look-1 .page-home .hero-slides {
-  min-height: calc(100vh - 120px); min-height: calc(100svh - 120px);
-  display: flex; align-items: center; padding: var(--space-8) 0 128px;
+/* ============================================================
+   Option 2 · Gentle Motion
+   Sections fade + rise into place as you scroll to them (IntersectionObserver);
+   the stat numbers count up from 0 the moment they come into view.
+   JS adds ".lab-fx2-item" to each target and ".lab-in" when it should be visible; if JS never
+   runs, these classes never exist, so nothing is ever hidden — the section is just there.
+   ============================================================ */
+html.fx-2 .page-home .lab-fx2-item {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
 }
-html.look-1 .page-home .hero__title { font-size: clamp(40px, 6.5vw, 66px); line-height: 1.05; }
-html.look-1 .page-home .hero__sub { font-size: 20px; }
-html.look-1 .page-home .hero-slides::after {
-  content: ""; position: absolute; left: 50%; bottom: 96px; z-index: 2; width: 14px; height: 14px;
-  border-right: 2px solid var(--text-on-dark); border-bottom: 2px solid var(--text-on-dark);
-  transform: translateX(-50%) rotate(45deg); opacity: .8; animation: lab-bob 2s ease-in-out infinite;
+html.fx-2 .page-home .lab-fx2-item.lab-in { opacity: 1; transform: none; }
+/* a light stagger across each row so items don't all pop at once */
+html.fx-2 .page-home .stats .stat:nth-child(2),
+html.fx-2 .page-home .creds-tiles .tile:nth-child(2),
+html.fx-2 .page-home .crew-teaser > a:nth-child(2) { transition-delay: .08s; }
+html.fx-2 .page-home .stats .stat:nth-child(3),
+html.fx-2 .page-home .creds-tiles .tile:nth-child(3),
+html.fx-2 .page-home .crew-teaser > a:nth-child(3) { transition-delay: .16s; }
+html.fx-2 .page-home .stats .stat:nth-child(4),
+html.fx-2 .page-home .creds-tiles .tile:nth-child(4),
+html.fx-2 .page-home .crew-teaser > a:nth-child(4) { transition-delay: .24s; }
+html.fx-2 .page-home .creds-tiles .tile:nth-child(5),
+html.fx-2 .page-home .crew-teaser > a:nth-child(5) { transition-delay: .32s; }
+html.fx-2 .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4s; }
+@media (prefers-reduced-motion: reduce) {
+  html.fx-2 .page-home .lab-fx2-item { opacity: 1 !important; transform: none !important; }
 }
-@keyframes lab-bob { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: -8px; } }
-@media (prefers-reduced-motion: reduce) { html.look-1 .page-home .hero-slides::after { animation: none; } }
-html.look-1 .page-home .cred-strip { padding: var(--space-5) 0; }
-html.look-1 .page-home .cred { color: var(--ttc-gold); font-size: 16px; font-weight: var(--fw-strong); }
 
-/* ---------- Look 2: Editorial ----------
-   Left-aligned headline over a side shade, big plain numbers, thin rules instead of shadows, more air. */
-html.look-2 .page-home .hero-slides::before {
-  background: linear-gradient(90deg, rgba(20, 24, 18, .88) 0%, rgba(20, 24, 18, .6) 50%, rgba(20, 24, 18, .15) 100%);
+/* ============================================================
+   Option 3 · Warm Welcome
+   Credential tiles lift with a soft shadow and avatar circles gently enlarge on hover;
+   crew photos take a subtle zoom; plain-text links get a gold underline sweep.
+   Hover-only (@media hover:hover) so touch screens just get the normal tap — nothing missing.
+   ============================================================ */
+@media (hover: hover) and (pointer: fine) {
+  html.fx-3 .page-home .creds-tiles .tile {
+    transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  html.fx-3 .page-home .creds-tiles .tile:hover {
+    transform: translateY(-6px); box-shadow: var(--shadow-lg);
+  }
+  html.fx-3 .page-home .avatar { transition: transform .2s var(--ease-out); }
+  html.fx-3 .page-home .avatars a:hover .avatar { transform: scale(1.15); }
+  html.fx-3 .page-home .crew-teaser img { transition: transform .35s var(--ease-out); }
+  html.fx-3 .page-home .crew-teaser a:hover img { transform: scale(1.06); }
+  /* Plain text links only (e.g. "See how our crew is certified") — not the avatar/crew-photo
+     links, which are handled by their own hover zoom above. */
+  html.fx-3 .page-home .section p a:not(.btn) { position: relative; }
+  html.fx-3 .page-home .section p a:not(.btn)::after {
+    content: ""; position: absolute; left: 0; right: 100%; bottom: -3px; height: 2px;
+    background: var(--ttc-gold); transition: right .3s var(--ease-out);
+  }
+  html.fx-3 .page-home .section p a:not(.btn):hover::after,
+  html.fx-3 .page-home .section p a:not(.btn):focus-visible::after { right: 0; }
 }
-@media (max-width: 640px) {
-  html.look-2 .page-home .hero-slides::before { background: linear-gradient(180deg, rgba(20, 24, 18, .45) 0%, rgba(20, 24, 18, .85) 100%); }
+@media (prefers-reduced-motion: reduce) {
+  html.fx-3 .page-home .creds-tiles .tile,
+  html.fx-3 .page-home .avatar,
+  html.fx-3 .page-home .crew-teaser img,
+  html.fx-3 .page-home .section p a:not(.btn)::after { transition: none; }
 }
-html.look-2 .page-home .hero .wrap.hero__content { max-width: 1140px; text-align: left; }
-html.look-2 .page-home .hero__content > * { max-width: 620px; }
-html.look-2 .page-home .hero .btn-row { justify-content: flex-start; }
-html.look-2 .page-home .hero__title { font-size: clamp(40px, 5.8vw, 60px); line-height: 1.05; letter-spacing: -.01em; }
-html.look-2 .page-home .eyebrow::before,
-html.look-2 .page-home .hero__eyebrow::before {
-  content: ""; display: inline-block; width: 28px; height: 2px; background: currentColor; vertical-align: middle; margin-right: 10px;
-}
-html.look-2 .page-home .section { padding-top: 88px; padding-bottom: 88px; }
-html.look-2 .page-home .stat {
-  background: none; box-shadow: none; border-radius: 0; border-top: 2px solid var(--ttc-green);
-  text-align: left; padding: var(--space-4) 0 0;
-}
-html.look-2 .page-home .stat__num { font-size: 56px; }
-html.look-2 .page-home .promise .narrow { position: relative; padding-left: calc(var(--container-pad) + var(--space-5)); }
-html.look-2 .page-home .promise .narrow::before {
-  content: ""; position: absolute; left: var(--container-pad); top: 0; bottom: 0; width: 3px; background: var(--ttc-gold);
-}
-html.look-2 .page-home .promise .lead { font-size: 22px; line-height: 1.55; }
-html.look-2 .page-home .creds-tiles .tile {
-  box-shadow: none; border: 1px solid var(--border); border-top: 3px solid var(--ttc-green); border-radius: 6px;
-}
-html.look-2 .page-home .crew-teaser img { border-radius: 6px; box-shadow: none; }
 
-/* ---------- Look 3: Bold Bands ----------
-   Gold proof strip, deep-green bands for the numbers and the promise, rounder raised cards. */
-html.look-3 .page-home .cred-strip { background: var(--ttc-gold); color: var(--ttc-dark); }
-html.look-3 .page-home .cred { font-weight: var(--fw-bold); font-size: 15px; }
-html.look-3 .page-home .cred:not(:last-child)::after { background: rgba(42, 58, 37, .35); }
-html.look-3 .page-home .cred-strip + .section,
-html.look-3 .page-home .promise { background: var(--ttc-dark); color: var(--text-on-dark); }
-html.look-3 .page-home .promise { background: var(--ttc-green); }
-html.look-3 .page-home .cred-strip + .section h2,
-html.look-3 .page-home .promise h2,
-html.look-3 .page-home .promise .lead { color: var(--text-on-dark); }
-html.look-3 .page-home .cred-strip + .section .eyebrow,
-html.look-3 .page-home .promise .eyebrow { color: var(--ttc-gold); }
-html.look-3 .page-home .stat { background: rgba(255, 255, 255, .06); box-shadow: none; border: 1px solid var(--border-on-dark); }
-html.look-3 .page-home .stat__num { color: var(--ttc-gold); }
-html.look-3 .page-home .stat__label { color: var(--text-on-dark); opacity: .9; }
-html.look-3 .page-home .creds-tiles .tile {
-  border-radius: 20px; box-shadow: var(--shadow-md); border-top: 6px solid var(--ttc-green);
+/* ============================================================
+   Option 4 · Rooted
+   The hero photo slowly drifts (a gentle Ken Burns zoom/pan) while it's shown; a small leaf-and-
+   line accent draws in under each section heading. The line/leaf is inserted by JS as a decorative,
+   aria-hidden SVG — if JS doesn't run, no accent shows and the heading is unaffected either way.
+   ============================================================ */
+html.fx-4 .page-home .hero-slides__slide.is-active {
+  animation: lab-kenburns 18s ease-in-out infinite alternate;
 }
-html.look-3 .page-home .crew-teaser img, html.look-3 .page-home .crew-teaser__placeholder { border-radius: 50%; }
+@keyframes lab-kenburns {
+  from { transform: scale(1) translate(0, 0); }
+  to   { transform: scale(1.09) translate(-1.5%, -1%); }
+}
+.lab-leaf { display: inline-block; vertical-align: middle; margin-left: 12px; overflow: visible; }
+.lab-leaf__line {
+  stroke-dasharray: 46; stroke-dashoffset: 46;
+  transition: stroke-dashoffset .8s var(--ease-out);
+}
+.lab-leaf__leaf {
+  opacity: 0; transform: scale(.4); transform-origin: 46px 10px;
+  transition: opacity .5s var(--ease-out) .5s, transform .5s var(--ease-out) .5s;
+}
+.lab-leaf.lab-in .lab-leaf__line { stroke-dashoffset: 0; }
+.lab-leaf.lab-in .lab-leaf__leaf { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  html.fx-4 .page-home .hero-slides__slide.is-active { animation: none; }
+  .lab-leaf__line { stroke-dashoffset: 0 !important; transition: none !important; }
+  .lab-leaf__leaf { opacity: 1 !important; transform: scale(1) !important; transition: none !important; }
+}
+
+/* ============================================================
+   Option 5 · Always Ready
+   A "Get a Free Estimate" pill slides in once the hero scrolls out of view and stays put
+   (bottom-right, clear of the lab's own "Style options" button on the bottom-left).
+   ============================================================ */
+.lab-sticky-cta {
+  position: fixed; right: 16px; bottom: 16px; z-index: 850;
+  opacity: 0; transform: translateY(120%);
+  transition: opacity .4s var(--ease-out), transform .4s var(--ease-out);
+  box-shadow: var(--shadow-lg);
+}
+.lab-sticky-cta.lab-in { opacity: 1; transform: none; }
+/* On narrow screens the lab's own "Style options" button sits bottom-left — stack the pill
+   above the bottom bar instead of overlapping it (this offset is preview-lab-only; on the real
+   site, with no lab toggle, it would sit at bottom like a normal sticky CTA). */
+@media (max-width: 480px) { .lab-sticky-cta { left: 16px; right: 16px; bottom: 68px; text-align: center; } }
+@media (prefers-reduced-motion: reduce) {
+  .lab-sticky-cta { transition: none; }
+}
+
+/* ============================================================
+   Option 6 · Depth
+   The gold and green bands get a soft, slow-moving glow that drifts a little slower than the
+   page scroll (a decorative, aria-hidden layer — never the real content); credential tiles tilt
+   very gently toward the cursor. Both are mouse/trackpad only and skip touch + reduced motion.
+   ============================================================ */
+html.fx-6 .page-home .cred-strip,
+html.fx-6 .page-home .cred-strip + .section,
+html.fx-6 .page-home .promise { position: relative; overflow: hidden; }
+html.fx-6 .page-home .cred-strip > .wrap,
+html.fx-6 .page-home .cred-strip + .section > .wrap,
+html.fx-6 .page-home .promise > .wrap { position: relative; z-index: 1; }
+.lab-parallax-layer {
+  position: absolute; inset: -30% -10%; z-index: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(240, 192, 128, .28), rgba(240, 192, 128, 0) 70%);
+  will-change: transform;
+}
+html.fx-6 .page-home .cred-strip + .section .lab-parallax-layer,
+html.fx-6 .page-home .promise .lab-parallax-layer {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .10), rgba(255, 255, 255, 0) 70%);
+}
+@media (hover: hover) and (pointer: fine) {
+  html.fx-6 .page-home .creds-tiles .tile { transition: transform .2s var(--ease-out); will-change: transform; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-parallax-layer { display: none; }
+  html.fx-6 .page-home .creds-tiles .tile { transform: none !important; transition: none; }
+}

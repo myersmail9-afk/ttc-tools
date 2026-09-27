@@ -156,12 +156,32 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 
   var INTERVAL = 10000; // 10 seconds per photo (Joseph 2026-09-27)
   var index = 0, timer = null, isPaused = false;
+
+  // Perf pass (2026-09-27): the build only inlines slide 0's background-image (and preloads it);
+  // every other slide carries its photo in data-bg so it isn't fetched until needed. applyBg() turns
+  // a data-bg into the real background-image the first time a slide is shown, so the slideshow still
+  // looks and behaves exactly the same — the browser just isn't downloading all 8 photos on load.
+  function applyBg(slide) {
+    if (slide && slide.dataset && slide.dataset.bg && !slide.style.backgroundImage) {
+      slide.style.backgroundImage = "url(" + slide.dataset.bg + ")";
+    }
+  }
+
   // Each page load starts on the next photo in the list (random if this browser blocks storage).
   try {
     var last = parseInt(localStorage.getItem("ttc-hero-start"), 10);
     index = isNaN(last) ? 0 : (last + 1) % slides.length;
     localStorage.setItem("ttc-hero-start", String(index));
   } catch (e) { index = Math.floor(Math.random() * slides.length); }
+  applyBg(slides[index]); // the slide that's about to show needs its real photo right away
+
+  // The rest can wait until the page has otherwise finished loading — plenty of time before the
+  // 10-second slideshow interval ever reaches them.
+  if (document.readyState === "complete") {
+    slides.forEach(applyBg);
+  } else {
+    window.addEventListener("load", function () { slides.forEach(applyBg); });
+  }
 
   var dots = slides.map(function (slide, i) {
     var dot = document.createElement("button");
@@ -188,6 +208,7 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 
   function goTo(i) {
     index = (i + slides.length) % slides.length;
+    applyBg(slides[index]); // make sure the incoming slide has its photo even if window "load" hasn't fired yet
     render();
   }
   function next() { goTo(index + 1); }
@@ -381,7 +402,8 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   function apply(topic) {
     var count = 0;
     cards.forEach(function (card) {
-      var match = topic === "all" || card.getAttribute("data-topic") === topic;
+      // data-topic may list more than one topic, space-separated (e.g. "crew fun")
+      var match = topic === "all" || (" " + card.getAttribute("data-topic") + " ").indexOf(" " + topic + " ") !== -1;
       card.hidden = !match;
       if (match) count++;
     });
