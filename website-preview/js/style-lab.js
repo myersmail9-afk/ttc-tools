@@ -4,10 +4,11 @@
    and in this browser's storage so it survives a reload. */
 (function () {
   var LOOKS = [
-    { id: "0", name: "Current", note: "The site as it is now." },
-    { id: "1", name: "1 · Full Screen", note: "The photo fills the first screen, bigger headline, gold proof strip." },
-    { id: "2", name: "2 · Editorial", note: "Left-aligned headline, big plain numbers, thin lines instead of shadows." },
-    { id: "3", name: "3 · Bold Bands", note: "Gold proof strip, deep green bands, rounder raised cards." }
+    { id: "std", name: "Full Screen + Bold Bands (standard)", note: "The look you picked: full-screen photo, gold proof strip, deep green bands." },
+    { id: "0", name: "Before today", note: "The earlier look, for comparison." },
+    { id: "1", name: "Full Screen only", note: "Full-screen photo, the rest as before." },
+    { id: "2", name: "Editorial", note: "Left-aligned headline, big plain numbers, thin lines instead of shadows." },
+    { id: "3", name: "Bold Bands only", note: "Gold strip and green bands, normal-height photo." }
   ];
   var PHOTOS = [
     { id: "fixed", name: "Stays put (standard)", note: "The photo holds still and the words scroll over it." },
@@ -18,23 +19,24 @@
   function read(key, fallback) {
     var q = new URLSearchParams(location.search).get(key);
     if (q) return q;
-    try { return localStorage.getItem("ttc-lab2-" + key) || fallback; } catch (e) { return fallback; }
+    try { return localStorage.getItem("ttc-lab3-" + key) || fallback; } catch (e) { return fallback; }
   }
   function save(key, val) {
-    try { localStorage.setItem("ttc-lab2-" + key, val); } catch (e) {}
+    try { localStorage.setItem("ttc-lab3-" + key, val); } catch (e) {}
     try {
       var u = new URL(location.href); u.searchParams.set(key, val);
       history.replaceState(null, "", u.toString());
     } catch (e) {}
   }
   function apply(look, photo) {
-    LOOKS.forEach(function (l) { root.classList.remove("look-" + l.id); });
-    if (look !== "0") root.classList.add("look-" + look);
+    ["look-alt", "look-1", "look-2", "look-3"].forEach(function (c) { root.classList.remove(c); });
+    if (look !== "std") root.classList.add("look-alt");        // switch off the standard look
+    if (look === "1" || look === "2" || look === "3") root.classList.add("look-" + look);
     root.classList.toggle("hs-scroll", photo === "scroll");
   }
 
-  var look = read("look", "0"), photo = read("photo", "fixed");
-  if (!LOOKS.some(function (l) { return l.id === look; })) look = "0";
+  var look = read("look", "std"), photo = read("photo", "fixed");
+  if (!LOOKS.some(function (l) { return l.id === look; })) look = "std";
   apply(look, photo);
 
   function options(name, list, current) {

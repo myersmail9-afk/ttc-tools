@@ -792,3 +792,43 @@ html:not(.hs-scroll) .page-home .hero-slides__track { position: fixed; inset: 0;
   background: rgba(42, 58, 37, .85); color: var(--text-on-dark); text-align: center;
   font: var(--fw-strong) 14px/1.2 var(--font-body); letter-spacing: .02em;
 }
+
+
+/* ============================================================
+   Homepage standard look (Joseph 2026-09-27): Full Screen hero + Bold Bands.
+   html.look-alt (set only by the preview's Style options) switches these off to compare other looks.
+   ============================================================ */
+/* Full Screen hero */
+html:not(.look-alt) .page-home .hero-slides {
+  min-height: calc(100vh - 120px); min-height: calc(100svh - 120px);
+  display: flex; align-items: center; padding: var(--space-8) 0 128px;
+}
+html:not(.look-alt) .page-home .hero__title { font-size: clamp(40px, 6.5vw, 66px); line-height: 1.05; }
+html:not(.look-alt) .page-home .hero__sub { font-size: 20px; }
+html:not(.look-alt) .page-home .hero-slides::after {
+  content: ""; position: absolute; left: 50%; bottom: 96px; z-index: 2; width: 14px; height: 14px;
+  border-right: 2px solid var(--text-on-dark); border-bottom: 2px solid var(--text-on-dark);
+  transform: translateX(-50%) rotate(45deg); opacity: .8; animation: hero-bob 2s ease-in-out infinite;
+}
+@keyframes hero-bob { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: -8px; } }
+@media (prefers-reduced-motion: reduce) { html:not(.look-alt) .page-home .hero-slides::after { animation: none; } }
+/* Bold Bands */
+html:not(.look-alt) .page-home .cred-strip { background: var(--ttc-gold); color: var(--ttc-dark); padding: var(--space-5) 0; }
+html:not(.look-alt) .page-home .cred { font-weight: var(--fw-bold); font-size: 15px; }
+html:not(.look-alt) .page-home .cred:not(:last-child)::after { background: rgba(42, 58, 37, .35); }
+html:not(.look-alt) .page-home .cred-strip + .section { background: var(--ttc-dark); color: var(--text-on-dark); }
+html:not(.look-alt) .page-home .promise { background: var(--ttc-green); color: var(--text-on-dark); }
+html:not(.look-alt) .page-home .cred-strip + .section h2, html:not(.look-alt) .page-home .promise h2, html:not(.look-alt) .page-home .promise .lead { color: var(--text-on-dark); }
+html:not(.look-alt) .page-home .cred-strip + .section .eyebrow, html:not(.look-alt) .page-home .promise .eyebrow { color: var(--ttc-gold); }
+html:not(.look-alt) .page-home .stat { background: rgba(255, 255, 255, .06); box-shadow: none; border: 1px solid var(--border-on-dark); }
+html:not(.look-alt) .page-home .stat__num { color: var(--ttc-gold); }
+html:not(.look-alt) .page-home .stat__label { color: var(--text-on-dark); opacity: .9; }
+html:not(.look-alt) .page-home .creds-tiles .tile { border-radius: 20px; box-shadow: var(--shadow-md); border-top: 6px solid var(--ttc-green); }
+html:not(.look-alt) .page-home .crew-teaser img, html:not(.look-alt) .page-home .crew-teaser__placeholder { border-radius: 50%; }
+
+/* ISA credential logos: always shown with the holder's name + certification ID (ISA branding rules) */
+.isa-cred { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-2) 0 var(--space-3); }
+.isa-cred__logos { display: flex; gap: var(--space-3); flex: 0 0 auto; }
+.isa-cred__logos img { height: 72px; width: auto; display: block; padding: 4px; background: #fff; }
+.isa-cred__text { margin: 0; font-size: var(--fs-small); line-height: 1.4; color: var(--text); font-weight: var(--fw-medium); }
+.isa-cred--rung { margin-top: var(--space-3); }
