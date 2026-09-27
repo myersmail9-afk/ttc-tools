@@ -10,18 +10,18 @@
     { id: "3", name: "3 · Bold Bands", note: "Gold proof strip, deep green bands, rounder raised cards." }
   ];
   var PHOTOS = [
-    { id: "scroll", name: "Scrolls with the page", note: "How it works now." },
-    { id: "fixed", name: "Stays put", note: "The photo holds still and the words scroll over it." }
+    { id: "fixed", name: "Stays put (standard)", note: "The photo holds still and the words scroll over it." },
+    { id: "scroll", name: "Scrolls with the page", note: "The photo moves up with the words." }
   ];
   var root = document.documentElement;
 
   function read(key, fallback) {
     var q = new URLSearchParams(location.search).get(key);
     if (q) return q;
-    try { return localStorage.getItem("ttc-lab-" + key) || fallback; } catch (e) { return fallback; }
+    try { return localStorage.getItem("ttc-lab2-" + key) || fallback; } catch (e) { return fallback; }
   }
   function save(key, val) {
-    try { localStorage.setItem("ttc-lab-" + key, val); } catch (e) {}
+    try { localStorage.setItem("ttc-lab2-" + key, val); } catch (e) {}
     try {
       var u = new URL(location.href); u.searchParams.set(key, val);
       history.replaceState(null, "", u.toString());
@@ -30,10 +30,10 @@
   function apply(look, photo) {
     LOOKS.forEach(function (l) { root.classList.remove("look-" + l.id); });
     if (look !== "0") root.classList.add("look-" + look);
-    root.classList.toggle("hs-fixed", photo === "fixed");
+    root.classList.toggle("hs-scroll", photo === "scroll");
   }
 
-  var look = read("look", "0"), photo = read("photo", "scroll");
+  var look = read("look", "0"), photo = read("photo", "fixed");
   if (!LOOKS.some(function (l) { return l.id === look; })) look = "0";
   apply(look, photo);
 

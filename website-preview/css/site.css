@@ -770,3 +770,9 @@ a.ladder__person:hover span:last-child { text-decoration: underline; }
 .qual { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-5); }
 .qual h3 { margin: 0 0 4px; }
 .qual p { margin: 0 0 var(--space-2); color: var(--text-muted); }
+
+/* Hero photo stays put while the words scroll over it — the standard (Joseph 2026-09-27).
+   clip-path + a fixed photo layer, which works on iPhone (background-attachment:fixed does not).
+   html.hs-scroll (set only by the preview's Style options) switches back to a photo that scrolls. */
+html:not(.hs-scroll) .page-home .hero-slides { clip-path: inset(0); }
+html:not(.hs-scroll) .page-home .hero-slides__track { position: fixed; inset: 0; height: 100vh; height: 100lvh; }

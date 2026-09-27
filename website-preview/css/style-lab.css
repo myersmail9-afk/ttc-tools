@@ -1,7 +1,7 @@
 /* ============================================================
    STYLE LAB — preview only (Joseph, 2026-09-27).
    Loaded ONLY on the review preview's homepage, by build.py --prefix. The real site never loads it.
-   Switches: html.hs-fixed (hero photo stays put) and html.look-1 / look-2 / look-3 (homepage looks).
+   Switches: html.hs-scroll (hero photo scrolls; stays put is the standard) and html.look-1 / look-2 / look-3 (homepage looks).
    When Joseph picks a look, move its rules into site.css (drop the html.look-N prefix) and delete the rest.
    ============================================================ */
 
@@ -34,10 +34,7 @@
 .lab-opt:has(input:checked) { border-color: var(--ttc-green); background: var(--bg); }
 .lab-close { width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg); font: 600 15px var(--font-body); cursor: pointer; }
 
-/* ---------- Hero toggle: the photo stays put and the words scroll over it ----------
-   clip-path + a position:fixed photo layer (works on iPhone Safari, where background-attachment:fixed does not). */
-html.hs-fixed .page-home .hero-slides { clip-path: inset(0); }
-html.hs-fixed .page-home .hero-slides__track { position: fixed; inset: 0; height: 100vh; height: 100lvh; }
+/* Hero photo: "Stays put" is now the standard in site.css; html.hs-scroll (below, via JS) turns it off. */
 
 /* ---------- Look 1: Full Screen ----------
    The photo fills the whole first screen; bigger headline; gold proof strip. */
