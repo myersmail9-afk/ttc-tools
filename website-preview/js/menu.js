@@ -154,8 +154,14 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   var labelEl = hero.querySelector(".hero-slides__label");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var INTERVAL = 7000;
+  var INTERVAL = 10000; // 10 seconds per photo (Joseph 2026-09-27)
   var index = 0, timer = null, isPaused = false;
+  // Each page load starts on the next photo in the list (random if this browser blocks storage).
+  try {
+    var last = parseInt(localStorage.getItem("ttc-hero-start"), 10);
+    index = isNaN(last) ? 0 : (last + 1) % slides.length;
+    localStorage.setItem("ttc-hero-start", String(index));
+  } catch (e) { index = Math.floor(Math.random() * slides.length); }
 
   var dots = slides.map(function (slide, i) {
     var dot = document.createElement("button");
