@@ -776,3 +776,11 @@ a.ladder__person:hover span:last-child { text-decoration: underline; }
    html.hs-scroll (set only by the preview's Style options) switches back to a photo that scrolls. */
 html:not(.hs-scroll) .page-home .hero-slides { clip-path: inset(0); }
 html:not(.hs-scroll) .page-home .hero-slides__track { position: fixed; inset: 0; height: 100vh; height: 100lvh; }
+
+/* Ladder: crew in training, shown with faces like the rungs (Joseph 2026-09-27) */
+.ladder__progress { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); border: 1px dashed var(--ttc-green); padding: var(--space-5); font-size: inherit; color: var(--text); }
+.ladder__progress h3 { margin: 0 0 var(--space-2); }
+.ladder__training { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.ladder__training > li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); }
+.ladder__training ul.ladder__crew { margin: 0; }
+.ladder__training p { margin: 0; color: var(--text-muted); }
