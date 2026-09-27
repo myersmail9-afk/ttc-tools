@@ -1,19 +1,71 @@
-// Mobile hamburger + tap-to-open dropdowns on touch. No dependencies.
+// Mobile hamburger + dropdown toggles + Jobber estimate trigger. No dependencies.
 (function () {
   var hamburger = document.getElementById("hamburger");
   var nav = document.getElementById("site-nav");
+
+  function closeNav() {
+    if (!nav) return;
+    nav.classList.remove("is-open");
+    if (hamburger) hamburger.setAttribute("aria-expanded", "false");
+  }
+
   if (hamburger && nav) {
     hamburger.addEventListener("click", function () {
       var open = nav.classList.toggle("is-open");
       hamburger.setAttribute("aria-expanded", open ? "true" : "false");
     });
+
+    // Close on outside click.
+    document.addEventListener("click", function (e) {
+      if (!nav.classList.contains("is-open")) return;
+      if (nav.contains(e.target) || e.target === hamburger || hamburger.contains(e.target)) return;
+      closeNav();
+    });
+
+    // Close on any nav link click (mobile panel shouldn't stay open after navigating).
+    nav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () { closeNav(); });
+    });
   }
+
+  // Escape closes the mobile panel and any open dropdown.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (nav && nav.classList.contains("is-open")) closeNav();
+    document.querySelectorAll(".has-dropdown.is-open").forEach(function (li) {
+      li.classList.remove("is-open");
+      var toggle = li.querySelector(".dropdown-toggle");
+      if (toggle) toggle.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  // Dropdown toggle buttons: tap-to-open on mobile (nav slide-down), Escape closes on desktop too.
   document.querySelectorAll(".has-dropdown > .dropdown-toggle").forEach(function (toggle) {
     toggle.addEventListener("click", function (e) {
-      if (window.innerWidth < 900) {
+      e.preventDefault();
+      var li = toggle.parentElement;
+      var open = li.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      // Close sibling dropdowns.
+      document.querySelectorAll(".has-dropdown.is-open").forEach(function (other) {
+        if (other !== li) {
+          other.classList.remove("is-open");
+          var otherToggle = other.querySelector(".dropdown-toggle");
+          if (otherToggle) otherToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+  });
+
+  // Jobber estimate trigger: every [data-estimate] opens the Jobber dialog via its hidden button.
+  document.querySelectorAll("[data-estimate]").forEach(function (el) {
+    el.addEventListener("click", function (e) {
+      var jobberBtn = document.getElementById("work-request-button-5a7fcc26-6b73-4bec-a630-dd63f55352e9");
+      if (jobberBtn) {
         e.preventDefault();
-        toggle.parentElement.classList.toggle("is-open");
+        jobberBtn.click();
       }
+      // else: no-JS / missing-embed fallback — let the link's href do its job.
     });
   });
 })();

@@ -1,0 +1,225 @@
+/* ============================================================
+   Total Tree Care — Design Tokens
+   ============================================================
+   Source of truth for all colors, typography, spacing, radii,
+   and shadows used across TTC products. Drop this file into any
+   project and reference the variables.
+
+   Hex codes confirmed against the v3 website deliverable and the
+   2020 Policies & Procedures cover design.
+   ============================================================ */
+
+:root {
+
+  /* ---------- Brand colors ---------- */
+  --ttc-orange:      #C9601A;   /* primary accent — CTAs, highlights */
+  --ttc-orange-dk:   #a14d14;   /* hover/pressed state for orange CTAs */
+  --ttc-green:       #4a6741;   /* brand anchor — logo chevrons, secondary */
+  --ttc-green-dk:    #2a3a25;   /* alias of --ttc-dark, for backgrounds */
+  --ttc-dark:        #2a3a25;   /* deep anchor — dark sections, contrast */
+  --ttc-gold:        #f0c080;   /* warm accent — soft tags, highlights */
+
+  /* ---------- Surfaces ---------- */
+  --bg:              #f9f6f2;   /* default page background (cream) */
+  --bg-alt:          #f4f0ea;   /* alt section bg (warm grey) */
+  --bg-dark:         #2a3a25;   /* dark hero / footer */
+  --card:            #ffffff;   /* card surface */
+
+  /* ---------- Text ---------- */
+  --text:            #1a1a1a;   /* primary body text */
+  --text-muted:      #555555;   /* secondary copy, captions */
+  --text-hint:       #888888;   /* labels, metadata, timestamps */
+  --text-on-dark:    #f9f6f2;   /* body on --bg-dark */
+
+  /* ---------- Lines ---------- */
+  --border:          rgba(0,0,0,0.12);
+  --border-soft:     rgba(0,0,0,0.07);
+  --border-on-dark:  rgba(255,255,255,0.18);
+
+  /* ---------- Status colors (sparingly — only for system messaging) */
+  --success-bg:      #eaf3de; --success-text: #27500A; --success-border: #97C459;
+  --warn-bg:         #faeeda; --warn-text:    #633806; --warn-border:    #EF9F27;
+  --info-bg:         #E6F1FB; --info-text:    #0C447C; --info-border:    #85B7EB;
+  --danger-bg:       #FCEBEB; --danger-text:  #791F1F; --danger-border:  #F09595;
+
+  /* ---------- Typography ---------- */
+  --font-display:    'Montserrat', -apple-system, BlinkMacSystemFont,
+                     'Segoe UI', sans-serif;
+  --font-body:       'Inter', -apple-system, BlinkMacSystemFont,
+                     'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  --fw-body:         400;
+  --fw-medium:       500;
+  --fw-strong:       600;
+  --fw-bold:         700;
+  --fw-black:        800;
+
+  /* Type scale — base 16px, ratio 1.25 (major third) */
+  --fs-h1:           48px;   /* mobile: 36px */
+  --fs-h2:           36px;   /* mobile: 28px */
+  --fs-h3:           24px;
+  --fs-h4:           20px;
+  --fs-lead:         20px;
+  --fs-body:         16px;
+  --fs-small:        14px;
+  --fs-eyebrow:      12px;
+
+  --lh-tight:        1.1;
+  --lh-snug:         1.25;
+  --lh-normal:       1.5;
+  --lh-comfy:        1.6;
+
+  --letter-eyebrow:  0.06em;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --space-1:         4px;
+  --space-2:         8px;
+  --space-3:         12px;
+  --space-4:         16px;
+  --space-5:         24px;
+  --space-6:         32px;
+  --space-7:         48px;
+  --space-8:         64px;
+  --space-9:         96px;
+  --space-10:        128px;
+
+  /* ---------- Radii ---------- */
+  --r-sm:            4px;
+  --r-md:            8px;
+  --r-lg:            16px;
+  --r-pill:          999px;
+
+  /* ---------- Shadows ---------- */
+  --shadow-sm:       0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:       0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:       0 12px 32px rgba(0,0,0,0.12);
+
+  /* ---------- Layout ---------- */
+  --container-max:   1180px;
+  --container-pad:   24px;
+
+  /* ---------- Motion ---------- */
+  --ease-out:        cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast:        120ms;
+  --dur-base:        200ms;
+}
+
+/* ============================================================
+   Base resets / element styles using the tokens
+   ============================================================ */
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-comfy);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--text);
+  margin: 0 0 var(--space-4);
+  line-height: var(--lh-tight);
+}
+h1 { font-size: var(--fs-h1); font-weight: var(--fw-black); }
+h2 { font-size: var(--fs-h2); font-weight: var(--fw-bold); line-height: var(--lh-snug); }
+h3 { font-size: var(--fs-h3); font-weight: var(--fw-bold); line-height: var(--lh-snug); }
+h4 { font-size: var(--fs-h4); font-weight: var(--fw-strong); line-height: var(--lh-snug); }
+
+p { margin: 0 0 var(--space-4); }
+a { color: var(--ttc-orange); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--ttc-orange-dk); }
+
+@media (max-width: 640px) {
+  h1 { font-size: 36px; }
+  h2 { font-size: 28px; }
+}
+
+/* ============================================================
+   Components — utility classes that encode brand rules
+   ============================================================ */
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+}
+
+/* Eyebrow label — all caps, letter-spaced, small */
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--fw-strong);
+  letter-spacing: var(--letter-eyebrow);
+  text-transform: uppercase;
+  color: var(--ttc-green);
+  margin-bottom: var(--space-3);
+}
+
+/* Lead paragraph */
+.lead {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-normal);
+  color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-weight: var(--fw-strong);
+  font-size: var(--fs-body);
+  line-height: 1;
+  padding: 14px 24px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
+.btn-primary {
+  background: var(--ttc-orange);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--ttc-orange-dk); color: #fff; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--ttc-dark);
+  border-color: var(--ttc-dark);
+}
+.btn-secondary:hover { background: var(--ttc-dark); color: var(--bg); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ttc-orange);
+  border-color: transparent;
+  padding-left: 0; padding-right: 0;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+.card:hover { box-shadow: var(--shadow-md); }
+
+/* Section bands */
+.section { padding: var(--space-9) 0; }
+.section--alt  { background: var(--bg-alt); }
+.section--dark { background: var(--bg-dark); color: var(--text-on-dark); }
+.section--dark h1, .section--dark h2,
+.section--dark h3, .section--dark h4 { color: var(--text-on-dark); }
+.section--dark .eyebrow { color: var(--ttc-gold); }
