@@ -784,3 +784,11 @@ html:not(.hs-scroll) .page-home .hero-slides__track { position: fixed; inset: 0;
 .ladder__training > li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); }
 .ladder__training ul.ladder__crew { margin: 0; }
 .ladder__training p { margin: 0; color: var(--text-muted); }
+
+/* "Photo coming soon" on empty photo spots (Joseph 2026-09-27) */
+.team-card__placeholder, .crew-teaser__placeholder { position: relative; }
+.photo-soon {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 8px;
+  background: rgba(42, 58, 37, .85); color: var(--text-on-dark); text-align: center;
+  font: var(--fw-strong) 14px/1.2 var(--font-body); letter-spacing: .02em;
+}
