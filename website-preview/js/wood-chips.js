@@ -586,8 +586,13 @@
         lat: f.lat, lng: f.lng,
         tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(),
         photo_path: photoPath, truck_access: f.truck_access,
-        consent_mixed_ok: true, consent_stays_on_list: true,
-        consent_property_access: true, consent_photo_use: true,
+        // Sent with the database's own column names (chip_customer_signup's v_allowed list) so the
+        // Edge Function needs no key-mapping step: mixed_ok, stay_on_list_ack, property_access_ok,
+        // photo_ok, paid_consent. These four checkboxes are already required by validateSignup()
+        // above (e.consents) before submit is ever reachable, so `true` here reflects a real,
+        // already-validated consent, not an assumption.
+        mixed_ok: true, stay_on_list_ack: true,
+        property_access_ok: true, photo_ok: true,
         paid_consent: f.paid_consent
       };
       return API.signup(payload, STATE.requestId);

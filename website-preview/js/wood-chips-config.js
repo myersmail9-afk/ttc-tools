@@ -12,16 +12,16 @@ window.TTC_CHIP_CONFIG = {
   // from this public page until Stage 4's security review + soft launch are done.
   SUPABASE_URL: 'https://soeesnzussrignjlvjnr.supabase.co',
 
-  // TODO(orchestrator): paste the TEST project's publishable ("anon") key here before wiring this
-  // page to a real backend. Get it from the Supabase dashboard → Project Settings → API → the
-  // "publishable" / "anon" key for project soeesnzussrignjlvjnr. Never the LIVE project's key
-  // (that one lives in domains/crew/apps/employee-app/next/overlay/crew-api.json and must stay out
-  // of this file).
-  SUPABASE_ANON_KEY: '',
+  // The TEST project's publishable key (filled 2026-09-27). Public by design. Before launch this becomes the
+  // LIVE project's publishable key, together with the live door URL and the real Turnstile site key.
+  SUPABASE_ANON_KEY: 'sb_publishable_1hHcHyBTsqG_9kGu3o35aA_im2LdQ_D',
 
-  // The one Edge Function this page talks to (contract: POST JSON {action, ...}). TODO(orchestrator):
-  // confirm the deployed function's name matches "chip-customer" once the backend is built.
-  EDGE_FUNCTION_URL: 'https://soeesnzussrignjlvjnr.supabase.co/functions/v1/chip-customer',
+  // The page never talks to the Edge Function directly — it goes through the Cloudflare "door"
+  // Worker (chip-door-test), which rate-limits at the edge, stamps the request with a secret the
+  // function requires, and forwards it on (contract: POST JSON {action, ...}, same shape as
+  // before). SUPABASE_URL above is still used directly for the two Auth REST calls (verify/
+  // refresh), which are unauthenticated-by-design and don't need the door.
+  EDGE_FUNCTION_URL: 'https://chip-door-test.totaltreecareutah.workers.dev',
 
   // Cloudflare Turnstile. This is Cloudflare's published TEST site key that always passes — safe to
   // commit, never a real secret. Swap for the real site key before this page sees a real customer.
