@@ -954,3 +954,14 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   }
   .hero-slides__slide::after { inset: 0; z-index: 1; background-size: 165% auto; background-position: inherit; }
 }
+
+/* Phones (Joseph 2026-09-27): "Cache Valley's Trusted Arborists" sits centered in the space between the white
+   header and the headline, a little larger. The headline, text and buttons stay together below it. */
+@media (max-width: 640px) {
+  html:not(.look-alt) .page-home .hero-slides { align-items: stretch; padding-top: 0; padding-bottom: 88px; }
+  html:not(.look-alt) .page-home .hero-slides .hero__content { display: flex; flex-direction: column; justify-content: flex-end; }
+  html:not(.look-alt) .page-home .hero__eyebrow {
+    flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
+    margin: 0; font-size: 15px; letter-spacing: .08em;
+  }
+}
