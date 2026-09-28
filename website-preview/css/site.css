@@ -832,3 +832,7 @@ html:not(.look-alt) .page-home .crew-teaser img, html:not(.look-alt) .page-home 
 .isa-cred__logos img { height: 72px; width: auto; display: block; padding: 4px; background: #fff; }
 .isa-cred__text { margin: 0; font-size: var(--fs-small); line-height: 1.4; color: var(--text); font-weight: var(--fw-medium); }
 .isa-cred--rung { margin-top: var(--space-3); }
+
+/* Testimonials: even spacing below the review grid, buttons the same height and centered (Joseph 2026-09-27) */
+.testimonial-grid + .btn-row { margin-top: var(--space-7); justify-content: center; gap: var(--space-4); }
+.testimonial-grid + .btn-row .btn { min-height: 56px; display: inline-flex; align-items: center; justify-content: center; padding-top: 0; padding-bottom: 0; }
