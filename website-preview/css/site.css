@@ -940,21 +940,6 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   .page-home .hero .btn-row .btn--primary { min-height: 52px; }
 }
 
-/* Phones: hero photos zoomed out (Joseph 2026-09-27). A tall phone screen makes "cover" magnify wide photos a lot,
-   so each slide paints two layers from its own photo (background-image: inherit): a soft blurred copy filling the
-   screen underneath, and the sharp photo on top shown wider (165% of the screen width instead of ~220%). */
-@media (max-width: 640px) {
-  .hero-slides__slide { isolation: isolate; overflow: hidden; }
-  .hero-slides__slide::before, .hero-slides__slide::after {
-    content: ""; position: absolute; background-image: inherit; background-repeat: no-repeat;
-  }
-  .hero-slides__slide::before {
-    inset: -30px; z-index: 0; background-size: cover; background-position: center;
-    filter: blur(18px) brightness(.75);
-  }
-  .hero-slides__slide::after { inset: 0; z-index: 1; background-size: 165% auto; background-position: inherit; }
-}
-
 /* Phones (Joseph 2026-09-27): "Cache Valley's Trusted Arborists" sits centered in the space between the white
    header and the headline, a little larger. The headline, text and buttons stay together below it. */
 @media (max-width: 640px) {
@@ -962,14 +947,6 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   html:not(.look-alt) .page-home .hero-slides .hero__content { display: flex; flex-direction: column; justify-content: flex-end; }
   html:not(.look-alt) .page-home .hero__eyebrow {
     flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
-    margin: 0; font-size: 15px; letter-spacing: .08em;
-  }
-}
-/* Phones: soften the sharp photo's top/bottom edges into the blurred copy. --fade-top/--fade-bot are the photo's
-   edges inside the slide, measured per photo by menu.js (defaults fade the slide's own edges). */
-@media (max-width: 640px) {
-  .hero-slides__slide::after {
-    -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-top, 0px), #000 calc(var(--fade-top, 0px) + 70px), #000 calc(var(--fade-bot, 100%) - 70px), transparent var(--fade-bot, 100%));
-            mask-image: linear-gradient(to bottom, transparent var(--fade-top, 0px), #000 calc(var(--fade-top, 0px) + 70px), #000 calc(var(--fade-bot, 100%) - 70px), transparent var(--fade-bot, 100%));
+    margin: 0; font-size: clamp(12px, 3.9vw, 15px); letter-spacing: .03em; line-height: 1.3; white-space: nowrap; text-align: center;
   }
 }
