@@ -902,3 +902,11 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 /* Testimonials: even spacing below the review grid, buttons the same height and centered (Joseph 2026-09-27) */
 .testimonial-grid + .btn-row { margin-top: var(--space-7); justify-content: center; gap: var(--space-4); }
 .testimonial-grid + .btn-row .btn { min-height: 56px; display: inline-flex; align-items: center; justify-content: center; padding-top: 0; padding-bottom: 0; }
+
+/* Homepage hero buttons (Joseph 2026-09-27): stacked and centered — Call Us on top, Get a Free Estimate in the
+   middle and 20% larger than the other two, View All Services below. Order set here; the HTML order is unchanged. */
+.page-home .hero .btn-row { flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); }
+.page-home .hero .btn-row .btn { width: min(300px, 100%); min-height: 52px; font-size: 17px; }
+.page-home .hero .btn-row .btn[href^="tel:"] { order: 1; }
+.page-home .hero .btn-row .btn--primary { order: 2; width: min(360px, 100%); min-height: 62px; font-size: 21px; }
+.page-home .hero .btn-row .btn[href$="/our-services/"] { order: 3; }
