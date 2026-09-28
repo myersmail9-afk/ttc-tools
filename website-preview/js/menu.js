@@ -423,3 +423,81 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 
   apply("all");
 })();
+
+// ============================================================
+// Homepage standard: Gentle Motion — sections fade + rise into view as you scroll to them; the
+// stat numbers count up from 0 the moment they come into view (Joseph 2026-09-27, promoted from
+// the preview's Style Lab). Adds "js-reveal" to <html> the moment this runs — site.css only hides
+// ".reveal-item" when that flag is present, so content is never hidden if this script doesn't run.
+// Respects prefers-reduced-motion (reveals everything immediately, no animation).
+// ============================================================
+(function () {
+  if (!document.body.classList.contains("page-home")) return;
+
+  function prefersReduced() {
+    try { return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
+    catch (e) { return false; }
+  }
+
+  function countUp(el) {
+    var raw = el.textContent.trim();
+    var m = raw.match(/^(\D*)([\d,]+(?:\.\d+)?)(.*)$/);
+    if (!m) return; // e.g. "Free" — nothing to count, leave as-is
+    var prefix = m[1], numStr = m[2].replace(/,/g, ""), suffix = m[3];
+    var end = parseFloat(numStr);
+    if (isNaN(end)) return;
+    var decimals = (numStr.split(".")[1] || "").length;
+    var dur = 900, t0 = null;
+    function frame(ts) {
+      try {
+        if (t0 === null) t0 = ts;
+        var p = Math.min(1, (ts - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = end * eased;
+        var text = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString("en-US");
+        el.textContent = prefix + text + suffix;
+        if (p < 1) requestAnimationFrame(frame); else el.textContent = raw;
+      } catch (e) { el.textContent = raw; }
+    }
+    try { requestAnimationFrame(frame); } catch (e) { el.textContent = raw; }
+  }
+
+  // Adds "reveal-item" to every match up front (CSS then hides it, but only once "js-reveal" is on
+  // <html> — see site.css), then adds "is-revealed" to reveal — one at a time, as each is observed
+  // entering the viewport. Falls back to revealing everything immediately if IntersectionObserver
+  // isn't available or motion is reduced, and force-reveals everything after a timeout as a safety
+  // net, so nothing can end up stuck invisible.
+  function makeReveal(selector, onEnter) {
+    var els = Array.prototype.slice.call(document.querySelectorAll(selector));
+    if (!els.length) return;
+    els.forEach(function (el) { el.classList.add("reveal-item"); });
+
+    function revealOne(el) {
+      el.classList.add("is-revealed");
+      if (onEnter) { try { onEnter(el); } catch (e) {} }
+    }
+    function revealAll() { els.forEach(revealOne); }
+
+    if (!prefersReduced() && window.IntersectionObserver) {
+      try {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) { revealOne(entry.target); io.unobserve(entry.target); }
+          });
+        }, { threshold: 0.2, rootMargin: "0px 0px -8% 0px" });
+        els.forEach(function (el) { io.observe(el); });
+        setTimeout(revealAll, 4000);
+      } catch (e) { revealAll(); }
+    } else {
+      revealAll();
+    }
+  }
+
+  document.documentElement.classList.add("js-reveal");
+  makeReveal(".stats .stat", function (el) {
+    var num = el.querySelector(".stat__num");
+    if (num) countUp(num);
+  });
+  makeReveal(".creds-tiles .tile");
+  makeReveal(".crew-teaser > a");
+})();

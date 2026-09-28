@@ -826,6 +826,72 @@ html:not(.look-alt) .page-home .stat__label { color: var(--text-on-dark); opacit
 html:not(.look-alt) .page-home .creds-tiles .tile { border-radius: 20px; box-shadow: var(--shadow-md); border-top: 6px solid var(--ttc-green); }
 html:not(.look-alt) .page-home .crew-teaser img, html:not(.look-alt) .page-home .crew-teaser__placeholder { border-radius: 50%; }
 
+/* ============================================================
+   Homepage standard: Gentle Motion + Warm Welcome (Joseph 2026-09-27).
+   Promoted out of the preview's Style Lab into the permanent standard — Joseph tried both and
+   liked them, so this is no longer optional. Same behavior as the lab versions, just without the
+   html.fx-N gate. Scoped to .page-home only; every other page is untouched.
+   ============================================================ */
+
+/* --- Gentle Motion: sections fade + rise into place as they scroll into view. menu.js adds
+   "js-reveal" to <html> the instant it runs, and "reveal-item" / "is-revealed" to each target.
+   If JS never runs, neither class exists, so .reveal-item is never hidden — content is just there. */
+.page-home .reveal-item { opacity: 1; transform: none; }
+html.js-reveal .page-home .reveal-item {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
+}
+html.js-reveal .page-home .reveal-item.is-revealed { opacity: 1; transform: none; }
+/* a light stagger across each row so items don't all pop at once */
+html.js-reveal .page-home .stats .stat:nth-child(2),
+html.js-reveal .page-home .creds-tiles .tile:nth-child(2),
+html.js-reveal .page-home .crew-teaser > a:nth-child(2) { transition-delay: .08s; }
+html.js-reveal .page-home .stats .stat:nth-child(3),
+html.js-reveal .page-home .creds-tiles .tile:nth-child(3),
+html.js-reveal .page-home .crew-teaser > a:nth-child(3) { transition-delay: .16s; }
+html.js-reveal .page-home .stats .stat:nth-child(4),
+html.js-reveal .page-home .creds-tiles .tile:nth-child(4),
+html.js-reveal .page-home .crew-teaser > a:nth-child(4) { transition-delay: .24s; }
+html.js-reveal .page-home .creds-tiles .tile:nth-child(5),
+html.js-reveal .page-home .crew-teaser > a:nth-child(5) { transition-delay: .32s; }
+html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4s; }
+@media (prefers-reduced-motion: reduce) {
+  .page-home .reveal-item { opacity: 1 !important; transform: none !important; }
+}
+
+/* --- Warm Welcome: credential tiles lift with a soft shadow, avatar circles + crew photos zoom a
+   touch on hover, and plain-text links get a gold underline sweep. Hover-capable pointers only
+   (@media hover:hover) so touch screens just get the normal tap — nothing missing. */
+@media (hover: hover) and (pointer: fine) {
+  .page-home .creds-tiles .tile {
+    transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  /* the extra ".tile" repeat is a deliberate specificity bump (not a typo): the credential tiles
+     are also Gentle Motion's ".reveal-item.is-revealed" (which pins transform:none once revealed,
+     at the same specificity tier) — without it, the reveal rule would silently win the tie and
+     the hover lift would never show once a tile has revealed. */
+  .page-home .creds-tiles .tile:hover.tile { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+  .page-home .avatar { transition: transform .2s var(--ease-out); }
+  .page-home .avatars a:hover .avatar { transform: scale(1.15); }
+  .page-home .crew-teaser img { transition: transform .35s var(--ease-out); }
+  .page-home .crew-teaser a:hover img { transform: scale(1.06); }
+  /* Plain text links only (e.g. "See how our crew is certified") — not the avatar/crew-photo
+     links, which get their own hover zoom above. */
+  .page-home .section p a:not(.btn) { position: relative; }
+  .page-home .section p a:not(.btn)::after {
+    content: ""; position: absolute; left: 0; right: 100%; bottom: -3px; height: 2px;
+    background: var(--ttc-gold); transition: right .3s var(--ease-out);
+  }
+  .page-home .section p a:not(.btn):hover::after,
+  .page-home .section p a:not(.btn):focus-visible::after { right: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-home .creds-tiles .tile,
+  .page-home .avatar,
+  .page-home .crew-teaser img,
+  .page-home .section p a:not(.btn)::after { transition: none; }
+}
+
 /* ISA credential logos: always shown with the holder's name + certification ID (ISA branding rules) */
 .isa-cred { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-2) 0 var(--space-3); }
 .isa-cred__logos { display: flex; gap: var(--space-3); flex: 0 0 auto; }

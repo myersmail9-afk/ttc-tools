@@ -1,13 +1,20 @@
 /* ============================================================
-   STYLE LAB — preview only (Joseph, 2026-09-27).
-   Loaded ONLY on the review preview's homepage, by build.py --prefix. The real site never loads it.
-   Option 1 = the standard (site.css, "html:not(.look-alt)") — untouched, no class added.
-   Options 2-6 are ENRICHMENTS on top of the standard: html.fx-2 … html.fx-6 (never html.look-alt).
-   Also: html.hs-scroll (hero photo scrolls; stays put is the standard).
-   When Joseph picks one, move its rules into site.css (drop the html.fx-N prefix) and delete the rest.
-   All motion respects prefers-reduced-motion (see the global override in site.css, plus the belt-and-
-   suspenders rules below) and runs only on .page-home. Everything degrades to plain, visible content
-   if JS doesn't run — see style-lab.js for the reveal/fallback logic. */
+   STYLE LAB — preview only (Joseph 2026-09-27, expanded 2026-09-27).
+   Loaded ONLY on the review preview's homepage, by build.py's --prefix build. The real site never
+   loads this file — Gentle Motion + Warm Welcome (the old options 2-3) are now permanent and live
+   in site.css instead (html:not(.look-alt) .page-home / .page-home, no html.fx-N gate needed).
+
+   Option 1 = that new standard, untouched — no class added, it's just what site.css already
+   renders on its own (Full Screen hero + Bold Bands + Gentle Motion + Warm Welcome).
+   Options 2-11 are ENRICHMENTS layered on top of the standard, one feature each: html.fx-2 …
+   html.fx-11. Each option's DOM/observer/listener setup is created when it's chosen and torn down
+   when you switch away (see style-lab.js), so nothing keeps running in the background.
+
+   Rules for every option: brand tokens only (tokens.css), prefers-reduced-motion respected (the
+   sitewide override in site.css already zeroes animation/transition durations; several options
+   also add an explicit belt-and-suspenders rule below), no external libraries, hover-only effects
+   gated to (hover: hover) and (pointer: fine) so touch just gets the normal page, and nothing here
+   changes the page's own copy or layout. */
 
 /* ---------- The panel ---------- */
 .lab-toggle {
@@ -18,7 +25,7 @@
 }
 .lab-toggle::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--ttc-gold); }
 .lab-panel {
-  position: fixed; left: 12px; bottom: 68px; z-index: 9001; width: min(340px, calc(100vw - 24px));
+  position: fixed; left: 12px; bottom: 68px; z-index: 9001; width: min(360px, calc(100vw - 24px));
   max-height: calc(100vh - 100px); overflow: auto;
   background: var(--card); color: var(--text); border-radius: var(--r-lg); box-shadow: var(--shadow-md);
   padding: 16px; font-family: var(--font-body);
@@ -34,150 +41,138 @@
 }
 .lab-opt input { margin-top: 3px; accent-color: var(--ttc-green); width: 18px; height: 18px; flex: 0 0 auto; }
 .lab-opt strong { display: block; font-size: 15px; }
-.lab-opt__text, .lab-opt__text span { display: block; } .lab-opt span {  font-size: 13px; color: var(--text-muted); line-height: 1.35; }
+.lab-opt__text, .lab-opt__text span { display: block; } .lab-opt span { font-size: 13px; color: var(--text-muted); line-height: 1.35; }
 .lab-opt:has(input:checked) { border-color: var(--ttc-green); background: var(--bg); }
+.lab-opt__bold { color: var(--ttc-orange-dk); font-weight: var(--fw-strong); }
 .lab-close { width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg); font: 600 15px var(--font-body); cursor: pointer; }
 
 /* Hero photo: "Stays put" is now the standard in site.css; html.hs-scroll (below, via JS) turns it off. */
 
 /* ============================================================
-   Option 2 · Gentle Motion
-   Sections fade + rise into place as you scroll to them (IntersectionObserver);
-   the stat numbers count up from 0 the moment they come into view.
-   JS adds ".lab-fx2-item" to each target and ".lab-in" when it should be visible; if JS never
-   runs, these classes never exist, so nothing is ever hidden — the section is just there.
+   Option 2 · Falling Leaves — Bold
+   A handful of brand-color leaves drift slowly down over the hero photo (canvas, JS-driven).
+   Pauses when the hero scrolls out of view or the tab is hidden; skipped entirely on
+   prefers-reduced-motion (style-lab.js never creates the canvas in that case).
    ============================================================ */
-html.fx-2 .page-home .lab-fx2-item {
-  opacity: 0; transform: translateY(22px);
-  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
-}
-html.fx-2 .page-home .lab-fx2-item.lab-in { opacity: 1; transform: none; }
-/* a light stagger across each row so items don't all pop at once */
-html.fx-2 .page-home .stats .stat:nth-child(2),
-html.fx-2 .page-home .creds-tiles .tile:nth-child(2),
-html.fx-2 .page-home .crew-teaser > a:nth-child(2) { transition-delay: .08s; }
-html.fx-2 .page-home .stats .stat:nth-child(3),
-html.fx-2 .page-home .creds-tiles .tile:nth-child(3),
-html.fx-2 .page-home .crew-teaser > a:nth-child(3) { transition-delay: .16s; }
-html.fx-2 .page-home .stats .stat:nth-child(4),
-html.fx-2 .page-home .creds-tiles .tile:nth-child(4),
-html.fx-2 .page-home .crew-teaser > a:nth-child(4) { transition-delay: .24s; }
-html.fx-2 .page-home .creds-tiles .tile:nth-child(5),
-html.fx-2 .page-home .crew-teaser > a:nth-child(5) { transition-delay: .32s; }
-html.fx-2 .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4s; }
-@media (prefers-reduced-motion: reduce) {
-  html.fx-2 .page-home .lab-fx2-item { opacity: 1 !important; transform: none !important; }
-}
+.lab-leaves-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: block; }
 
 /* ============================================================
-   Option 3 · Warm Welcome
-   Credential tiles lift with a soft shadow and avatar circles gently enlarge on hover;
-   crew photos take a subtle zoom; plain-text links get a gold underline sweep.
-   Hover-only (@media hover:hover) so touch screens just get the normal tap — nothing missing.
+   Option 3 · Growing Vine — Bold
+   A thin vine along the left edge of the viewport draws itself in (stroke-dashoffset tied to how
+   far down the page you've scrolled), with a few leaves fading in as you pass them. Desktop only
+   (needs the margin a phone doesn't have) — style-lab.js also skips setup under 1024px.
+   ============================================================ */
+.lab-vine { position: fixed; left: 10px; top: 0; height: 100vh; width: 46px; z-index: 500; pointer-events: none; opacity: .85; }
+.lab-vine__path { fill: none; stroke: var(--ttc-green); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .2s linear; }
+.lab-vine__leaf { fill: var(--ttc-gold); opacity: 0; transition: opacity .4s var(--ease-out); }
+.lab-vine__leaf.lab-in { opacity: 1; }
+@media (max-width: 1023px) { .lab-vine { display: none; } }
+@media (prefers-reduced-motion: reduce) { .lab-vine__path { transition: none; } .lab-vine__leaf { transition: none; } }
+
+/* ============================================================
+   Option 4 · Cursor Spotlight — Bold
+   Hover the hero photo and a soft circle around your cursor reveals a second hero photo
+   underneath, like a lens. Hover-capable pointers only — on touch, style-lab.js never creates the
+   layer, so the hero looks and behaves exactly like the standard.
    ============================================================ */
 @media (hover: hover) and (pointer: fine) {
-  html.fx-3 .page-home .creds-tiles .tile {
-    transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  .lab-spotlight {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background-size: cover; background-position: center;
+    clip-path: circle(0px at var(--lab-x, 50%) var(--lab-y, 50%));
+    transition: clip-path .18s var(--ease-out);
   }
-  html.fx-3 .page-home .creds-tiles .tile:hover {
-    transform: translateY(-6px); box-shadow: var(--shadow-lg);
-  }
-  html.fx-3 .page-home .avatar { transition: transform .2s var(--ease-out); }
-  html.fx-3 .page-home .avatars a:hover .avatar { transform: scale(1.15); }
-  html.fx-3 .page-home .crew-teaser img { transition: transform .35s var(--ease-out); }
-  html.fx-3 .page-home .crew-teaser a:hover img { transform: scale(1.06); }
-  /* Plain text links only (e.g. "See how our crew is certified") — not the avatar/crew-photo
-     links, which are handled by their own hover zoom above. */
-  html.fx-3 .page-home .section p a:not(.btn) { position: relative; }
-  html.fx-3 .page-home .section p a:not(.btn)::after {
-    content: ""; position: absolute; left: 0; right: 100%; bottom: -3px; height: 2px;
-    background: var(--ttc-gold); transition: right .3s var(--ease-out);
-  }
-  html.fx-3 .page-home .section p a:not(.btn):hover::after,
-  html.fx-3 .page-home .section p a:not(.btn):focus-visible::after { right: 0; }
+  .lab-spotlight.lab-in { clip-path: circle(140px at var(--lab-x, 50%) var(--lab-y, 50%)); }
 }
-@media (prefers-reduced-motion: reduce) {
-  html.fx-3 .page-home .creds-tiles .tile,
-  html.fx-3 .page-home .avatar,
-  html.fx-3 .page-home .crew-teaser img,
-  html.fx-3 .page-home .section p a:not(.btn)::after { transition: none; }
+@media (prefers-reduced-motion: reduce) { .lab-spotlight { transition: none; } }
+
+/* ============================================================
+   Option 5 · Crew Scroll-Strip — Bold
+   "Meet the Crew" pins in place and slides sideways through its photos as you scroll past the
+   section (a sticky wrapper + scroll-linked translateX; style-lab.js builds it). Wider screens
+   only (900px+) and skipped under reduced motion — the section is otherwise the standard grid.
+   ============================================================ */
+.lab-strip-sticky { position: sticky; top: 24px; overflow: hidden; }
+.crew-teaser.lab-strip-track { display: flex; flex-wrap: nowrap; gap: var(--space-5); margin: var(--space-6) 0; will-change: transform; }
+.crew-teaser.lab-strip-track > a { flex: 0 0 200px; }
+@media (max-width: 899px) {
+  .lab-strip-sticky { position: static !important; overflow: visible !important; }
+  .crew-teaser.lab-strip-track { display: grid !important; flex-wrap: wrap; transform: none !important; }
 }
 
 /* ============================================================
-   Option 4 · Rooted
-   The hero photo slowly drifts (a gentle Ken Burns zoom/pan) while it's shown; a small leaf-and-
-   line accent draws in under each section heading. The line/leaf is inserted by JS as a decorative,
-   aria-hidden SVG — if JS doesn't run, no accent shows and the heading is unaffected either way.
+   Option 6 · Headline Assemble — Bold
+   The hero headline's words fade and rise into place, one after another, right when the page
+   loads (a one-time entrance, not scroll-linked). Skipped entirely under reduced motion — the
+   headline is never split into spans, so screen readers and the printed text are unaffected.
    ============================================================ */
-html.fx-4 .page-home .hero-slides__slide.is-active {
-  animation: lab-kenburns 18s ease-in-out infinite alternate;
-}
-@keyframes lab-kenburns {
-  from { transform: scale(1) translate(0, 0); }
-  to   { transform: scale(1.09) translate(-1.5%, -1%); }
-}
-.lab-leaf { display: inline-block; vertical-align: middle; margin-left: 12px; overflow: visible; }
-.lab-leaf__line {
-  stroke-dasharray: 46; stroke-dashoffset: 46;
-  transition: stroke-dashoffset .8s var(--ease-out);
-}
-.lab-leaf__leaf {
-  opacity: 0; transform: scale(.4); transform-origin: 46px 10px;
-  transition: opacity .5s var(--ease-out) .5s, transform .5s var(--ease-out) .5s;
-}
-.lab-leaf.lab-in .lab-leaf__line { stroke-dashoffset: 0; }
-.lab-leaf.lab-in .lab-leaf__leaf { opacity: 1; transform: scale(1); }
-@media (prefers-reduced-motion: reduce) {
-  html.fx-4 .page-home .hero-slides__slide.is-active { animation: none; }
-  .lab-leaf__line { stroke-dashoffset: 0 !important; transition: none !important; }
-  .lab-leaf__leaf { opacity: 1 !important; transform: scale(1) !important; transition: none !important; }
-}
+.lab-word { display: inline-block; opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease-out), transform .5s var(--ease-out); }
+.lab-word.lab-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .lab-word { opacity: 1 !important; transform: none !important; transition: none !important; } }
 
 /* ============================================================
-   Option 5 · Always Ready
-   A "Get a Free Estimate" pill slides in once the hero scrolls out of view and stays put
-   (bottom-right, clear of the lab's own "Style options" button on the bottom-left).
+   Option 7 · Rotating Eyebrow
+   The small line above the hero headline cycles through our services instead of sitting on one
+   line. Reduced motion: shows the first service, no cycling.
    ============================================================ */
-.lab-sticky-cta {
-  position: fixed; right: 16px; bottom: 16px; z-index: 850;
-  opacity: 0; transform: translateY(120%);
-  transition: opacity .4s var(--ease-out), transform .4s var(--ease-out);
-  box-shadow: var(--shadow-lg);
-}
-.lab-sticky-cta.lab-in { opacity: 1; transform: none; }
-/* On narrow screens the lab's own "Style options" button sits bottom-left — stack the pill
-   above the bottom bar instead of overlapping it (this offset is preview-lab-only; on the real
-   site, with no lab toggle, it would sit at bottom like a normal sticky CTA). */
-@media (max-width: 480px) { .lab-sticky-cta { left: 16px; right: 16px; bottom: 68px; text-align: center; } }
-@media (prefers-reduced-motion: reduce) {
-  .lab-sticky-cta { transition: none; }
-}
+.lab-eyebrow-cycle { transition: opacity .35s var(--ease-out); }
+.lab-eyebrow-cycle.lab-fade { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .lab-eyebrow-cycle { transition: none; } }
 
 /* ============================================================
-   Option 6 · Depth
-   The gold and green bands get a soft, slow-moving glow that drifts a little slower than the
-   page scroll (a decorative, aria-hidden layer — never the real content); credential tiles tilt
-   very gently toward the cursor. Both are mouse/trackpad only and skip touch + reduced motion.
+   Option 8 · Scroll Progress Bar
+   A thin gold line at the very top of the page fills in as you scroll down. Direct scroll
+   feedback, not an ambient animation, so it's left on even under reduced motion.
    ============================================================ */
-html.fx-6 .page-home .cred-strip,
-html.fx-6 .page-home .cred-strip + .section,
-html.fx-6 .page-home .promise { position: relative; overflow: hidden; }
-html.fx-6 .page-home .cred-strip > .wrap,
-html.fx-6 .page-home .cred-strip + .section > .wrap,
-html.fx-6 .page-home .promise > .wrap { position: relative; z-index: 1; }
-.lab-parallax-layer {
-  position: absolute; inset: -30% -10%; z-index: 0; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(240, 192, 128, .28), rgba(240, 192, 128, 0) 70%);
-  will-change: transform;
+.lab-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--ttc-gold); z-index: 9500; pointer-events: none; }
+
+/* ============================================================
+   Option 9 · Real Reviews Ribbon
+   A slow, pausable ribbon of short, verbatim Google review quotes (credited, linked to Google)
+   scrolls under the "What You Can Count On" stats. Pauses on hover/focus; reduced motion stops it.
+   ============================================================ */
+.lab-ribbon {
+  overflow: hidden; margin: var(--space-6) 0 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
-html.fx-6 .page-home .cred-strip + .section .lab-parallax-layer,
-html.fx-6 .page-home .promise .lab-parallax-layer {
-  background: radial-gradient(closest-side, rgba(255, 255, 255, .10), rgba(255, 255, 255, 0) 70%);
+.lab-ribbon__track { display: flex; gap: var(--space-5); width: max-content; animation: lab-marquee 46s linear infinite; }
+.lab-ribbon:hover .lab-ribbon__track, .lab-ribbon:focus-within .lab-ribbon__track { animation-play-state: paused; }
+.lab-ribbon__item {
+  flex: 0 0 auto; max-width: 320px; background: var(--card); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm); padding: var(--space-4) var(--space-5); font-size: var(--fs-small);
 }
-@media (hover: hover) and (pointer: fine) {
-  html.fx-6 .page-home .creds-tiles .tile { transition: transform .2s var(--ease-out); will-change: transform; }
+.lab-ribbon__item q { color: var(--text); font-style: italic; quotes: none; }
+.lab-ribbon__item a { display: block; margin-top: 6px; font-weight: var(--fw-strong); color: var(--ttc-green); text-decoration: none; }
+.lab-ribbon__item a:hover, .lab-ribbon__item a:focus-visible { text-decoration: underline; }
+@keyframes lab-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .lab-ribbon__track { animation: none; } }
+
+/* ============================================================
+   Option 10 · Underline Grow
+   The small gold eyebrow label above each section heading draws in a thin underline the first
+   time it scrolls into view.
+   ============================================================ */
+.lab-uline { position: relative; }
+.lab-uline::after {
+  content: ""; position: absolute; left: 0; bottom: -4px; height: 3px; width: 0;
+  background: var(--ttc-gold); transition: width .6s var(--ease-out);
 }
-@media (prefers-reduced-motion: reduce) {
-  .lab-parallax-layer { display: none; }
-  html.fx-6 .page-home .creds-tiles .tile { transform: none !important; transition: none; }
+.lab-uline.lab-in::after { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .lab-uline::after { transition: none; } }
+
+/* ============================================================
+   Option 11 · Back-to-Top Leaf
+   A small round leaf button appears once you've scrolled down and smooth-scrolls back to the top.
+   ============================================================ */
+.lab-top {
+  position: fixed; right: 16px; bottom: 16px; z-index: 850; width: 48px; height: 48px;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--ttc-green); color: var(--text-on-dark); border: 0; box-shadow: var(--shadow-lg);
+  cursor: pointer; opacity: 0; transform: translateY(16px);
+  transition: opacity .3s var(--ease-out), transform .3s var(--ease-out);
 }
+.lab-top.lab-in { opacity: 1; transform: none; }
+.lab-top svg { width: 22px; height: 22px; }
+@media (max-width: 480px) { .lab-top { bottom: 68px; } }
+@media (prefers-reduced-motion: reduce) { .lab-top { transition: none; } }
