@@ -910,3 +910,32 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 .page-home .hero .btn-row .btn[href^="tel:"] { order: 1; }
 .page-home .hero .btn-row .btn--primary { order: 2; width: min(360px, 100%); min-height: 62px; font-size: 21px; }
 .page-home .hero .btn-row .btn[href$="/our-services/"] { order: 3; }
+
+/* Header (Joseph 2026-09-27): smaller logo, about the size of the menu button, with a little space above and below */
+.site-header__inner { padding: var(--space-2) 0; }
+.logo img { width: auto; height: 44px; }
+
+/* Phone first screen (Joseph 2026-09-27): the hero photo fills exactly the screen below the green bar + header,
+   ending just below "View All Services". --chrome-h (top bar + header height) is measured by menu.js. */
+@media (max-width: 640px) {
+  html:not(.look-alt) .page-home .hero-slides {
+    min-height: calc(100svh - var(--chrome-h, 100px)); padding: var(--space-4) 0 76px;
+  }
+  html:not(.look-alt) .page-home .hero-slides::after { display: none; }   /* scroll arrow: no room on phones */
+  .page-home .hero__eyebrow { margin-bottom: var(--space-2); font-size: 12px; }
+  html:not(.look-alt) .page-home .hero__title { font-size: 30px; line-height: 1.1; margin-bottom: var(--space-2); }
+  html:not(.look-alt) .page-home .hero__sub { font-size: 15px; line-height: 1.45; margin-bottom: var(--space-4); }
+  .page-home .hero .btn-row { gap: 10px; }
+  .page-home .hero .btn-row .btn { min-height: 46px; font-size: 16px; }
+  .page-home .hero .btn-row .btn--primary { min-height: 56px; font-size: 19px; }
+  .hero-slides__controls { bottom: var(--space-3); }
+}
+/* Short phones (e.g. iPhone SE with browser bars): tighten a little more so the first screen still ends below the buttons */
+@media (max-width: 640px) and (max-height: 620px) {
+  html:not(.look-alt) .page-home .hero-slides { padding: var(--space-3) 0 68px; }
+  html:not(.look-alt) .page-home .hero__title { font-size: 26px; }
+  html:not(.look-alt) .page-home .hero__sub { font-size: 14px; line-height: 1.4; margin-bottom: var(--space-3); }
+  .page-home .hero .btn-row { gap: 8px; }
+  .page-home .hero .btn-row .btn { min-height: 44px; }
+  .page-home .hero .btn-row .btn--primary { min-height: 52px; }
+}

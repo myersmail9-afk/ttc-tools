@@ -501,3 +501,17 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   makeReveal(".creds-tiles .tile");
   makeReveal(".crew-teaser > a");
 })();
+
+// Phone first screen: measure the green top bar + white header so the homepage hero can fill exactly the rest
+// of the screen (CSS var --chrome-h, used in site.css). Joseph 2026-09-27.
+(function () {
+  if (!document.body.classList.contains("page-home")) return;
+  function setChrome() {
+    var t = document.querySelector(".top-bar"), h = document.querySelector(".site-header");
+    var v = (t ? t.offsetHeight : 0) + (h ? h.offsetHeight : 0);
+    document.documentElement.style.setProperty("--chrome-h", v + "px");
+  }
+  setChrome();
+  window.addEventListener("resize", setChrome, { passive: true });
+  window.addEventListener("load", setChrome);
+})();
