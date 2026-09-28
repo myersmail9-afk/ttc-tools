@@ -965,3 +965,11 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
     margin: 0; font-size: 15px; letter-spacing: .08em;
   }
 }
+/* Phones: soften the sharp photo's top/bottom edges into the blurred copy. --fade-top/--fade-bot are the photo's
+   edges inside the slide, measured per photo by menu.js (defaults fade the slide's own edges). */
+@media (max-width: 640px) {
+  .hero-slides__slide::after {
+    -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-top, 0px), #000 calc(var(--fade-top, 0px) + 70px), #000 calc(var(--fade-bot, 100%) - 70px), transparent var(--fade-bot, 100%));
+            mask-image: linear-gradient(to bottom, transparent var(--fade-top, 0px), #000 calc(var(--fade-top, 0px) + 70px), #000 calc(var(--fade-bot, 100%) - 70px), transparent var(--fade-bot, 100%));
+  }
+}

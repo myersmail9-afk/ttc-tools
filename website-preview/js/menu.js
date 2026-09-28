@@ -515,3 +515,37 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   window.addEventListener("resize", setChrome, { passive: true });
   window.addEventListener("load", setChrome);
 })();
+
+// Phones: measure where each hero photo's top/bottom edges land (the photo is shown at 165% of the width over a
+// blurred copy) so site.css can fade those edges softly instead of leaving a hard line. Joseph 2026-09-27.
+(function () {
+  var track = document.querySelector(".hero-slides__track");
+  if (!track) return;
+  function measure(slide) {
+    if (window.innerWidth > 640) return;
+    var m = (slide.style.backgroundImage || "").match(/url\(["']?([^"')]+)/);
+    if (!m) return;
+    var key = m[1] + "@" + window.innerWidth + "x" + window.innerHeight;
+    if (slide.getAttribute("data-fade-for") === key) return;   // already measured (our own style writes re-trigger the observer)
+    slide.setAttribute("data-fade-for", key);
+    var img = new Image();
+    img.onload = function () {
+      var r = slide.getBoundingClientRect();
+      if (!r.width || !img.naturalWidth) return;
+      var ih = r.width * 1.65 * img.naturalHeight / img.naturalWidth;
+      var py = parseFloat(getComputedStyle(slide).backgroundPositionY);
+      if (isNaN(py)) py = 50;
+      var top = (r.height - ih) * py / 100;
+      slide.style.setProperty("--fade-top", Math.max(0, top) + "px");
+      slide.style.setProperty("--fade-bot", Math.min(r.height, top + ih) + "px");
+    };
+    img.src = m[1];
+  }
+  function all() { Array.prototype.forEach.call(track.querySelectorAll(".hero-slides__slide"), measure); }
+  new MutationObserver(function (list) {
+    list.forEach(function (x) { if (x.target.classList && x.target.classList.contains("hero-slides__slide")) measure(x.target); });
+  }).observe(track, { subtree: true, attributes: true, attributeFilter: ["style"] });
+  all();
+  window.addEventListener("load", all);
+  window.addEventListener("resize", all, { passive: true });
+})();
