@@ -939,3 +939,18 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   .page-home .hero .btn-row .btn { min-height: 44px; }
   .page-home .hero .btn-row .btn--primary { min-height: 52px; }
 }
+
+/* Phones: hero photos zoomed out (Joseph 2026-09-27). A tall phone screen makes "cover" magnify wide photos a lot,
+   so each slide paints two layers from its own photo (background-image: inherit): a soft blurred copy filling the
+   screen underneath, and the sharp photo on top shown wider (165% of the screen width instead of ~220%). */
+@media (max-width: 640px) {
+  .hero-slides__slide { isolation: isolate; overflow: hidden; }
+  .hero-slides__slide::before, .hero-slides__slide::after {
+    content: ""; position: absolute; background-image: inherit; background-repeat: no-repeat;
+  }
+  .hero-slides__slide::before {
+    inset: -30px; z-index: 0; background-size: cover; background-position: center;
+    filter: blur(18px) brightness(.75);
+  }
+  .hero-slides__slide::after { inset: 0; z-index: 1; background-size: 165% auto; background-position: inherit; }
+}
