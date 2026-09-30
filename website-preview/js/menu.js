@@ -269,7 +269,8 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
     '<button type="button" class="lightbox__close" aria-label="Close">✕</button>' +
     '<button type="button" class="lightbox__prev" aria-label="Previous photo">‹</button>' +
     '<img class="lightbox__img" src="" alt="">' +
-    '<button type="button" class="lightbox__next" aria-label="Next photo">›</button>';
+    '<button type="button" class="lightbox__next" aria-label="Next photo">›</button>' +
+    '<p class="lightbox__caption" hidden></p>';
   document.body.appendChild(dialog);
 
   var imgEl = dialog.querySelector(".lightbox__img");
@@ -277,6 +278,7 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   var closeBtn = dialog.querySelector(".lightbox__close");
   var prevBtn = dialog.querySelector(".lightbox__prev");
   var nextBtn = dialog.querySelector(".lightbox__next");
+  var captionEl = dialog.querySelector(".lightbox__caption");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!reduceMotion) imgEl.style.transition = "opacity .2s ease";
 
@@ -305,6 +307,9 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
     imgEl.src = srcFor(link);
     imgEl.alt = altFor(link);
     counterEl.textContent = (current + 1) + " / " + galleryLinks.length;
+    var cap = link.getAttribute("data-caption") || "";
+    captionEl.textContent = cap;
+    captionEl.hidden = !cap;
     preload(current + 1);
     preload(current - 1);
     wake();

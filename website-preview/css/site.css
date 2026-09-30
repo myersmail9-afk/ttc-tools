@@ -969,7 +969,9 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 
 /* ===== Contact page standard (Joseph, 2026-09-30: promoted from the preview Style options 2–5)
    Card panels + striped hours, bigger targets, floating call button, two clear paths. ===== */
-.contact-cols { gap: var(--space-8); align-items: start; }
+.contact-cols { gap: var(--space-8); align-items: start; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .contact-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (max-width: 599px) { .contact-request, .contact-details { padding: var(--space-5); } }
 .contact-request, .contact-details {
   background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-6);
 }
@@ -1202,3 +1204,13 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 }
 .svc-page .svc-section + .svc-section, .svc-page .testimonial + .svc-section { border-top: 1px solid var(--border-soft); }
 .svc-page .svc-section { padding: var(--space-7) 0; }
+
+/* ===== Gallery captions (Joseph, 2026-09-30): content/gallery/captions.json → shown under the photo in the viewer. ===== */
+.lightbox__caption {
+  position: absolute; left: 50%; bottom: var(--space-4); transform: translateX(-50%); z-index: 2;
+  width: min(760px, calc(100% - 2 * var(--space-5))); margin: 0; padding: var(--space-3) var(--space-4);
+  border-radius: var(--r-md); background: rgba(20, 24, 18, .72); color: var(--text-on-dark);
+  font-size: 16px; line-height: 1.45; text-align: center;
+}
+.lightbox__caption[hidden] { display: none; }
+@media (max-width: 640px) { .lightbox__caption { font-size: 15px; bottom: var(--space-3); } }

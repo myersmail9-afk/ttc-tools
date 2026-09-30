@@ -73,37 +73,6 @@
             if (playBtn.parentNode) playBtn.parentNode.removeChild(playBtn);
           };
         }
-      },
-      {
-        id: "5", kind: "Clarity", name: "5 · Visible captions in the lightbox",
-        note: "Each enlarged photo shows its own caption at the bottom — pulled from the same description already on the page — so it's clear what you're looking at.",
-        setup: function () {
-          var dialog = document.querySelector("dialog.lightbox");
-          var imgEl = dialog ? dialog.querySelector(".lightbox__img") : null;
-          if (!dialog || !imgEl) return null;
-
-          var caption = document.createElement("div");
-          caption.className = "pl5-caption";
-          dialog.appendChild(caption);
-
-          function sync() {
-            var text = imgEl.getAttribute("alt") || "";
-            caption.textContent = text;
-            caption.hidden = !text;
-          }
-          sync();
-
-          var mo = null;
-          if (window.MutationObserver) {
-            mo = new MutationObserver(sync);
-            mo.observe(imgEl, { attributes: true, attributeFilter: ["alt"] });
-          }
-
-          return function teardown() {
-            if (mo) mo.disconnect();
-            if (caption.parentNode) caption.parentNode.removeChild(caption);
-          };
-        }
       }
     ]
   };
