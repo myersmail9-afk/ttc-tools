@@ -1,0 +1,30 @@
+/* PAGE LAB — preview only (Joseph 2026-09-30). A "Style options" panel on every preview page except the homepage
+   (which has its own style-lab). Option 1 = the page exactly as it is (the standard). Options 2–5 are page-specific
+   ideas defined in js/lab/<group>.js + css/lab/<group>.css, applied as html.pl-N. The real site never loads this. */
+.plab-toggle {
+  position: fixed; left: 12px; bottom: 12px; z-index: 9000;
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+  border: 0; border-radius: var(--r-pill); background: var(--ttc-dark); color: var(--text-on-dark);
+  font: 600 15px/1 var(--font-body); box-shadow: var(--shadow-md); cursor: pointer;
+}
+.plab-toggle::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--ttc-gold); }
+.plab-panel {
+  position: fixed; left: 12px; bottom: 68px; z-index: 9001; width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 100px); overflow: auto;
+  background: var(--card); color: var(--text); border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+  padding: 16px; font-family: var(--font-body);
+}
+.plab-panel[hidden] { display: none; }
+.plab-panel h2 { font-size: 18px; margin: 0 0 4px; }
+.plab-note { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; }
+.plab-opt {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; margin-bottom: 6px;
+  border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer; min-height: 44px;
+}
+.plab-opt input { margin-top: 3px; accent-color: var(--ttc-green); width: 18px; height: 18px; flex: 0 0 auto; }
+.plab-opt strong { display: block; font-size: 15px; }
+.plab-opt__text, .plab-opt__text span { display: block; }
+.plab-opt__text span { font-size: 13px; color: var(--text-muted); line-height: 1.35; }
+.plab-opt__kind { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ttc-green); margin-bottom: 2px; }
+.plab-opt:has(input:checked) { border-color: var(--ttc-green); background: var(--bg); }
+.plab-close { width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg); font: 600 15px var(--font-body); cursor: pointer; }

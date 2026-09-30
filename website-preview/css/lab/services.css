@@ -1,0 +1,60 @@
+/* Page lab styles for the "services" page group (html.pl-2 … html.pl-5). Preview only — never
+   loaded on the real site. Brand tokens only; orange stays reserved for calls to action. */
+
+/* ---- 2 · Aesthetic — polished cards ---- */
+html.pl-2 .svc-card {
+  overflow: hidden;
+  border-top: 4px solid transparent;
+  transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+html.pl-2 .svc-card:hover, html.pl-2 .svc-card:focus-within { border-top-color: var(--ttc-green); }
+html.pl-2 .svc-card__img { transition: transform var(--dur-base) var(--ease-out); }
+html.pl-2 .svc-card:hover .svc-card__img, html.pl-2 .svc-card:focus-within .svc-card__img { transform: scale(1.05); }
+@media (prefers-reduced-motion: reduce) {
+  html.pl-2 .svc-card, html.pl-2 .svc-card__img { transition: none; }
+  html.pl-2 .svc-card:hover .svc-card__img, html.pl-2 .svc-card:focus-within .svc-card__img { transform: none; }
+}
+html.pl-2 .svc-quick a { position: relative; padding-left: calc(var(--space-4) + 14px); }
+html.pl-2 .svc-quick a::before {
+  content: ""; position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--ttc-green);
+}
+html.pl-2 .svc-quick a:hover::before, html.pl-2 .svc-quick a:focus-visible::before { background: var(--ttc-gold); }
+html.pl-2 .prose h2 { display: inline-block; padding-bottom: var(--space-2); border-bottom: 3px solid var(--ttc-gold); }
+
+/* ---- 3 · Ergonomics — bigger, easier targets ---- */
+html.pl-3 .svc-quick ul { gap: var(--space-3); }
+html.pl-3 .svc-quick a { min-height: 56px; padding: var(--space-4); font-size: 17px; }
+html.pl-3 .svc-card__body { padding: var(--space-6); }
+html.pl-3 .svc-card__body h3 { font-size: 22px; }
+html.pl-3 .svc-card__body p { font-size: 17px; }
+html.pl-3 .svc-card__actions { display: flex; flex-direction: column; gap: var(--space-3); }
+html.pl-3 .svc-card__actions .btn { width: 100%; min-height: 52px; font-size: 17px; }
+html.pl-3 .prose p { font-size: 19px; }
+html.pl-3 .svc-quick__more .btn { min-height: 44px; }
+
+/* ---- 4 · Feature — filter by service type ---- */
+html.pl-4 .svc-filterbar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
+html.pl-4 .svc-filterchip {
+  min-height: 44px; padding: var(--space-2) var(--space-4); border-radius: var(--r-pill);
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+  font: var(--fw-strong) var(--fs-small) var(--font-body); cursor: pointer;
+}
+html.pl-4 .svc-filterchip:hover { background: var(--bg-alt); }
+html.pl-4 .svc-filterchip.is-active { background: var(--ttc-green); border-color: var(--ttc-green); color: var(--text-on-dark); }
+
+/* ---- 5 · Clarity — sticky estimate bar ---- */
+html.pl-5 .svc-stickybar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 800;
+  display: flex; justify-content: center; gap: var(--space-3);
+  padding: var(--space-3) var(--container-pad) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  background: var(--card); box-shadow: 0 -4px 16px rgba(0, 0, 0, .12);
+  transform: translateY(100%); transition: transform var(--dur-base) var(--ease-out);
+}
+html.pl-5 .svc-stickybar.is-visible { transform: translateY(0); }
+html.pl-5 .svc-stickybar .btn { min-width: 200px; }
+@media (max-width: 639px) {
+  html.pl-5 .svc-stickybar { flex-direction: column; }
+  html.pl-5 .svc-stickybar .btn { width: 100%; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) { html.pl-5 .svc-stickybar { transition: none; } }

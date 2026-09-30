@@ -1,0 +1,40 @@
+/* Page lab styles for the "signup" page group (html.pl-2 … html.pl-5). */
+
+/* 2 · Aesthetic — tier cards */
+html.pl-2 .svc-section ul { list-style: none; padding: 0; margin: var(--space-5) 0; display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+@media (min-width: 700px) { html.pl-2 .svc-section ul { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { html.pl-2 .svc-section ul { grid-template-columns: repeat(4, 1fr); } }
+html.pl-2 .svc-section ul li {
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm); padding: var(--space-5); transition: box-shadow var(--dur-base) var(--ease-out);
+}
+html.pl-2 .svc-section ul li:hover { box-shadow: var(--shadow-md); }
+html.pl-2 .svc-section ul li strong { display: block; font-family: var(--font-display); font-size: var(--fs-h4); color: var(--ttc-green); margin-bottom: var(--space-2); }
+html.pl-2 .svc-section ul li:last-child { border-color: var(--ttc-gold); box-shadow: 0 0 0 2px var(--ttc-gold) inset; }
+
+/* 3 · Ergonomics — sticky sign-up bar */
+html.pl-3 .signup-lab-stickybar { position: fixed; top: 0; left: 0; right: 0; z-index: 7000; background: var(--card); box-shadow: var(--shadow-md); border-bottom: 1px solid var(--border); }
+html.pl-3 .signup-lab-stickybar[hidden] { display: none; }
+html.pl-3 .signup-lab-stickybar__inner { max-width: var(--container-max); margin: 0 auto; padding: var(--space-3) var(--container-pad); display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
+html.pl-3 .signup-lab-stickybar .btn { min-height: 44px; }
+@media (max-width: 480px) { html.pl-3 .signup-lab-stickybar__inner { padding: var(--space-2) var(--space-4); gap: var(--space-2); } }
+
+/* 4 · Feature — compare tiers side-by-side */
+html.pl-4 .signup-lab-toggle { margin: var(--space-4) 0; }
+html.pl-4 .signup-lab-toggle__btn {
+  min-height: 44px; padding: 0 20px; border-radius: var(--r-pill); border: 1px solid var(--ttc-green);
+  background: var(--card); color: var(--ttc-green); font: 600 15px var(--font-body); cursor: pointer;
+}
+html.pl-4 .signup-lab-toggle__btn[aria-pressed="true"] { background: var(--ttc-green); color: var(--text-on-dark); }
+html.pl-4 .signup-lab-compare { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin: 0 0 var(--space-4); }
+@media (min-width: 700px) { html.pl-4 .signup-lab-compare { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { html.pl-4 .signup-lab-compare { grid-template-columns: repeat(4, 1fr); } }
+html.pl-4 .signup-lab-compare[hidden] { display: none; }
+html.pl-4 .signup-lab-compare__card { background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r-lg); padding: var(--space-5); box-shadow: var(--shadow-sm); }
+html.pl-4 .signup-lab-compare__card h4 { margin-bottom: var(--space-2); color: var(--ttc-green); }
+html.pl-4 .signup-lab-compare__card p { margin: 0; color: var(--text-muted); font-size: var(--fs-small); }
+
+/* 5 · Clarity — three quick steps, up top */
+html.pl-5 .signup-lab-quickbox { max-width: var(--container-max); margin: 0 auto; padding: var(--space-2) var(--container-pad) var(--space-6); }
+html.pl-5 .signup-lab-quickbox h3 { font-size: var(--fs-h4); color: var(--ttc-green); margin-bottom: var(--space-4); }
+html.pl-5 .signup-lab-quickbox .svc-steps { margin: 0; }

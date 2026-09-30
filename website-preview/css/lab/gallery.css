@@ -1,0 +1,93 @@
+/* Page lab styles for the "gallery" page group (html.pl-2 … html.pl-5). Layered on top of the
+   standard .gallery-grid / .gallery-item rules in site.css — never edited here. */
+
+/* ---- 2 · Aesthetic — Warm Frame Hover ---- */
+html.pl-2 .gallery-grid a.gallery-item {
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+html.pl-2 .gallery-grid a.gallery-item::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(42, 58, 37, .58) 0%, rgba(42, 58, 37, 0) 48%);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+  pointer-events: none;
+}
+html.pl-2 .gallery-grid a.gallery-item::before {
+  content: "\1F50D";
+  position: absolute; left: var(--space-3); bottom: var(--space-3);
+  color: var(--text-on-dark); font-size: 15px; line-height: 1;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  pointer-events: none; z-index: 1;
+}
+html.pl-2 .gallery-grid a.gallery-item:hover,
+html.pl-2 .gallery-grid a.gallery-item:focus-visible {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+html.pl-2 .gallery-grid a.gallery-item:hover::after,
+html.pl-2 .gallery-grid a.gallery-item:focus-visible::after {
+  opacity: 1;
+}
+html.pl-2 .gallery-grid a.gallery-item:hover::before,
+html.pl-2 .gallery-grid a.gallery-item:focus-visible::before {
+  opacity: 1; transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.pl-2 .gallery-grid a.gallery-item,
+  html.pl-2 .gallery-grid a.gallery-item::after,
+  html.pl-2 .gallery-grid a.gallery-item::before {
+    transition: none;
+  }
+}
+
+/* ---- 3 · Ergonomics — Always-On Zoom Cue ---- */
+html.pl-3 .gallery-grid { gap: 16px; }
+@media (min-width: 640px) { html.pl-3 .gallery-grid { gap: 20px; } }
+@media (min-width: 1024px) { html.pl-3 .gallery-grid { gap: 24px; } }
+html.pl-3 .gallery-grid a.gallery-item { position: relative; }
+html.pl-3 .gallery-grid a.gallery-item::after {
+  content: "\1F50D";
+  position: absolute; right: 8px; bottom: 8px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(42, 58, 37, .82);
+  color: var(--text-on-dark); font-size: 14px; line-height: 1;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+/* ---- 4 · Feature — Photo of the Day ---- */
+html.pl-4 .gallery-grid a.gallery-item.pl-spotlight {
+  order: -1;
+  flex-grow: 1.8;
+  flex-basis: calc(1.8 * var(--g-row));
+  position: relative;
+  box-shadow: 0 0 0 3px var(--ttc-gold), var(--shadow-lg);
+}
+html.pl-4 .pl-spotlight__badge {
+  position: absolute; top: var(--space-3); left: var(--space-3);
+  background: var(--ttc-dark); color: var(--ttc-gold);
+  font: 700 11px/1 var(--font-body); letter-spacing: .04em; text-transform: uppercase;
+  padding: 7px 12px; border-radius: var(--r-pill);
+  pointer-events: none; z-index: 1;
+}
+@media (max-width: 480px) {
+  html.pl-4 .gallery-grid a.gallery-item.pl-spotlight { flex-basis: 100%; flex-grow: 1; }
+}
+
+/* ---- 5 · Clarity — Back to Top ---- */
+html.pl-5 .pl-backtop {
+  position: fixed; right: 12px; bottom: 68px; z-index: 8500;
+  min-height: 44px; padding: 0 18px;
+  border: 0; border-radius: var(--r-pill);
+  background: var(--ttc-dark); color: var(--text-on-dark);
+  font: 600 14px/1 var(--font-body);
+  box-shadow: var(--shadow-md); cursor: pointer;
+}
+html.pl-5 .pl-backtop:hover { background: var(--ttc-green); }
+html.pl-5 .pl-backtop[hidden] { display: none; }

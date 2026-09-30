@@ -1,0 +1,86 @@
+/* Page lab styles for the "service" page group (html.pl-2 … html.pl-5) — shared by all ten
+   service detail pages. Preview only — never loaded on the real site. Brand tokens only;
+   orange stays reserved for calls to action. */
+
+/* ---- 2 · Aesthetic — framed & polished ---- */
+html.pl-2 .svc-hero { border-radius: var(--r-lg); }
+html.pl-2 .svc-hero img { box-shadow: var(--shadow-lg); }
+html.pl-2 .svc-trust {
+  display: table; margin: 0 auto; border-radius: var(--r-pill);
+  padding: var(--space-3) var(--space-6);
+}
+html.pl-2 .svc-trust::before { content: "\2713"; margin-right: var(--space-2); color: var(--ttc-gold); font-weight: 700; }
+html.pl-2 .svc-steps li::before { width: 44px; height: 44px; font-size: var(--fs-h4); box-shadow: 0 0 0 4px var(--bg); }
+html.pl-2 .svc-section h2 { display: inline-block; padding-bottom: var(--space-2); border-bottom: 3px solid var(--ttc-gold); }
+html.pl-2 .testimonial {
+  position: relative; background: var(--card); border-left: 4px solid var(--ttc-green);
+  border-radius: var(--r-md); padding: var(--space-6); box-shadow: var(--shadow-sm);
+}
+html.pl-2 .testimonial::before {
+  content: "\201C"; position: absolute; top: -4px; left: var(--space-4);
+  font-family: var(--font-display); font-size: 64px; line-height: 1; color: var(--ttc-gold); opacity: .55;
+}
+html.pl-2 .testimonial p { position: relative; z-index: 1; }
+html.pl-2 .svc-faq dt { border-left: 4px solid var(--ttc-green); padding-left: var(--space-4); }
+
+/* ---- 3 · Ergonomics — bigger, easier to read ---- */
+html.pl-3 .svc-page p, html.pl-3 .svc-section li { font-size: 19px; }
+html.pl-3 .svc-section li { margin-bottom: var(--space-3); }
+html.pl-3 .svc-section ul { padding-left: var(--space-6); }
+html.pl-3 .svc-hero .btn, html.pl-3 .wrap > .btn-row > .btn { min-height: 56px; font-size: 19px; padding: 14px 32px; }
+html.pl-3 .svc-faq dt { font-size: 22px; }
+html.pl-3 .svc-faq dd { font-size: 18px; color: var(--text); }
+html.pl-3 .back-link { min-height: 44px; padding: var(--space-2) var(--space-3); border-radius: var(--r-md); }
+html.pl-3 .back-link:hover, html.pl-3 .back-link:focus-visible { background: var(--bg-alt); }
+html.pl-3 .other-service span { font-size: var(--fs-h4); padding: var(--space-5); }
+html.pl-3 .svc-steps li { padding: var(--space-7) var(--space-5) var(--space-6); }
+@media (max-width: 639px) {
+  html.pl-3 .svc-hero .btn-row, html.pl-3 .wrap > .btn-row { flex-direction: column; align-items: stretch; }
+  html.pl-3 .svc-hero .btn, html.pl-3 .wrap > .btn-row > .btn { width: 100%; min-height: 60px; }
+}
+
+/* ---- 4 · Feature — FAQ accordion ---- */
+html.pl-4 .svc-faq__list { margin-top: var(--space-2); }
+html.pl-4 .svc-faq__item { border-bottom: 1px solid var(--border); }
+html.pl-4 .svc-faq__item:first-child { border-top: 1px solid var(--border); }
+html.pl-4 .svc-faq__q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  text-align: left; background: none; border: 0; cursor: pointer; padding: var(--space-4) 0;
+  font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-h4); color: var(--text);
+  min-height: 44px;
+}
+html.pl-4 .svc-faq__q:hover { color: var(--ttc-green); }
+html.pl-4 .svc-faq__chev { position: relative; width: 20px; height: 20px; flex: 0 0 auto; }
+html.pl-4 .svc-faq__chev::before, html.pl-4 .svc-faq__chev::after { content: ""; position: absolute; background: var(--ttc-green); border-radius: 2px; }
+html.pl-4 .svc-faq__chev::before { width: 12px; height: 2px; top: 9px; left: 4px; }
+html.pl-4 .svc-faq__chev::after { width: 2px; height: 12px; top: 4px; left: 9px; transition: transform var(--dur-base) var(--ease-out); }
+html.pl-4 .svc-faq__item.is-open .svc-faq__chev::after { transform: rotate(90deg); }
+html.pl-4 .svc-faq__a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-base) var(--ease-out); }
+html.pl-4 .svc-faq__item.is-open .svc-faq__a { grid-template-rows: 1fr; }
+html.pl-4 .svc-faq__a-inner { overflow: hidden; }
+html.pl-4 .svc-faq__a-inner > * { margin: 0 0 var(--space-3); color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) {
+  html.pl-4 .svc-faq__a, html.pl-4 .svc-faq__chev::after { transition: none; }
+}
+
+/* ---- 5 · Clarity — jump nav + sticky estimate bar ---- */
+html.pl-5 .svc-jumpnav { position: sticky; top: 0; z-index: 500; background: var(--card); box-shadow: var(--shadow-sm); }
+html.pl-5 .svc-jumpnav__row { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-2) var(--container-pad); }
+html.pl-5 .svc-jumpnav__link {
+  flex: 0 0 auto; display: flex; align-items: center; min-height: 44px; padding: var(--space-2) var(--space-4);
+  border-radius: var(--r-pill); background: var(--bg-alt); color: var(--text); text-decoration: none;
+  font-size: var(--fs-small); font-weight: var(--fw-strong); white-space: nowrap;
+}
+html.pl-5 .svc-jumpnav__link:hover { background: var(--border-soft); }
+html.pl-5 .svc-jumpnav__link.is-active { background: var(--ttc-green); color: var(--text-on-dark); }
+
+html.pl-5 .svc-stickybar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 800; display: none; gap: var(--space-3);
+  padding: var(--space-3) var(--container-pad) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  background: var(--card); box-shadow: 0 -4px 16px rgba(0, 0, 0, .12);
+  transform: translateY(100%); transition: transform var(--dur-base) var(--ease-out);
+}
+@media (max-width: 899px) { html.pl-5 .svc-stickybar { display: flex; } }
+html.pl-5 .svc-stickybar.is-visible { transform: translateY(0); }
+html.pl-5 .svc-stickybar .btn { flex: 1; min-height: 48px; }
+@media (prefers-reduced-motion: reduce) { html.pl-5 .svc-stickybar { transition: none; } }

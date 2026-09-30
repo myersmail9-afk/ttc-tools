@@ -1,0 +1,56 @@
+/* Page lab styles for the "about" page group (html.pl-2 … html.pl-5). Preview only. */
+
+/* ---- 2 · Aesthetic — editorial credential & team cards ---- */
+.pl-2 .ladder__rung { border-left: 6px solid var(--ttc-green); }
+.pl-2 .ladder__rung--highlight { border-left-color: var(--ttc-gold); }
+.pl-2 .qual { border-top: 4px solid var(--ttc-green); }
+.pl-2 .team-card {
+  border-top: 4px solid var(--ttc-green);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.pl-2 .team-card:hover, .pl-2 .team-card:focus-within { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.pl-2 .isa-cred__logos img { background: var(--bg-alt); border-radius: var(--r-sm); }
+@media (prefers-reduced-motion: reduce) {
+  .pl-2 .team-card { transition: none; }
+  .pl-2 .team-card:hover, .pl-2 .team-card:focus-within { transform: none; }
+}
+
+/* ---- 3 · Ergonomics — bigger text, no extra taps ---- */
+.pl-3 .team-card__toggle { display: none; }
+.pl-3 .team-card__bio, .pl-3 .team-card__bio p, .pl-3 .team-card__more p { font-size: 16px; line-height: 1.7; }
+.pl-3 .ladder__rung p, .pl-3 .qual p { font-size: 16px; line-height: 1.6; }
+.pl-3 .ladder__rung h3, .pl-3 .qual h3 { font-size: 22px; }
+.pl-3 .ladder__rung { padding: var(--space-6); margin-bottom: var(--space-5); }
+.pl-3 .isa-cred__logos img { height: 88px; }
+.pl-3 .isa-cred__text { font-size: 15px; }
+.pl-3 .avatar, .pl-3 .avatar--placeholder { width: 56px; height: 56px; }
+.pl-3 ul.ladder__crew { gap: var(--space-3) var(--space-5); }
+.pl-3 .ladder__person { min-height: 52px; font-size: 16px; }
+.pl-3 .quals { gap: var(--space-5); }
+.pl-3 .qual { padding: var(--space-6); }
+.pl-3 .team-grid { gap: var(--space-6); }
+.pl-3 .team-card__text { padding: var(--space-6); }
+
+/* ---- 4 · Feature — filter the crew by credential ---- */
+.plab-filterbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 var(--space-5); }
+.pl-4 .team-card {
+  transition: opacity var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out);
+}
+.pl-4 .team-card.plab-dim { opacity: .38; filter: grayscale(.5); }
+@media (prefers-reduced-motion: reduce) { .pl-4 .team-card { transition: none; } }
+
+/* ---- 5 · Clarity — jump-to section nav ---- */
+.plab-jumpnav {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  max-width: var(--container-max); margin: 0 auto var(--space-6); padding: 0 var(--container-pad);
+}
+.plab-jumpnav__label { font-weight: var(--fw-strong); color: var(--text-muted); font-size: var(--fs-small); }
+.plab-jumpnav__link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-4);
+  border-radius: var(--r-pill); border: 2px solid var(--ttc-green); background: var(--card); color: var(--ttc-green);
+  font: var(--fw-strong) var(--fs-small)/1 var(--font-body); cursor: pointer;
+  transition: background var(--dur-base) var(--ease-out);
+}
+.plab-jumpnav__link:hover { background: var(--bg-alt); }
+.pl-5 .plab-jump-target { scroll-margin-top: 110px; }
+@media (prefers-reduced-motion: reduce) { .plab-jumpnav__link { transition: none; } }

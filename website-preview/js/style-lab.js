@@ -1,26 +1,32 @@
-/* STYLE LAB — preview only (Joseph 2026-09-27, expanded 2026-09-27). Loaded only on the review
+/* STYLE LAB — preview only (Joseph 2026-09-27, recycled 2026-09-30). Loaded only on the review
    preview's homepage. Adds a "Style options" button: hero photo (scrolls / stays put) and 11
    homepage looks.
-   Option 1 = the standard (today's site — Full Screen hero + Bold Bands + Gentle Motion + Warm
-   Welcome, all now permanent in site.css/menu.js). No class is added for it; it is exactly what
-   the real site already renders on its own.
+   Option 1 = the standard (today's site — Full Screen hero + Bold Bands + photo stays put + Gentle
+   Motion reveal/count-up + Warm Welcome hovers + a gold scroll-progress bar on every page), all now
+   permanent in site.css/menu.js. No class is added for it; it is exactly what the real site already
+   renders on its own.
    Options 2-11 build ON TOP of that standard via one class each on <html>: fx-2 … fx-11. Each
    option's DOM/observer/listener setup is created when it's chosen and torn down when you switch
    away, so nothing keeps running in the background.
+   2026-09-30 (Joseph: "Recycle and generate new 2-11 ideas... be creative"): the old options 2-11
+   (Falling Leaves, Growing Vine, Cursor Spotlight, Crew Scroll-Strip, Headline Assemble, Rotating
+   Eyebrow, the old Scroll Progress Bar — now the sitewide standard — Real Reviews Ribbon, Underline
+   Grow, Back-to-Top Leaf) are gone, replaced by 10 new one-feature-each options.
    The choice is kept in the address (?photo=fixed&look=2) so a link shows David the same look,
    and in this browser's storage so it survives a reload. */
 (function () {
   var LOOKS = [
-    { id: "std", name: "1 · Standard (Gentle Motion + Warm Welcome)", note: "Today's baseline: full-screen hero, gold proof strip, deep green bands, sections that fade+rise into view, count-up numbers, and warm hover touches. No changes — everything below adds ONE new thing on top of this." },
-    { id: "2", name: "2 · Falling Leaves", bold: true, note: "Bold: a few brand-color leaves drift slowly down over the hero photo. Pauses off-screen and when the tab is hidden; off under reduced motion." },
-    { id: "3", name: "3 · Growing Vine", bold: true, note: "Bold: a thin vine along the left edge draws itself in, with a few leaves, as you scroll down the page. Wider screens only." },
-    { id: "4", name: "4 · Cursor Spotlight", bold: true, note: "Bold: hover the hero photo and a circle around your cursor reveals a second photo underneath. Desktop hover only." },
-    { id: "5", name: "5 · Crew Scroll-Strip", bold: true, note: "Bold: \"Meet the Crew\" pins in place and slides sideways through its photos as you scroll past it. Wider screens only." },
-    { id: "6", name: "6 · Headline Assemble", bold: true, note: "Bold: the hero headline's words fade and rise into place, one after another, right when the page loads." },
-    { id: "7", name: "7 · Rotating Eyebrow", note: "The small line above the hero headline cycles through our services (Tree Pruning, Plant Health Care, ...)." },
-    { id: "9", name: "9 · Real Reviews Ribbon", note: "A slow, pausable ribbon of real Google review quotes scrolls under the stats, each one linked to Google." },
-    { id: "10", name: "10 · Underline Grow", note: "The small gold label above each heading draws in a thin underline the first time it scrolls into view." },
-    { id: "11", name: "11 · Back-to-Top Leaf", note: "A small round leaf button appears once you've scrolled down, and takes you back to the top." }
+    { id: "std", name: "1 · Standard (Gentle Motion + Warm Welcome)", note: "Today's baseline: full-screen hero, gold proof strip, deep green bands, sections that fade+rise into view, count-up numbers, a gold scroll-progress bar, and warm hover touches. No changes — everything below adds ONE new thing on top of this." },
+    { id: "2", name: "2 · Sticky Mini-Header", note: "As you scroll past the hero, the header sticks to the top, the logo shrinks, and small Call + Free Estimate buttons fade in. Desktop/wide screens only — phones keep today's plain header." },
+    { id: "3", name: "3 · Click-to-Call Pill", note: "On phones, a round call button appears in the corner once you've scrolled down, so the number is always one tap away. Phones only." },
+    { id: "4", name: "4 · Trust Ticker", note: "A slim line inside the credibility strip quietly rotates through facts already on this page — jobs completed, Google stars, ISA arborists on staff." },
+    { id: "5", name: "5 · Seasonal Tree-Care Note", note: "A short note below the hero pulls this month's real tip straight from our FAQ or service pages (winter pruning, spray-season timing) and links to that page. No invented facts." },
+    { id: "6", name: "6 · Photo Tiles Breathe", note: "Crew photos gently scale and drift inside their frame as they scroll through the middle of the screen, like a slow breath. Off under reduced motion." },
+    { id: "7", name: "7 · Growth Rings", bold: true, note: "Bold: faint tree-ring circles draw in behind each stat number the moment it scrolls into view and counts up." },
+    { id: "8", name: "8 · Hero Underline Draw", bold: true, note: "Bold: a solid gold bar draws in under the hero headline a beat after the page loads." },
+    { id: "9", name: "9 · Magnetic Estimate Button", bold: true, note: "Bold: on desktop, the hero's orange Free Estimate button gently pulls toward your cursor and glows on hover." },
+    { id: "10", name: "10 · Diagonal Dividers", bold: true, note: "Bold: the bands below the credibility strip meet at a soft diagonal cut instead of a straight line, all the way down the page." },
+    { id: "11", name: "11 · Day-to-Dusk Hero Tint", bold: true, note: "Bold: the hero photo gets a soft dawn / day / dusk / night color wash based on the clock on your own device right now." }
   ];
   var PHOTOS = [
     { id: "fixed", name: "Stays put (standard)", note: "The photo holds still and the words scroll over it." },
@@ -28,6 +34,9 @@
   ];
   var FX_IDS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
   var root = document.documentElement;
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  function noop() {}
 
   function prefersReduced() {
     try { return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
@@ -57,10 +66,10 @@
   function read(key, fallback) {
     var q = new URLSearchParams(location.search).get(key);
     if (q) return q;
-    try { return localStorage.getItem("ttc-lab5-" + key) || fallback; } catch (e) { return fallback; }
+    try { return localStorage.getItem("ttc-lab6-" + key) || fallback; } catch (e) { return fallback; }
   }
   function save(key, val) {
-    try { localStorage.setItem("ttc-lab5-" + key, val); } catch (e) {}
+    try { localStorage.setItem("ttc-lab6-" + key, val); } catch (e) {}
     try {
       var u = new URL(location.href); u.searchParams.set(key, val);
       history.replaceState(null, "", u.toString());
@@ -69,407 +78,385 @@
 
   /* ---------- Effects (options 2-11): setup returns a teardown function ---------- */
 
-  // Option 2 — Falling Leaves: a handful of brand-color leaves drift down over the hero photo.
-  // Canvas, not CSS, so it can recycle particles cheaply. Pauses when the hero is off-screen or
-  // the tab is hidden; skipped entirely under reduced motion (no canvas is ever created).
+  // Option 2 — Sticky Mini-Header: once you've scrolled past the hero, the header sticks to the
+  // top of the screen, the logo shrinks, and a small "Call" + "Free Estimate" pair fades in.
+  // Desktop/wide screens only (900px+) — on phones the green top bar is already sticky on its own,
+  // so a second sticky header would stack awkwardly; style-lab.css gates the visuals to 900px+ and
+  // this setup is a harmless no-op below that width.
   function setupFx2(scope) {
-    if (prefersReduced()) return function () {};
+    var header = scope.querySelector(".site-header");
     var hero = scope.querySelector(".hero-slides");
-    if (!hero) return function () {};
+    if (!header || !hero) return noop;
+    header.classList.add("lab-mini-header");
 
-    var canvas = document.createElement("canvas");
-    canvas.className = "lab-leaves-canvas";
-    canvas.setAttribute("aria-hidden", "true");
-    hero.appendChild(canvas);
-    var ctx = canvas.getContext("2d");
-    if (!ctx) { hero.removeChild(canvas); return function () {}; }
+    var quick = document.createElement("div");
+    quick.className = "lab-mini-header__quick";
+    quick.innerHTML =
+      '<a class="lab-mini-header__call" href="tel:+14357521884">Call</a>' +
+      '<a class="lab-mini-header__est" href="/contact/">Free Estimate</a>';
+    header.querySelector(".site-header__inner").appendChild(quick);
 
-    var w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var narrow = window.matchMedia("(max-width: 640px)").matches;
-    var COUNT = narrow ? 9 : 16;
-    var cs = getComputedStyle(document.documentElement);
-    var colors = [
-      (cs.getPropertyValue("--ttc-gold") || "#f0c080").trim(),
-      (cs.getPropertyValue("--ttc-green") || "#4a6741").trim()
-    ];
-    var leaves = [];
-
-    function resize() {
-      var r = hero.getBoundingClientRect();
-      w = Math.max(1, r.width); h = Math.max(1, r.height);
-      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-      canvas.style.width = w + "px"; canvas.style.height = h + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var estLink = quick.querySelector(".lab-mini-header__est");
+    function onEstimate(e) {
+      var jobberBtn = document.getElementById("work-request-button-5a7fcc26-6b73-4bec-a630-dd63f55352e9");
+      if (jobberBtn) { e.preventDefault(); jobberBtn.click(); }
     }
-    function makeLeaf() {
-      return {
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: 6 + Math.random() * 7,
-        speed: 0.35 + Math.random() * 0.5,
-        drift: 0.6 + Math.random() * 0.8,
-        phase: Math.random() * Math.PI * 2,
-        rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.02,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      };
-    }
-    function fill() { leaves = []; for (var i = 0; i < COUNT; i++) leaves.push(makeLeaf()); }
-    resize(); fill();
+    estLink.addEventListener("click", onEstimate);
 
-    var inView = true, rafId = null, lastT = null;
-    function draw(ts) {
-      rafId = null;
-      if (document.hidden || !inView) return;
-      if (lastT === null) lastT = ts;
-      var dt = Math.min(48, ts - lastT); lastT = ts;
-      ctx.clearRect(0, 0, w, h);
-      leaves.forEach(function (leaf) {
-        leaf.y += leaf.speed * (dt / 16);
-        leaf.phase += 0.02 * (dt / 16);
-        leaf.rot += leaf.rotSpeed * (dt / 16);
-        if (leaf.y - leaf.size > h) { leaf.y = -leaf.size; leaf.x = Math.random() * w; leaf.phase = Math.random() * Math.PI * 2; }
-        var x = leaf.x + Math.sin(leaf.phase) * leaf.drift * 14;
-        ctx.save();
-        ctx.translate(x, leaf.y);
-        ctx.rotate(leaf.rot);
-        ctx.globalAlpha = 0.55;
-        ctx.fillStyle = leaf.color;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, leaf.size, leaf.size * 0.55, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-      rafId = requestAnimationFrame(draw);
+    var io = null, condensed = false;
+    function setCondensed(v) {
+      if (v === condensed) return;
+      condensed = v;
+      header.classList.toggle("lab-condensed", v);
     }
-    function wake() { if (!rafId && !document.hidden && inView) { lastT = null; rafId = requestAnimationFrame(draw); } }
-
-    rafId = requestAnimationFrame(draw);
-    var io = null;
     if (window.IntersectionObserver) {
-      io = new IntersectionObserver(function (entries) { inView = entries[0].isIntersecting; wake(); }, { threshold: 0 });
+      io = new IntersectionObserver(function (entries) { setCondensed(!entries[0].isIntersecting); }, { rootMargin: "-72px 0px 0px 0px" });
       io.observe(hero);
     }
-    function onVisibility() { wake(); }
-    document.addEventListener("visibilitychange", onVisibility);
-    var onResize = debounce(resize, 150);
-    window.addEventListener("resize", onResize);
 
     return function teardown() {
-      if (rafId) cancelAnimationFrame(rafId);
       if (io) { try { io.disconnect(); } catch (e) {} }
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("resize", onResize);
-      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      estLink.removeEventListener("click", onEstimate);
+      if (quick.parentNode) quick.parentNode.removeChild(quick);
+      header.classList.remove("lab-mini-header", "lab-condensed");
     };
   }
 
-  // Option 3 — Growing Vine: an SVG vine along the left edge draws itself in as you scroll down
-  // the page (stroke-dashoffset tied to scroll fraction), with a few leaves fading in as you pass
-  // them. Desktop/wide screens only.
-  function setupFx3() {
-    if (window.matchMedia("(max-width: 1023px)").matches) return function () {};
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "lab-vine");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("viewBox", "0 0 46 1000");
-    svg.setAttribute("preserveAspectRatio", "none");
-    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("class", "lab-vine__path");
-    path.setAttribute("vector-effect", "non-scaling-stroke");
-    path.setAttribute("d", "M23 0 C10 120 36 240 23 360 C10 480 36 600 23 720 C10 840 36 920 23 1000");
-    svg.appendChild(path);
-    document.body.appendChild(svg);
+  // Option 3 — Click-to-Call Pill: on phones, a round call button appears in the corner once
+  // you've scrolled a little, so the number is always one tap away. style-lab.css hides it above
+  // 680px, so this is a quiet no-op on tablets/desktop.
+  function setupFx3(scope) {
+    var btn = document.createElement("a");
+    btn.href = "tel:+14357521884";
+    btn.className = "lab-call-pill";
+    btn.setAttribute("aria-label", "Call Total Tree Care");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8c1.4 2.8 3.7 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.3 21 3 13.7 3 4.6c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.2 2.2z"/></svg>';
+    document.body.appendChild(btn);
 
-    var len = 1000;
-    try { len = path.getTotalLength() || 1000; } catch (e) {}
-    path.style.strokeDasharray = String(len);
-    path.style.strokeDashoffset = String(len);
-
-    var LEAF_AT = [0.12, 0.32, 0.55, 0.78, 0.95];
-    var leaves = LEAF_AT.map(function (t) {
-      var pt; try { pt = path.getPointAtLength(len * t); } catch (e) { pt = { x: 23, y: 1000 * t }; }
-      var leaf = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      leaf.setAttribute("class", "lab-vine__leaf");
-      leaf.setAttribute("d", "M" + pt.x + " " + pt.y + " c6-3 12 0 14 6 -6 4 -12 2 -14 -6 z");
-      svg.appendChild(leaf);
-      return { el: leaf, t: t };
-    });
-
-    function update() {
-      var doc = document.documentElement;
-      var max = doc.scrollHeight - doc.clientHeight;
-      var frac = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      path.style.strokeDashoffset = String(len * (1 - frac));
-      leaves.forEach(function (leaf) { leaf.el.classList.toggle("lab-in", frac >= leaf.t - 0.02); });
-    }
+    function update() { btn.classList.toggle("lab-in", window.scrollY > 500); }
     var onScroll = throttleRaf(update);
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
     update();
 
     return function teardown() {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (svg.parentNode) svg.parentNode.removeChild(svg);
+      if (btn.parentNode) btn.parentNode.removeChild(btn);
     };
   }
 
-  // Option 4 — Cursor Spotlight: hover the hero and a circular clip-path around the cursor
-  // reveals a second hero photo underneath. Hover-capable pointers only.
+  // Option 4 — Trust Ticker: a slim line inside the (already-dark-on-standard) credibility strip
+  // that quietly crossfades through facts already on this page — read live from the credibility
+  // strip and the stats grid, never hardcoded, so it can never say something the page doesn't.
+  // Appended INSIDE .cred-strip (not as a new sibling) so it never breaks the
+  // ".cred-strip + .section" dark-band rule in site.css.
   function setupFx4(scope) {
-    if (!canHover()) return function () {};
-    var hero = scope.querySelector(".hero-slides");
-    var track = hero && hero.querySelector(".hero-slides__track");
-    var slides = track ? Array.prototype.slice.call(track.querySelectorAll(".hero-slides__slide")) : [];
-    if (!hero || slides.length < 2) return function () {};
-
-    var activeIdx = slides.findIndex(function (s) { return s.classList.contains("is-active"); });
-    if (activeIdx < 0) activeIdx = 0;
-    var alt = slides[(activeIdx + 1) % slides.length];
-    var bg = alt.style.backgroundImage;
-    if (!bg && alt.dataset && alt.dataset.bg) bg = 'url("' + alt.dataset.bg + '")';
-    if (!bg) return function () {};
-
-    var layer = document.createElement("div");
-    layer.className = "lab-spotlight";
-    layer.setAttribute("aria-hidden", "true");
-    layer.style.backgroundImage = bg;
-    hero.appendChild(layer);
-
-    var raf = null;
-    function move(e) {
-      var r = hero.getBoundingClientRect();
-      var x = e.clientX - r.left, y = e.clientY - r.top;
-      if (raf) return;
-      raf = requestAnimationFrame(function () {
-        raf = null;
-        layer.style.setProperty("--lab-x", x + "px");
-        layer.style.setProperty("--lab-y", y + "px");
-      });
-    }
-    function enter() { layer.classList.add("lab-in"); }
-    function leave() { layer.classList.remove("lab-in"); }
-    hero.addEventListener("mousemove", move);
-    hero.addEventListener("mouseenter", enter);
-    hero.addEventListener("mouseleave", leave);
-
-    return function teardown() {
-      hero.removeEventListener("mousemove", move);
-      hero.removeEventListener("mouseenter", enter);
-      hero.removeEventListener("mouseleave", leave);
-      if (raf) cancelAnimationFrame(raf);
-      if (layer.parentNode) layer.parentNode.removeChild(layer);
-    };
-  }
-
-  // Option 5 — Crew Scroll-Strip: wraps "Meet the Crew" in a sticky container and translates it
-  // sideways as you scroll past, so its photos slide by like a filmstrip. Wider screens only;
-  // skipped under reduced motion. Restores the section to its exact original spot on teardown.
-  function setupFx5(scope) {
-    if (prefersReduced() || !window.matchMedia("(min-width: 900px)").matches) return function () {};
-    var crew = scope.querySelector(".crew-teaser");
-    if (!crew) return function () {};
-    var parent = crew.parentNode, next = crew.nextSibling;
-
-    var wrap = document.createElement("div");
-    wrap.className = "lab-strip-wrap";
-    var sticky = document.createElement("div");
-    sticky.className = "lab-strip-sticky";
-    parent.insertBefore(wrap, crew);
-    wrap.appendChild(sticky);
-    sticky.appendChild(crew);
-    crew.classList.add("lab-strip-track");
-
-    var extra = 0;
-    function measure() {
-      extra = Math.max(0, crew.scrollWidth - sticky.clientWidth);
-      wrap.style.height = (sticky.offsetHeight + extra) + "px";
-    }
-    function update() {
-      var r = wrap.getBoundingClientRect();
-      var scrolled = -r.top;
-      var frac = extra > 0 ? Math.min(1, Math.max(0, scrolled / extra)) : 0;
-      crew.style.transform = "translateX(" + (-frac * extra) + "px)";
-    }
-    measure(); update();
-    var onScroll = throttleRaf(update);
-    var onResize = debounce(function () { measure(); update(); }, 150);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-
-    return function teardown() {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      crew.classList.remove("lab-strip-track");
-      crew.style.transform = "";
-      parent.insertBefore(crew, next);
-      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
-    };
-  }
-
-  // Option 6 — Headline Assemble: splits the hero headline into words and fades+rises them in,
-  // one after another, on setup (a one-time entrance, not scroll-linked). Skipped entirely under
-  // reduced motion — the headline is never split, so nothing changes for screen readers.
-  function setupFx6(scope) {
-    var h1 = scope.querySelector(".hero__title");
-    if (!h1 || prefersReduced()) return function () {};
-    var original = h1.textContent;
-
-    var tokens = original.split(/(\s+)/);
-    h1.textContent = "";
-    var words = [];
-    tokens.forEach(function (tok) {
-      if (!tok) return;
-      if (/^\s+$/.test(tok)) { h1.appendChild(document.createTextNode(tok)); return; }
-      var span = document.createElement("span");
-      span.className = "lab-word";
-      span.textContent = tok;
-      h1.appendChild(span);
-      words.push(span);
+    var credStrip = scope.querySelector(".cred-strip");
+    if (!credStrip) return noop;
+    var items = Array.prototype.slice.call(credStrip.querySelectorAll(".cred")).map(function (el) { return el.textContent.trim(); });
+    Array.prototype.slice.call(scope.querySelectorAll(".stats .stat")).forEach(function (el) {
+      var num = el.querySelector(".stat__num"), label = el.querySelector(".stat__label");
+      var text = (num ? num.textContent.trim() : "") + " " + (label ? label.textContent.trim() : "");
+      text = text.trim();
+      if (text) items.push(text);
     });
+    items = items.filter(Boolean);
+    if (!items.length) return noop;
 
-    var timers = words.map(function (span, i) {
-      return setTimeout(function () { span.classList.add("lab-in"); }, 60 + i * 90);
-    });
-
-    return function teardown() {
-      timers.forEach(clearTimeout);
-      h1.textContent = original;
-    };
-  }
-
-  // Option 7 — Rotating Eyebrow: cycles the hero eyebrow through a short list of our own services.
-  var EYEBROW_WORDS = ["Tree Pruning", "Tree Removal", "Plant Health Care", "Stump Grinding", "Emergency Storm Service", "Cabling & Bracing"];
-  function setupFx7(scope) {
-    var eyebrow = scope.querySelector(".hero__eyebrow");
-    if (!eyebrow) return function () {};
-    var original = eyebrow.textContent;
-    eyebrow.classList.add("lab-eyebrow-cycle");
-
-    if (prefersReduced()) {
-      eyebrow.textContent = EYEBROW_WORDS[0];
-      return function () { eyebrow.textContent = original; eyebrow.classList.remove("lab-eyebrow-cycle"); };
-    }
-
-    var i = 0;
-    eyebrow.textContent = EYEBROW_WORDS[0];
-    var timer = setInterval(function () {
-      eyebrow.classList.add("lab-fade");
-      setTimeout(function () {
-        i = (i + 1) % EYEBROW_WORDS.length;
-        eyebrow.textContent = EYEBROW_WORDS[i];
-        eyebrow.classList.remove("lab-fade");
-      }, 350);
-    }, 2600);
-
-    return function teardown() {
-      clearInterval(timer);
-      eyebrow.classList.remove("lab-eyebrow-cycle", "lab-fade");
-      eyebrow.textContent = original;
-    };
-  }
-
-  // Option 8 — Scroll Progress Bar: a thin gold line at the top that fills as you scroll down.
-  function setupFx8() {
     var bar = document.createElement("div");
-    bar.className = "lab-progress";
-    bar.setAttribute("aria-hidden", "true");
-    document.body.appendChild(bar);
-    function update() {
-      var doc = document.documentElement;
-      var max = doc.scrollHeight - doc.clientHeight;
-      var pct = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
-      bar.style.width = pct + "%";
+    bar.className = "lab-ticker";
+    bar.setAttribute("aria-hidden", "true"); // decorative echo — every fact here is already accessible in .cred-strip / .stats
+    var span = document.createElement("span");
+    span.className = "lab-ticker__text";
+    bar.appendChild(span);
+    credStrip.appendChild(bar);
+
+    var i = -1, timer = null, inView = true;
+    function next() {
+      i = (i + 1) % items.length;
+      span.classList.remove("lab-in");
+      setTimeout(function () {
+        span.textContent = items[i];
+        void span.offsetWidth; // restart the transition
+        span.classList.add("lab-in");
+      }, prefersReduced() ? 0 : 220);
     }
-    var onScroll = throttleRaf(update);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    update();
+    function schedule() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(function () { if (!document.hidden && inView) next(); schedule(); }, 3200);
+    }
+    next();
+    if (prefersReduced()) {
+      // static: show the first fact, never cycle.
+    } else {
+      schedule();
+    }
+
+    var io = null;
+    if (window.IntersectionObserver) {
+      io = new IntersectionObserver(function (entries) { inView = entries[0].isIntersecting; }, { threshold: 0 });
+      io.observe(bar);
+    }
+
     return function teardown() {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      if (timer) clearTimeout(timer);
+      if (io) { try { io.disconnect(); } catch (e) {} }
       if (bar.parentNode) bar.parentNode.removeChild(bar);
     };
   }
 
-  // Option 9 — Real Reviews Ribbon: a slow, pausable marquee of short, verbatim Google review
-  // quotes (hand-picked from content/testimonials/testimonials.json), each credited and linked to
-  // Google — the same reviews already used on the /testimonials/ page.
-  var REVIEW_QUOTES = [
-    { text: "Their knowledge is unmatched in the valley. I wouldn’t trust anyone else with my trees.", author: "Trenton B." },
-    { text: "Extraordinary professionalism from the first phone call, through the work product, to remarkable clean-up. A+", author: "Doug T." },
-    { text: "The only reason my Freeman maples are in such good shape is because of David and his team.", author: "Rich G." },
-    { text: "They cleaned up everything to the point of not knowing work had been done. The trees look beautiful.", author: "Jennifer H." },
-    { text: "At all times the crew were respectful of our property and professional in their interactions.", author: "Vijay K." }
+  // Option 5 — Seasonal Tree-Care Note: a short note between the hero and the credibility strip,
+  // picking one of three real, already-published tips by the visitor's current month (no invented
+  // facts — each sentence is drawn from the matching page's own copy) and linking to that page.
+  // Inserted BEFORE .cred-strip so its own next-sibling relationship (and the dark-band rule that
+  // depends on it) is untouched.
+  var SEASON_TIPS = [
+    { months: [11, 12, 1, 2], text: "Winter is an ideal time for tree work — the trees are dormant, so it's easier to see their structure and spot problems.", href: "/frequently-asked-questions/", label: "Read our winter-work FAQ" },
+    { months: [3, 4, 5, 6, 7, 8], text: "Fruit tree spray season runs from around March, as trees come out of dormancy, through the growing season.", href: "/our-services/fruit-tree-spraying/", label: "See the spray program" },
+    { months: [9, 10], text: "Fruit trees are pruned every year, any time after the leaves drop, through the winter.", href: "/our-services/tree-pruning/", label: "See tree pruning" }
   ];
-  var REVIEW_URL = "https://www.google.com/search?q=total+tree+care+logan+utah#lrd=0x87547e5ac48d2baf:0x867e2f9e98438ba4,1";
-  function escapeHtml(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function setupFx9(scope) {
-    var stats = scope.querySelector(".stats");
-    if (!stats) return function () {};
-    var wrap = document.createElement("div");
-    wrap.className = "lab-ribbon";
-    var track = document.createElement("div");
-    track.className = "lab-ribbon__track";
-    REVIEW_QUOTES.concat(REVIEW_QUOTES).forEach(function (q) {
-      var fig = document.createElement("figure");
-      fig.className = "lab-ribbon__item";
-      fig.innerHTML = "<q>" + escapeHtml(q.text) + "</q><a href=\"" + REVIEW_URL + "\" target=\"_blank\" rel=\"noopener\">" +
-        escapeHtml(q.author) + " — Google review</a>";
-      track.appendChild(fig);
-    });
-    wrap.appendChild(track);
-    stats.insertAdjacentElement("afterend", wrap);
-    return function teardown() { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); };
+  function setupFx5(scope) {
+    var credStrip = scope.querySelector(".cred-strip");
+    if (!credStrip) return noop;
+    var month = new Date().getMonth() + 1;
+    var tip = SEASON_TIPS.filter(function (t) { return t.months.indexOf(month) !== -1; })[0] || SEASON_TIPS[0];
+
+    var bar = document.createElement("div");
+    bar.className = "lab-season";
+    var inner = document.createElement("div");
+    inner.className = "lab-season__inner";
+    inner.innerHTML =
+      '<span class="lab-season__text">' + tip.text.replace(/&/g, "&amp;").replace(/</g, "&lt;") + " " +
+      '<a href="' + tip.href + '">' + tip.label + "</a></span>" +
+      '<button type="button" class="lab-season__close" aria-label="Dismiss">×</button>';
+    bar.appendChild(inner);
+    credStrip.parentNode.insertBefore(bar, credStrip);
+
+    var closeBtn = inner.querySelector(".lab-season__close");
+    function onClose() { if (bar.parentNode) bar.parentNode.removeChild(bar); }
+    closeBtn.addEventListener("click", onClose);
+    requestAnimationFrame(function () { bar.classList.add("lab-in"); });
+
+    return function teardown() {
+      closeBtn.removeEventListener("click", onClose);
+      if (bar.parentNode) bar.parentNode.removeChild(bar);
+    };
   }
 
-  // Option 10 — Underline Grow: each section's gold eyebrow label draws in an underline the first
-  // time it scrolls into view.
-  function setupFx10(scope) {
-    var eyebrows = Array.prototype.slice.call(scope.querySelectorAll(".section .eyebrow, .promise .eyebrow"));
-    if (!eyebrows.length) return function () {};
-    eyebrows.forEach(function (el) { el.classList.add("lab-uline"); });
+  // Option 6 — Photo Tiles Breathe: crew photos gently scale + drift inside their own frame as
+  // they pass through the middle of the screen (a subtle parallax "breathing" feel), computed only
+  // for tiles currently in view and paused while the tab is hidden. Skipped entirely under reduced
+  // motion — the DOM is never restructured, so nothing changes for screen readers.
+  function setupFx6(scope) {
+    if (prefersReduced()) return noop;
+    var imgs = Array.prototype.slice.call(scope.querySelectorAll(".crew-teaser img"));
+    if (!imgs.length) return noop;
+
+    var tiles = imgs.map(function (img) {
+      var frame = document.createElement("div");
+      frame.className = "lab-tile-frame";
+      img.parentNode.insertBefore(frame, img);
+      frame.appendChild(img);
+      img.classList.add("lab-tile-img");
+      return { frame: frame, img: img, inView: false };
+    });
 
     var io = null;
-    if (!prefersReduced() && window.IntersectionObserver) {
+    if (window.IntersectionObserver) {
       io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting) { entry.target.classList.add("lab-in"); io.unobserve(entry.target); }
+          var t = tiles.filter(function (x) { return x.frame === entry.target; })[0];
+          if (t) t.inView = entry.isIntersecting;
         });
-      }, { threshold: 0.4 });
-      eyebrows.forEach(function (el) { io.observe(el); });
+        wake();
+      }, { threshold: [0, .25, .5, .75, 1] });
+      tiles.forEach(function (t) { io.observe(t.frame); });
     } else {
-      eyebrows.forEach(function (el) { el.classList.add("lab-in"); });
+      tiles.forEach(function (t) { t.inView = true; });
+    }
+
+    var rafId = null;
+    function update() {
+      rafId = null;
+      if (document.hidden) return;
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      tiles.forEach(function (t) {
+        if (!t.inView) return;
+        var r = t.frame.getBoundingClientRect();
+        var center = r.top + r.height / 2;
+        var prog = 1 - Math.min(1, Math.abs(center - vh / 2) / (vh / 2 || 1));
+        var scale = 1 + prog * 0.05;
+        var ty = (0.5 - prog) * 6;
+        t.img.style.transform = "scale(" + scale.toFixed(3) + ") translateY(" + ty.toFixed(2) + "px)";
+      });
+    }
+    function wake() { if (!rafId) rafId = requestAnimationFrame(update); }
+    var onScroll = wake, onResize = debounce(wake, 100);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    document.addEventListener("visibilitychange", wake);
+    wake();
+
+    return function teardown() {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", wake);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (io) { try { io.disconnect(); } catch (e) {} }
+      tiles.forEach(function (t) {
+        t.img.style.transform = "";
+        t.img.classList.remove("lab-tile-img");
+        t.frame.parentNode.insertBefore(t.img, t.frame);
+        if (t.frame.parentNode) t.frame.parentNode.removeChild(t.frame);
+      });
+    };
+  }
+
+  // Option 7 — Growth Rings: faint concentric "tree ring" circles draw in behind each stat number
+  // the moment its card scrolls into view — the same moment site.css/menu.js's own count-up fires,
+  // so the rings and the number land together without this file touching that standard code.
+  function setupFx7(scope) {
+    var stats = Array.prototype.slice.call(scope.querySelectorAll(".stats .stat"));
+    if (!stats.length) return noop;
+    var reduced = prefersReduced();
+
+    var items = stats.map(function (stat) {
+      var svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("class", "lab-rings");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("aria-hidden", "true");
+      [16, 26, 36].forEach(function (r, i) {
+        var c = document.createElementNS(SVG_NS, "circle");
+        c.setAttribute("cx", "50"); c.setAttribute("cy", "50"); c.setAttribute("r", String(r));
+        c.setAttribute("class", "lab-ring lab-ring--" + i);
+        var circumference = 2 * Math.PI * r;
+        c.style.strokeDasharray = String(circumference);
+        c.style.strokeDashoffset = String(circumference);
+        svg.appendChild(c);
+      });
+      stat.classList.add("lab-has-rings");
+      stat.insertBefore(svg, stat.firstChild);
+      return { stat: stat, svg: svg, done: false };
+    });
+
+    if (reduced) {
+      items.forEach(function (it) { it.svg.classList.add("lab-in"); });
+      return function teardown() {
+        items.forEach(function (it) {
+          it.stat.classList.remove("lab-has-rings");
+          if (it.svg.parentNode) it.svg.parentNode.removeChild(it.svg);
+        });
+      };
+    }
+
+    var io = null;
+    if (window.IntersectionObserver) {
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var it = items.filter(function (x) { return x.stat === entry.target; })[0];
+          if (it && entry.isIntersecting && !it.done) { it.done = true; it.svg.classList.add("lab-in"); io.unobserve(entry.target); }
+        });
+      }, { threshold: .4 });
+      items.forEach(function (it) { io.observe(it.stat); });
+    } else {
+      items.forEach(function (it) { it.svg.classList.add("lab-in"); });
     }
 
     return function teardown() {
       if (io) { try { io.disconnect(); } catch (e) {} }
-      eyebrows.forEach(function (el) { el.classList.remove("lab-uline", "lab-in"); });
+      items.forEach(function (it) {
+        it.stat.classList.remove("lab-has-rings");
+        if (it.svg.parentNode) it.svg.parentNode.removeChild(it.svg);
+      });
     };
   }
 
-  // Option 11 — Back-to-Top Leaf: a small round button appears once you've scrolled down and
-  // smooth-scrolls back to the top (instant jump under reduced motion).
-  function setupFx11() {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "lab-top";
-    btn.setAttribute("aria-label", "Back to top");
-    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C7 7 4 11 4 15a8 8 0 0 0 16 0c0-4-3-8-8-13zm0 3.4C15.6 9.6 18 12.7 18 15a6 6 0 0 1-12 0c0-2.3 2.4-5.4 6-9.6z"/></svg>';
-    document.body.appendChild(btn);
+  // Option 8 — Hero Underline Draw: a solid gold bar draws in under the hero headline a beat after
+  // the page loads (a one-time entrance, not scroll-linked). No DOM split — just a class, so
+  // there's nothing for screen readers or the printed page to notice.
+  function setupFx8(scope) {
+    var h1 = scope.querySelector(".hero__title");
+    if (!h1) return noop;
+    h1.classList.add("lab-underline-draw");
+    var timer = null;
+    if (prefersReduced()) {
+      h1.classList.add("lab-in");
+    } else {
+      timer = setTimeout(function () { h1.classList.add("lab-in"); }, 300);
+    }
+    return function teardown() {
+      if (timer) clearTimeout(timer);
+      h1.classList.remove("lab-underline-draw", "lab-in");
+    };
+  }
 
-    function update() { btn.classList.toggle("lab-in", window.scrollY > 600); }
-    var onScroll = throttleRaf(update);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    function onClick() { window.scrollTo({ top: 0, behavior: prefersReduced() ? "auto" : "smooth" }); }
-    btn.addEventListener("click", onClick);
-    update();
+  // Option 9 — Magnetic Estimate Button: on desktop, the hero's primary "Get a Free Estimate"
+  // button gently pulls toward the cursor and glows on hover. Hover-capable pointers only — on
+  // touch, style-lab.js never attaches a listener, so the button behaves exactly like the standard.
+  function setupFx9(scope) {
+    if (!canHover()) return noop;
+    var btn = scope.querySelector(".hero .btn-row .btn--primary");
+    if (!btn) return noop;
+    btn.classList.add("lab-magnetic");
+
+    var raf = null;
+    function move(e) {
+      var r = btn.getBoundingClientRect();
+      var x = e.clientX - (r.left + r.width / 2);
+      var y = e.clientY - (r.top + r.height / 2);
+      if (raf) return;
+      raf = requestAnimationFrame(function () {
+        raf = null;
+        var max = 10;
+        var tx = Math.max(-max, Math.min(max, x * 0.25));
+        var ty = Math.max(-max, Math.min(max, y * 0.35));
+        btn.style.transform = "translate(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px)";
+      });
+    }
+    function reset() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      btn.style.transform = "";
+    }
+    btn.addEventListener("mousemove", move);
+    btn.addEventListener("mouseleave", reset);
 
     return function teardown() {
-      window.removeEventListener("scroll", onScroll);
-      btn.removeEventListener("click", onClick);
-      if (btn.parentNode) btn.parentNode.removeChild(btn);
+      btn.removeEventListener("mousemove", move);
+      btn.removeEventListener("mouseleave", reset);
+      if (raf) cancelAnimationFrame(raf);
+      btn.style.transform = "";
+      btn.classList.remove("lab-magnetic");
+    };
+  }
+
+  // Option 10 — Diagonal Dividers: the bands from the stats section down meet at a soft diagonal
+  // cut instead of a straight line. Pure CSS clip-path on each section's own background, so the
+  // colors on either side of every cut are always correct with no color-matching logic needed.
+  // Skips the hero and the credibility strip (the hero's own "stays put" photo uses its own
+  // clip-path — this never touches it) — a static shape, so there's no motion to reduce.
+  function setupFx10(scope) {
+    var main = scope.querySelector("main");
+    if (!main) return noop;
+    var sections = Array.prototype.slice.call(main.children).filter(function (el) { return el.tagName === "SECTION"; });
+    if (sections.length < 3) return noop;
+    var targets = sections.slice(2);
+    targets.forEach(function (el) { el.classList.add("lab-diagonal"); });
+    return function teardown() {
+      targets.forEach(function (el) { el.classList.remove("lab-diagonal"); });
+    };
+  }
+
+  // Option 11 — Day-to-Dusk Hero Tint: the hero photo gets a soft color wash based on the visitor's
+  // own local hour, read once when the look is chosen (not a live clock — no ticking timer to
+  // maintain or to pause/resume).
+  function setupFx11(scope) {
+    var hero = scope.querySelector(".hero-slides");
+    if (!hero) return noop;
+    var h = new Date().getHours();
+    var cls = (h >= 5 && h < 8) ? "lab-tint-dawn" : (h >= 8 && h < 17) ? "lab-tint-day" : (h >= 17 && h < 20) ? "lab-tint-dusk" : "lab-tint-night";
+    hero.classList.add("lab-tint", cls);
+    return function teardown() {
+      hero.classList.remove("lab-tint", "lab-tint-dawn", "lab-tint-day", "lab-tint-dusk", "lab-tint-night");
     };
   }
 

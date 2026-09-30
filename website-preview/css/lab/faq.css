@@ -1,0 +1,39 @@
+/* Page lab styles for the "faq" page group (html.pl-2 … html.pl-5). */
+
+/* 2 · Aesthetic — card-style questions */
+html.pl-2 .faq { display: grid; gap: var(--space-4); }
+html.pl-2 .faq details {
+  border-bottom: 0; background: var(--card); border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-5);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+html.pl-2 .faq details:hover, html.pl-2 .faq details[open] { box-shadow: var(--shadow-md); }
+html.pl-2 .faq summary { font-size: var(--fs-h4); }
+html.pl-2 .faq summary::before, html.pl-2 .faq details[open] summary::before { color: var(--ttc-green); }
+html.pl-2 .faq details p { margin-top: var(--space-3); }
+
+/* 3 · Ergonomics — collapsed + Open all */
+html.pl-3 .faq-lab-bar { margin: 0 0 var(--space-5); }
+html.pl-3 .faq-lab-toggle {
+  min-height: 44px; padding: 0 20px; border-radius: var(--r-pill); border: 1px solid var(--ttc-green);
+  background: var(--card); color: var(--ttc-green); font: 600 15px var(--font-body); cursor: pointer;
+}
+html.pl-3 .faq-lab-toggle:hover { background: var(--bg-alt); }
+html.pl-3 .faq summary { min-height: 44px; padding: var(--space-2) 0; font-size: 18px; align-items: center; }
+html.pl-3 .faq details p { font-size: 17px; }
+
+/* 4 · Feature — search the questions */
+html.pl-4 .faq-lab-search { margin: 0 0 var(--space-5); display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+html.pl-4 .faq-lab-search label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+html.pl-4 .faq-lab-search input {
+  min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--r-md);
+  font: 16px var(--font-body); background: var(--card); color: var(--text);
+}
+html.pl-4 .faq-lab-search input:focus { outline: 2px solid var(--ttc-green); outline-offset: 2px; }
+html.pl-4 .faq-lab-empty { color: var(--text-muted); padding: var(--space-3) 0 0; }
+
+/* 5 · Clarity — jump to a question */
+html.pl-5 .faq-lab-toc { margin: 0 0 var(--space-6); padding: var(--space-4) var(--space-5); background: var(--bg-alt); border-radius: var(--r-lg); }
+html.pl-5 .faq-lab-toc ol { list-style: decimal; margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+html.pl-5 .faq-lab-toc a { color: var(--ttc-green); font-weight: 600; text-decoration: none; }
+html.pl-5 .faq-lab-toc a:hover, html.pl-5 .faq-lab-toc a:focus-visible { text-decoration: underline; }
