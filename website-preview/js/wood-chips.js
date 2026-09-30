@@ -346,7 +346,7 @@
   function renderSignupForm() {
     var f = STATE.form;
     var errors = f._errors || {};
-    var wrap = h('div', { class: 'chip-card' });
+    var wrap = h('div', { class: 'chip-card chip-card--signup' });
     wrap.appendChild(h('h1', {}, [COPY.signupTitle]));
     if (f._topError) wrap.appendChild(banner('error', f._topError));
 
@@ -651,7 +651,8 @@
       STATE.profileUi = {
         editing: false, saving: false, error: null,
         leaveOpen: false, leaveReason: '', leaving: false, pausing: false,
-        editForm: null, justSaved: false, addressRecheck: false
+        editForm: null, justSaved: false, addressRecheck: false,
+        focusSection: null  // 'contact' | 'address' | 'plan' | 'notes' — set by a card's Change button
       };
     }
     return STATE.profileUi;
@@ -677,6 +678,62 @@
     return COPY.truckAccessNotSure;
   }
 
+  // A single "Label: value" line inside a profile card. Falls back to an em dash, same convention the
+  // old read-only <dl> used, so an empty field still reads as "nothing here yet" rather than blank.
+  function profileField(label, value) {
+    return h('p', { class: 'chip-profile-field' }, [
+      h('span', { class: 'chip-profile-field__label' }, [label + ': ']),
+      h('span', { class: 'chip-profile-field__value' }, [value || '—'])
+    ]);
+  }
+
+  // One profile card: a title, its own "Change" button (opens the existing edit form, scrolled to the
+  // matching section — see openEditAt), then whatever body nodes the caller built.
+  function profileCard(title, bodyNodes, onChange) {
+    var card = h('div', { class: 'chip-profile-card' });
+    card.appendChild(h('div', { class: 'chip-profile-card__head' }, [
+      h('h3', {}, [title]),
+      h('button', { class: 'btn btn--outline chip-profile-card__change', type: 'button', onclick: onChange }, [COPY.changeButton])
+    ]));
+    (bodyNodes || []).forEach(function (n) { if (n) card.appendChild(n); });
+    return card;
+  }
+
+  // A card with no "Change" button, for read-only info the crew logs (e.g. drop history) rather than
+  // something the customer edits.
+  function profileCardStatic(title, bodyNodes) {
+    var card = h('div', { class: 'chip-profile-card' });
+    card.appendChild(h('div', { class: 'chip-profile-card__head' }, [h('h3', {}, [title])]));
+    (bodyNodes || []).forEach(function (n) { if (n) card.appendChild(n); });
+    return card;
+  }
+
+  // A "YYYY-MM-DD" drop date is a calendar day, not an instant — anchoring it at noon UTC before
+  // formatting in America/Denver keeps it on that same calendar day regardless of the viewer's own
+  // timezone or Denver's DST offset (midnight UTC would roll back a day in some zones).
+  function denverDateLabel(ymd) {
+    if (!ymd) return null;
+    var parts = String(ymd).split('-');
+    var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+    if (!y || !m || !d) return null;
+    var dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    try {
+      return dt.toLocaleDateString('en-US', { timeZone: 'America/Denver', month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  }
+
+  // Opens the full edit form (same form, same save/validation logic) and asks renderProfileEdit() to
+  // scroll to the section a particular card's "Change" button belongs to.
+  function openEditAt(section) {
+    var ui = ensureProfileUi();
+    ui.editing = true;
+    ui.editForm = initEditFormFromCustomer(STATE.customer || {});
+    ui.focusSection = section;
+    render();
+  }
+
   function renderProfile() {
     var ui = ensureProfileUi();
     if (ui.editing) return renderProfileEdit();
@@ -685,9 +742,8 @@
     ui.justSaved = false; ui.addressRecheck = false; ui.justSignedUp = false;
 
     var statusKey = c.status || 'pending';
-    var wrap = h('div', { class: 'chip-card' });
-    wrap.appendChild(h('h1', {}, [COPY.profileTitle]));
-    wrap.appendChild(h('p', { class: 'chip-status-pill chip-status-pill--' + statusKey }, [COPY.statusLabels[statusKey] || statusKey]));
+    var wrap = h('div', { class: 'chip-card chip-card--profile' });
+
     if (justSignedUp) {
       wrap.appendChild(h('div', { class: 'chip-banner chip-banner--info chip-welcome' }, [
         h('strong', {}, [COPY.successTitle]),
@@ -695,50 +751,89 @@
         h('p', {}, [COPY.profileSavedNote])
       ]));
     }
-    if (justSaved) wrap.appendChild(banner('info', COPY.saveSuccessMessage));
+    if (justSaved) wrap.appendChild(banner('success', COPY.saveSuccessMessage));
     if (recheck) wrap.appendChild(banner('info', COPY.addressChangedNotice));
     if (ui.error) wrap.appendChild(banner('error', ui.error));
 
-    var dl = h('dl', { class: 'chip-readview' });
-    function row(label, value) {
-      dl.appendChild(h('dt', {}, [label]));
-      dl.appendChild(h('dd', {}, [value || '—']));
-    }
-    row(COPY.fieldReadLabels.name, ((c.first_name || '') + ' ' + (c.last_name || '')).trim());
-    row(COPY.fieldReadLabels.phone, c.phone);
-    row(COPY.fieldReadLabels.address, [c.street, c.city, c.zip].filter(Boolean).join(', '));
-    row(COPY.fieldReadLabels.tier, tierDisplayText(c.tier));
-    row(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[loadsKeyFor(c.loads_wanted)] || c.loads_wanted);
-    row(COPY.fieldReadLabels.drop_notes, c.drop_notes);
-    row(COPY.fieldReadLabels.truck_access, truckDisplayText(c.truck_access));
-    wrap.appendChild(dl);
+    // ---- greet them by name, then a big plain-language status card ----
+    wrap.appendChild(h('h1', { class: 'chip-profile-greeting' }, [COPY.profileGreeting(c.first_name)]));
+    wrap.appendChild(h('p', { class: 'chip-profile-greeting-sub' }, [COPY.profileGreetingSub]));
 
+    var statusCard = h('div', { class: 'chip-status-card chip-status-card--' + statusKey }, [
+      h('p', { class: 'chip-status-card__label' }, [COPY.statusLabels[statusKey] || statusKey]),
+      h('p', { class: 'chip-status-card__help' }, [(COPY.statusHelp && COPY.statusHelp[statusKey]) || ''])
+    ]);
+    if (statusKey === 'paused') {
+      statusCard.appendChild(h('p', { class: 'chip-status-card__action' }, [officePhoneLink()]));
+    }
+    wrap.appendChild(statusCard);
+
+    // ---- the four info cards, 2-column grid on desktop, stacked on phone ----
+    var grid = h('div', { class: 'chip-profile-grid' });
+
+    var dropSpotBody = [
+      profileField(COPY.fieldReadLabels.address, [c.street, c.city, c.zip].filter(Boolean).join(', '))
+    ];
     if (typeof c.lat === 'number' && typeof c.lng === 'number') {
-      wrap.appendChild(h('p', {}, [
+      dropSpotBody.push(h('p', {}, [
         h('a', { href: 'https://www.google.com/maps/search/?api=1&query=' + c.lat + ',' + c.lng, target: '_blank', rel: 'noopener' }, [COPY.mapLinkText])
       ]));
     }
-
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.photosTitle]));
+    dropSpotBody.push(h('h4', {}, [COPY.photosTitle]));
     if (c.photos && c.photos.length) {
-      var grid = h('div', { class: 'chip-photo-grid' });
-      c.photos.forEach(function (p) { grid.appendChild(h('img', { src: p.url, alt: COPY.photoPreviewAlt, loading: 'lazy' })); });
-      wrap.appendChild(grid);
+      var photoGrid = h('div', { class: 'chip-photo-grid' });
+      c.photos.forEach(function (p) { photoGrid.appendChild(h('img', { src: p.url, alt: COPY.photoPreviewAlt, loading: 'lazy' })); });
+      dropSpotBody.push(photoGrid);
     } else {
-      wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.noPhotosText]));
+      dropSpotBody.push(h('p', { class: 'chip-help' }, [COPY.noPhotosText]));
     }
+    grid.appendChild(profileCard(COPY.cardDropSpotTitle, dropSpotBody, function () { openEditAt('address'); }));
 
-    wrap.appendChild(h('p', {}, [
+    var planBody = [
+      profileField(COPY.fieldReadLabels.tier, tierDisplayText(c.tier)),
+      profileField(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[loadsKeyFor(c.loads_wanted)] || c.loads_wanted),
+      profileField(COPY.fieldReadLabels.truck_access, truckDisplayText(c.truck_access))
+    ];
+    grid.appendChild(profileCard(COPY.cardPlanTitle, planBody, function () { openEditAt('plan'); }));
+
+    // ---- Your Chip Drops (Joseph, 2026-09-30): what the crew has actually delivered, read only ----
+    var loadsDelivered = typeof c.loads_delivered === 'number' ? c.loads_delivered : 0;
+    var loadsWantedIsNumber = typeof c.loads_wanted === 'number';
+    var dropsBody = [
+      h('p', { class: 'chip-drops-count' }, [COPY.loadsDeliveredCount(loadsDelivered, loadsWantedIsNumber ? c.loads_wanted : null)])
+    ];
+    if (!loadsWantedIsNumber) dropsBody.push(h('p', { class: 'chip-help' }, [COPY.loadsDeliveredAsManyNote]));
+    var lastDropLabel = denverDateLabel(c.last_drop);
+    if (lastDropLabel) dropsBody.push(profileField(COPY.fieldReadLabels.lastDrop, lastDropLabel));
+    if (c.drops && c.drops.length) {
+      var dropsList = h('ul', { class: 'chip-drops-list' });
+      c.drops.forEach(function (d) {
+        var dateLabel = denverDateLabel(d.dropped_on) || d.dropped_on;
+        dropsList.appendChild(h('li', {}, [COPY.dropLineText(dateLabel, d.loads)]));
+      });
+      dropsBody.push(dropsList);
+    } else {
+      dropsBody.push(h('p', { class: 'chip-help' }, [COPY.noDropsYetText]));
+    }
+    grid.appendChild(profileCardStatic(COPY.cardDropsTitle, dropsBody));
+
+    var notesBody = [h('p', {}, [c.drop_notes || '—'])];
+    grid.appendChild(profileCard(COPY.cardNotesTitle, notesBody, function () { openEditAt('notes'); }));
+
+    var contactBody = [
+      profileField(COPY.fieldReadLabels.name, ((c.first_name || '') + ' ' + (c.last_name || '')).trim()),
+      profileField(COPY.fieldReadLabels.phone, c.phone)
+    ];
+    if (c.email) contactBody.push(profileField(COPY.fieldReadLabels.email, c.email));
+    grid.appendChild(profileCard(COPY.cardContactTitle, contactBody, function () { openEditAt('contact'); }));
+
+    wrap.appendChild(grid);
+
+    wrap.appendChild(h('p', { class: 'chip-profile-jobber' }, [
       h('a', { class: 'btn btn--outline', href: JOBBER_CLIENT_HUB_LOGIN_URL, target: '_blank', rel: 'noopener' }, [COPY.viewJobberButton])
     ]));
 
-    if (statusKey === 'paused') wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.pausedNote]));
-    if (statusKey === 'left') wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.leftNote]));
-
-    var actions = h('div', { class: 'chip-actions' });
-    actions.appendChild(h('button', {
-      class: 'btn', type: 'button', onclick: function () { ui.editing = true; ui.editForm = initEditFormFromCustomer(c); render(); }
-    }, [COPY.editButton]));
+    var actions = h('div', { class: 'chip-actions chip-profile-actions' });
     if (statusKey !== 'left') {
       if (statusKey !== 'paused') {
         actions.appendChild(h('button', {
@@ -746,10 +841,10 @@
         }, [ui.pausing ? COPY.pausing : COPY.pauseButton]));
       }
       actions.appendChild(h('button', {
-        class: 'chip-linkbtn chip-linkbtn--danger', type: 'button', onclick: function () { ui.leaveOpen = true; render(); }
+        class: 'btn btn--outline chip-btn-danger', type: 'button', onclick: function () { ui.leaveOpen = true; render(); }
       }, [COPY.leaveButton]));
     }
-    wrap.appendChild(actions);
+    if (actions.childNodes.length) wrap.appendChild(actions);
     if (ui.leaveOpen) wrap.appendChild(renderLeaveConfirm(ui));
 
     mount(wrap);
@@ -808,6 +903,7 @@
       street: c.street || '', city: c.city || '', zip: c.zip || '',
       lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null, pinSet: hasPin,
       tier: c.tier || '', loads_wanted: loadsKeyFor(c.loads_wanted), drop_notes: c.drop_notes || '',
+      truck_access: c.truck_access === 'unsure' ? 'not_sure' : (c.truck_access || ''),
       photoBlob: null, photoPreviewUrl: (c.photos && c.photos[0] && c.photos[0].url) || null, photoPath: null,
       paid_consent: false,
       _errors: {}, _topError: null
@@ -834,11 +930,11 @@
     var ui = ensureProfileUi();
     var f = ui.editForm;
     var errors = f._errors || {};
-    var wrap = h('div', { class: 'chip-card' });
+    var wrap = h('div', { class: 'chip-card chip-card--profile-edit' });
     wrap.appendChild(h('h1', {}, [COPY.editButton]));
     if (f._topError) wrap.appendChild(banner('error', f._topError));
 
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionContact]));
+    wrap.appendChild(h('h2', { class: 'chip-section-title', id: 'cw-section-contact' }, [COPY.sectionContact]));
     var firstInput = h('input', { type: 'text', id: 'cw-first', required: true, oninput: function (e) { f.first_name = e.target.value; } });
     firstInput.value = f.first_name;
     var lastInput = h('input', { type: 'text', id: 'cw-last', required: true, oninput: function (e) { f.last_name = e.target.value; } });
@@ -851,7 +947,7 @@
     phoneInput.value = f.phone;
     wrap.appendChild(labeledField('cw-phone', COPY.phoneLabel, phoneInput, errors.phone));
 
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionAddress]));
+    wrap.appendChild(h('h2', { class: 'chip-section-title', id: 'cw-section-address' }, [COPY.sectionAddress]));
     var streetInput = h('input', { type: 'text', id: 'cw-street', required: true, oninput: function (e) { f.street = e.target.value; } });
     streetInput.value = f.street;
     wrap.appendChild(labeledField('cw-street', COPY.streetLabel, streetInput, errors.street));
@@ -901,10 +997,27 @@
       lat: f.pinSet ? f.lat : null, lng: f.pinSet ? f.lng : null, draggable: true,
       onMove: function (lat, lng) { f.lat = lat; f.lng = lng; f.pinSet = true; }
     });
+
+    // Arrived here from a profile card's "Change" button — scroll (and move focus) to that section of
+    // the full edit form, per Joseph 2026-09-30: "opens the edit form... scrolled to/focused on that
+    // section." html{scroll-behavior} already respects prefers-reduced-motion site-wide (site.css).
+    if (ui.focusSection) {
+      var sectionIds = { contact: 'cw-section-contact', address: 'cw-section-address', plan: 'cw-section-plan', notes: 'cw-section-notes' };
+      var targetId = sectionIds[ui.focusSection];
+      ui.focusSection = null;
+      var target = targetId && document.getElementById(targetId);
+      if (target) {
+        setTimeout(function () {
+          target.scrollIntoView({ block: 'start' });
+          if (target.tabIndex < 0) target.setAttribute('tabindex', '-1');
+          try { target.focus({ preventScroll: true }); } catch (e) { /* older browsers ignore the option */ }
+        }, 30);
+      }
+    }
   }
 
   function appendEditPart2(wrap, f, errors) {
-    var tierSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.sectionTier])]);
+    var tierSet = h('fieldset', { class: 'chip-fieldset', id: 'cw-section-plan' }, [h('legend', {}, [COPY.sectionTier])]);
     var paidConsentText = h('span', {}, ['']);
     var paidConsentCheckbox = h('input', { type: 'checkbox', onchange: function (e) { f.paid_consent = e.target.checked; } });
     var paidConsentRow = h('label', { class: 'chip-consent', hidden: true }, [paidConsentCheckbox, paidConsentText]);
@@ -945,7 +1058,18 @@
       oninput: function (e) { f.drop_notes = e.target.value; charsLeftNode.textContent = COPY.charsLeft(500 - e.target.value.length); }
     });
     notesArea.value = f.drop_notes;
-    wrap.appendChild(h('div', { class: 'field' }, [h('label', { for: 'cw-notes' }, [COPY.dropNotesLabel]), notesArea, charsLeftNode]));
+    wrap.appendChild(h('div', { class: 'field', id: 'cw-section-notes' }, [h('label', { for: 'cw-notes' }, [COPY.dropNotesLabel]), notesArea, charsLeftNode]));
+
+    // Truck access (2026-09-30: was shown on the profile but could not be changed).
+    var eTruckSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.truckAccessQuestion])]);
+    var eTruckRow = h('div', { class: 'chip-radio-row' });
+    [['yes', COPY.truckAccessYes], ['no', COPY.truckAccessNo], ['not_sure', COPY.truckAccessNotSure]].forEach(function (pair) {
+      var radio = h('input', { type: 'radio', name: 'cw-edit-truck', checked: f.truck_access === pair[0],
+        onchange: function () { f.truck_access = pair[0]; } });
+      eTruckRow.appendChild(h('label', { class: 'chip-radio-row__opt' }, [radio, pair[1]]));
+    });
+    eTruckSet.appendChild(eTruckRow);
+    wrap.appendChild(eTruckSet);
 
     // photo — optional in edit mode; keep the existing one unless a new one is chosen
     wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
@@ -977,7 +1101,7 @@
       class: 'btn btn--outline', type: 'button',
       onclick: function () { var ui = ensureProfileUi(); ui.editing = false; ui.editForm = null; render(); }
     }, [COPY.cancelButton]);
-    wrap.appendChild(h('div', { class: 'chip-actions' }, [saveBtn, cancelBtn]));
+    wrap.appendChild(h('div', { class: 'chip-actions chip-actions--save-bar' }, [saveBtn, cancelBtn]));
   }
 
   function onSaveEdit(saveBtn) {
@@ -995,6 +1119,7 @@
         street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(), lat: f.lat, lng: f.lng,
         tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim()
       };
+      if (f.truck_access) changes.truck_access = f.truck_access;
       if (photoPath) changes.photo_path = photoPath;
       return API.update(changes, f.paid_consent);
     }).then(function (res) {

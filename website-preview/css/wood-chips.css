@@ -9,9 +9,35 @@
 .chip-app{
   --chip-error-bg: var(--danger-bg); --chip-error-fg: var(--danger-text); --chip-error-border: var(--danger-border);
   --chip-info-bg: var(--info-bg);    --chip-info-fg: var(--info-text);    --chip-info-border: var(--info-border);
-  max-width: 640px; margin: 0 auto;
+  --chip-success-bg: var(--success-bg); --chip-success-fg: var(--success-text); --chip-success-border: var(--success-border);
+  /* Wider outer shell (2026-09-30, Joseph: "less tight on the desktop") so the profile step can use a
+     2-column card grid on desktop. Per-step width is then set by the .chip-card modifier below — the
+     intro/sign-in/sign-up/confirm steps keep their original ~640px reading column. */
+  max-width: 1040px; margin: 0 auto;
+  /* Older-user ergonomics: bigger base text than the site default (16px). Headings use fixed px sizes
+     from tokens.css so they're unaffected; .chip-help/.chip-error are bumped separately below. */
+  font-size: 18px; line-height: var(--lh-comfy);
 }
-.chip-card{ background: var(--card); }
+.chip-card{ background: var(--card); max-width: 640px; margin: 0 auto; }
+/* Sign-up form only: a little more breathing room on desktop, per Joseph — not a restructure, just width. */
+@media (min-width: 900px){ .chip-card--signup{ max-width: 760px; } }
+/* Profile view (the 2-column card grid) and profile edit (a single wider reading column) both use the
+   full 1040px shell instead of the narrow 640px default. */
+.chip-card--profile{ max-width: 1040px; }
+.chip-card--profile-edit{ max-width: 720px; }
+
+/* Older-user ergonomics, scoped to this page only: every button is a big, obvious tap target, and on
+   phones it runs the full width so there's no small target to miss. (Requested 2026-09-30: "easier to
+   use, especially for old people".) */
+.chip-app .btn{
+  min-height: 56px; font-size: 18px; padding: 14px 28px;
+  display: inline-flex; align-items: center; justify-content: center; text-align: center;
+}
+.chip-app .chip-help, .chip-app .chip-error{ font-size: 15px; }
+@media (max-width: 640px){
+  .chip-app .btn{ width: 100%; }
+  .chip-actions{ flex-direction: column; align-items: stretch; }
+}
 .chip-loading{ padding: var(--space-9) 0; text-align: center; color: var(--text-muted); }
 .chip-closed{
   background: var(--bg-alt); border-radius: var(--r-lg); padding: var(--space-6) var(--space-5); text-align: center;
@@ -31,6 +57,7 @@
 }
 .chip-banner--error{ border-left-color: var(--chip-error-border); background: var(--chip-error-bg); color: var(--chip-error-fg); }
 .chip-banner--info{ border-left-color: var(--chip-info-border); background: var(--chip-info-bg); color: var(--chip-info-fg); }
+.chip-banner--success{ border-left-color: var(--chip-success-border); background: var(--chip-success-bg); color: var(--chip-success-fg); }
 .chip-error{ color: var(--danger-text); font-size: var(--fs-small); margin: 4px 0 0; }
 .chip-help{ color: var(--text-muted); font-size: var(--fs-small); margin: 4px 0 0; }
 
@@ -138,3 +165,69 @@
 /* Welcome banner at the top of the profile page right after sign-up (2026-09-30). */
 .chip-welcome strong { display: block; font-size: 18px; margin-bottom: var(--space-1); }
 .chip-welcome p { margin: var(--space-2) 0 0; }
+
+/* ================================================================
+   Profile page redesign (2026-09-30) — "make it a little more ergonomic... easier to use, especially
+   for old people." A named greeting, a big plain-language status card, and the read-only info grouped
+   into cards (2-column grid on desktop, stacked on phone), each with its own "Change" button that opens
+   the existing edit form scrolled to that section. See wood-chips.js renderProfile()/profileCard().
+   ================================================================ */
+.chip-profile-greeting{ margin-bottom: 4px; }
+.chip-profile-greeting-sub{ color: var(--text-muted); margin: 0 0 var(--space-6); font-size: 18px; }
+
+.chip-status-card{
+  border-radius: var(--r-lg); padding: var(--space-5); margin: 0 0 var(--space-6); border: 1px solid var(--border);
+}
+.chip-status-card__label{ font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 22px; margin: 0 0 var(--space-2); }
+.chip-status-card__help{ margin: 0; font-size: 17px; }
+.chip-status-card__action{ margin: var(--space-3) 0 0; font-size: 17px; font-weight: var(--fw-strong); }
+.chip-status-card--pending{ background: var(--bg-alt); color: var(--text); }
+.chip-status-card--active{ background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+.chip-status-card--paused{ background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+.chip-status-card--inactive{ background: var(--info-bg); color: var(--info-text); border-color: var(--info-border); }
+.chip-status-card--left{ background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+
+.chip-profile-grid{
+  display: grid; grid-template-columns: 1fr; gap: var(--space-5); margin: 0 0 var(--space-6);
+}
+@media (min-width: 720px){ .chip-profile-grid{ grid-template-columns: 1fr 1fr; } }
+
+.chip-profile-card{
+  background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--space-5);
+}
+.chip-profile-card__head{
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin: 0 0 var(--space-4);
+}
+.chip-profile-card__head h3{ margin: 0; font-size: 20px; }
+@media (min-width: 641px){
+  .chip-profile-card__head{ flex-direction: row; align-items: center; justify-content: space-between; }
+  .chip-profile-card__head .chip-profile-card__change{ width: auto; }
+}
+.chip-profile-field{ margin: 0 0 var(--space-3); }
+.chip-profile-field:last-child{ margin-bottom: 0; }
+.chip-profile-field__label{ font-weight: var(--fw-strong); color: var(--text); display: block; }
+.chip-profile-field__value{ color: var(--text-muted); }
+.chip-profile-card .chip-photo-grid{ margin-top: var(--space-3); }
+.chip-profile-card p.chip-help{ margin-top: var(--space-2); }
+.chip-profile-jobber{ margin: 0 0 var(--space-6); }
+
+/* Your Chip Drops card (2026-09-30) — a big delivered count plus the dated log the crew builds. */
+.chip-drops-count{ font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 22px; margin: 0 0 var(--space-3); }
+.chip-drops-list{ list-style: none; margin: var(--space-2) 0 0; padding: 0; max-height: 260px; overflow-y: auto; border-top: 1px solid var(--border-soft); }
+.chip-drops-list li{ padding: var(--space-2) 4px; border-bottom: 1px solid var(--border-soft); }
+.chip-drops-list li:last-child{ border-bottom: 0; }
+
+.chip-profile-actions{ margin-top: 0; }
+
+/* Leave the List — a deliberate secondary button, not a small link, per the ergonomics goal above. */
+.chip-btn-danger{ color: var(--danger-text); border-color: var(--danger-border); }
+.chip-btn-danger:hover{ background: var(--danger-bg); color: var(--danger-text); }
+
+/* Sticky Save/Cancel bar on phones, so the primary action is always reachable without scrolling back up. */
+@media (max-width: 640px){
+  .chip-actions--save-bar{
+    position: sticky; bottom: 0; background: var(--card);
+    padding: var(--space-4) 0 0; margin-top: var(--space-6);
+    border-top: 1px solid var(--border); z-index: 5;
+  }
+}

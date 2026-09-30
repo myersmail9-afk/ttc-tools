@@ -154,7 +154,11 @@ window.TTC_CHIP_COPY = {
 
   // ---------------------------------------------------------------- profile (step e)
   profileTitle: 'Your Wood Chip Profile',
-  profileSavedNote: 'This is your profile page. Everything you entered is below. Tap Edit My Information to change anything, like your number of loads or your notes for the crew, then save. Come back anytime: sign in with your email and a new code.',
+  // Joseph, 2026-09-30: greet the customer by name, then a short line — the page was "pretty basic," this
+  // replaces the old wall-of-text profileSavedNote with a friendlier opener. Shown under the "Hi, [name]" heading.
+  profileGreeting: function (firstName) { return firstName ? ('Hi, ' + firstName + '.') : 'Hi there.'; },
+  profileGreetingSub: 'Here is what we have on file for your wood chip drops.',
+  profileSavedNote: 'This is your profile page. Everything you entered is below, grouped into cards. Tap Change on any card to update it, then save. Come back anytime: sign in with your email and a new code.',
   // Same five statuses the office sees, worded for the customer reading their own profile.
   statusLabels: {
     pending: 'New: we’re checking your details',
@@ -163,8 +167,40 @@ window.TTC_CHIP_COPY = {
     inactive: 'Got all your loads',
     left: 'Off the list'
   },
+  // One plain-language line per status — what it means, using only facts stated elsewhere on this page
+  // (successBody2/3, pausedNote, leftNote). No new promises or timeframes.
+  statusHelp: {
+    pending: 'We are checking your details. This usually takes a couple of business days.',
+    active: 'The crew drops chips at your spot when it’s your turn.',
+    paused: 'Your drops are on hold. Call us if you’d like to start again.',
+    inactive: 'You already got the loads you asked for. Sign up again anytime for more.',
+    left: 'You’re off the list. You can sign up again anytime from this page.'
+  },
   viewJobberButton: 'See Your Invoices in Jobber',
   mapLinkText: 'View Your Drop Spot on Google Maps',
+
+  // Card titles for the desktop 2-column layout (phone: same cards, stacked).
+  cardDropSpotTitle: 'Your Drop Spot',
+  cardPlanTitle: 'Your Plan',
+  cardDropsTitle: 'Your Chip Drops',
+  cardNotesTitle: 'Notes for the Crew',
+  cardContactTitle: 'Your Contact Info',
+  changeButton: 'Change',
+
+  // ---- "Your Chip Drops" card (Joseph, 2026-09-30): what the crew has actually delivered so far. Read
+  // only — the crew logs a drop, and it shows up here; there is nothing for the customer to change.
+  loadsDeliveredCount: function (delivered, wanted) {
+    var n = typeof delivered === 'number' ? delivered : 0;
+    var word = (n === 1) ? 'load' : 'loads';
+    if (typeof wanted === 'number') return n + ' of ' + wanted + ' ' + word + ' delivered';
+    return n + ' ' + word + ' delivered';
+  },
+  loadsDeliveredAsManyNote: 'Your plan is set to as many loads as we can give.',
+  dropLineText: function (dateLabel, loads) {
+    var word = (loads === 1) ? 'load' : 'loads';
+    return dateLabel + ' · ' + loads + ' ' + word;
+  },
+  noDropsYetText: 'No drops yet.',
 
   editButton: 'Edit My Information',
   saveButton: 'Save Changes',
@@ -190,8 +226,8 @@ window.TTC_CHIP_COPY = {
   noPhotosText: 'No photos yet.',
 
   fieldReadLabels: {
-    name: 'Name', phone: 'Phone', address: 'Address', tier: 'Tier',
+    name: 'Name', phone: 'Phone', email: 'Email', address: 'Address', tier: 'Tier',
     loads_wanted: 'Loads Wanted', drop_notes: 'Notes for the Crew',
-    truck_access: 'Truck Access'
+    truck_access: 'Truck Access', lastDrop: 'Last Drop'
   }
 };
