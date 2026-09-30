@@ -28,7 +28,7 @@
         if (k.lastIndexOf('on', 0) === 0 && typeof v === 'function') e.addEventListener(k.slice(2), v);
         else if (k === 'class') e.className = v;
         else if (k === 'for') e.htmlFor = v;
-        else if (k === 'checked' || k === 'disabled' || k === 'required') { if (v) e.setAttribute(k, ''); }
+        else if (k === 'checked' || k === 'disabled' || k === 'required' || k === 'hidden') { if (v) e.setAttribute(k, ''); }
         else e.setAttribute(k, v);
       });
     }
@@ -173,7 +173,11 @@
         canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
         canvas.toBlob(function (blob) {
           if (!blob) { cb(new Error('encode failed')); return; }
-          cb(null, blob, URL.createObjectURL(blob));
+          // Preview uses a data: URL (fixed 2026-09-30 — Joseph saw a broken preview): unlike a blob: URL it
+          // can't be revoked or go stale across re-renders.
+          var preview = '';
+          try { preview = canvas.toDataURL('image/jpeg', 0.7); } catch (x) { preview = URL.createObjectURL(blob); }
+          cb(null, blob, preview);
         }, 'image/jpeg', 0.85);
       };
       img.src = reader.result;
@@ -205,8 +209,19 @@
     if (STATE.step === 'email') {
       wrap.appendChild(h('h1', {}, [COPY.introTitle]));
       wrap.appendChild(h('p', { class: 'chip-lead' }, [COPY.introLead]));
-      wrap.appendChild(h('p', {}, [COPY.introP1]));
-      wrap.appendChild(h('p', {}, [COPY.introP2]));
+      (COPY.introSections || []).forEach(function (sec) {
+        var box = h('div', { class: 'chip-intro-sec' + (sec.callout ? ' chip-intro-sec--callout' : '') });
+        box.appendChild(h('h3', {}, [sec.title]));
+        (sec.paras || []).forEach(function (t) { box.appendChild(h('p', {}, [t])); });
+        if (sec.items && sec.items.length) {
+          box.appendChild(h(sec.ordered ? 'ol' : 'ul', {}, sec.items.map(function (t) { return h('li', {}, [t]); })));
+        }
+        wrap.appendChild(box);
+      });
+      if (COPY.calcUrl) {
+        wrap.appendChild(h('p', { class: 'chip-intro-calc' }, [COPY.calcText,
+          h('a', { href: COPY.calcUrl, target: '_blank', rel: 'noopener' }, [COPY.calcLinkText]), COPY.calcNote]));
+      }
       wrap.appendChild(h('p', {}, [COPY.introP3]));
     }
     wrap.appendChild(h('h2', {}, [COPY.emailStepTitle]));
@@ -480,6 +495,7 @@
     wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
     wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.photoRequiredHelp]));
     var previewImg = h('img', { class: 'chip-photo-preview', alt: COPY.photoPreviewAlt, hidden: !f.photoBlob });
+    previewImg.addEventListener('error', function () { previewImg.hidden = true; });
     if (f.photoPreviewUrl) previewImg.setAttribute('src', f.photoPreviewUrl);
     var photoStatus = h('p', { class: 'chip-help' }, ['']);
     var photoErrHolder = h('div', {}, [fieldError(errors.photo)]);
@@ -492,7 +508,7 @@
         processPhotoFile(file, function (err, blob, url) {
           photoStatus.textContent = '';
           if (err) { clear(photoErrHolder); photoErrHolder.appendChild(fieldError(COPY.photoUploadFailed)); return; }
-          if (f.photoPreviewUrl) URL.revokeObjectURL(f.photoPreviewUrl);
+          if (f.photoPreviewUrl && f.photoPreviewUrl.lastIndexOf('blob:', 0) === 0) URL.revokeObjectURL(f.photoPreviewUrl);
           f.photoBlob = blob; f.photoPreviewUrl = url; f.photoPath = null;
           clear(photoErrHolder);
           previewImg.setAttribute('src', url); previewImg.hidden = false;
@@ -916,6 +932,7 @@
     // photo — optional in edit mode; keep the existing one unless a new one is chosen
     wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
     var previewImg = h('img', { class: 'chip-photo-preview', alt: COPY.photoPreviewAlt, hidden: !f.photoPreviewUrl });
+    previewImg.addEventListener('error', function () { previewImg.hidden = true; });
     if (f.photoPreviewUrl) previewImg.setAttribute('src', f.photoPreviewUrl);
     var photoStatus = h('p', { class: 'chip-help' }, ['']);
     var fileInput = h('input', {
@@ -927,7 +944,7 @@
         processPhotoFile(file, function (err, blob, url) {
           photoStatus.textContent = '';
           if (err) { photoStatus.textContent = COPY.photoUploadFailed; return; }
-          if (f.photoPreviewUrl) URL.revokeObjectURL(f.photoPreviewUrl);
+          if (f.photoPreviewUrl && f.photoPreviewUrl.lastIndexOf('blob:', 0) === 0) URL.revokeObjectURL(f.photoPreviewUrl);
           f.photoBlob = blob; f.photoPreviewUrl = url; f.photoPath = null;
           previewImg.setAttribute('src', url); previewImg.hidden = false;
           chooseBtn.textContent = COPY.photoRetakeButton;

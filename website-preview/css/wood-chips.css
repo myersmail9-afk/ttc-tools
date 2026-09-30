@@ -121,3 +121,16 @@
 
 .chip-confirm{ margin-top: var(--space-5); padding: var(--space-5); background: var(--bg-alt); border-radius: var(--r-md); }
 
+
+/* Intro sections (2026-09-30): the waitlist / what we deliver / pricing / priority facts from the Google Form. */
+.chip-intro-sec { margin: var(--space-5) 0 0; }
+.chip-intro-sec h3 { margin: 0 0 var(--space-2); font-size: 20px; }
+.chip-intro-sec p { margin: 0 0 var(--space-3); }
+.chip-intro-sec ul, .chip-intro-sec ol { margin: 0 0 var(--space-3); padding-left: var(--space-5); }
+.chip-intro-sec li { margin-bottom: var(--space-2); }
+.chip-intro-sec--callout {
+  padding: var(--space-4) var(--space-5); border-left: 4px solid var(--ttc-orange);
+  border-radius: var(--r-md); background: var(--bg-alt);
+}
+.chip-intro-sec--callout p:last-child { margin-bottom: 0; }
+.chip-intro-calc { margin-top: var(--space-4); }

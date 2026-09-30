@@ -21,15 +21,44 @@ window.TTC_CHIP_COPY = {
 
   // ---------------------------------------------------------------- intro (step a)
   introTitle: 'Sign Up for Wood Chips',
-  introLead: 'Get free wood chips for your yard, garden, or landscaping, dropped off by our crew.',
-  introP1: 'Wood chips are left over from the tree work we do every day. Free drops happen when a nearby job leaves us with extra chips, so there’s no set schedule — most people on the free list wait anywhere from a few weeks to a couple of months between drops.',
-  introP2: 'Want chips sooner, or more often? Our VIP tiers move you up the list for a price per drop. You’re billed after each drop, never before, and you’ll see the exact price for every tier before you choose one.',
-  introP3: 'Sign-up takes about five minutes. First we’ll email you a 6-digit code, just to make sure it’s really you.',
+  introLead: 'A quick form to get on the Total Tree Care chip drop list.',
+  // Intro sections (Joseph, 2026-09-30: the facts from the chip drop Google Form, so people know what
+  // they are signing up for). Each section: a heading, then paragraphs and/or bullet points.
+  introSections: [
+    { title: 'This Is a Waitlist, Not an Order', callout: true, paras: [
+      'Signing up puts you in line. It does not reserve a load, book a delivery, or hold a date. We can’t tell you when your turn will come, and we can’t guarantee it will. There are far more people on this list than we have loads to give.',
+      'If you need chips by a specific date, we recommend buying from a supplier instead. We’d rather be upfront than leave you waiting on something we can’t promise.'
+    ] },
+    { title: 'Why We’re Changing Things', paras: [
+      'The landfill recently stopped selling chips, so we’re changing how we deliver them. Our goal is to get chips to more people, fairly.'
+    ] },
+    { title: 'What We Deliver', items: [
+      'Dirty, mixed arborist chips only. They are not clean and can include any tree species. They may have small amounts of trash and sticks. You get whatever is coming off our jobs that day.',
+      'A good amount per drop, usually up to 1 full load (about 10 to 12 cubic yards). We can’t always promise a full load, because it depends on what comes off the job, but it will always be a good amount.',
+      'We can only drop where our truck can reach, usually front yards and driveways. We can’t go under low branches or power lines, or into back yards, unless there is easy, direct access.'
+    ] },
+    { title: 'Pricing', paras: ['You pay after the chips are delivered. There is no upfront charge.'], items: [
+      '$30 per load: VIP, drop anytime, no call ahead. This is the best deal, because it saves us coordination time.',
+      '$50 per load: VIP, we call ahead first and set a time before we show up.',
+      '$0: free chips, lower priority on the list.'
+    ] },
+    { title: 'Priority Order', ordered: true, items: [
+      'VIP, drop anytime ($30 per load): top of the list',
+      'VIP, call ahead first ($50 per load)',
+      'Free, drop anytime',
+      'Free, call ahead first'
+    ] }
+  ],
+  calcText: 'Need help estimating how many loads you want? Try the free chip calculator at ',
+  calcLinkText: 'klsupplies.com/calculator',
+  calcUrl: 'https://klsupplies.com/calculator',
+  calcNote: ' (we’re not affiliated; it has a photo of what 10 cubic yards looks like).',
+  introP3: 'Sign-up takes about five minutes. You sign in with your email: we send a 6-digit code to make sure it’s really you. Your information is saved, so you can come back anytime with your email and a new code to check or change it.',
 
   // ---------------------------------------------------------------- email + code (step b)
   emailStepTitle: 'Sign In',
   emailLabel: 'Email',
-  emailHelp: 'We’ll email you a 6-digit code to sign in — no password to remember.',
+  emailHelp: 'Sign in with just your email. We’ll email you a 6-digit code, and there’s no password to remember. Your sign-up is saved to your email, so next time you only need your email and a new code to see or change it.',
   sendCodeButton: 'Send Me a Code',
   sendingCode: 'Sending…',
   codeSentAlways: 'If that email can sign in, we sent a 6-digit code.',
@@ -86,9 +115,9 @@ window.TTC_CHIP_COPY = {
   },
   loadsChoosePlaceholder: 'Choose one',
 
-  sectionDropNotes: 'Notes for the Crew (Optional)',
-  dropNotesLabel: 'Where exactly should we drop the chips?',
-  dropNotesPlaceholder: 'Example: In the gravel spot to the left of the driveway.',
+  sectionDropNotes: 'Notes for the Crew',
+  dropNotesLabel: 'Anything the crew should know? Pets, gates, where to park, things to avoid, and exactly where the chips go.',
+  dropNotesPlaceholder: 'Example: Dog in the backyard, so keep the side gate closed. Park on the street, not the driveway. Dump the chips in the gravel spot left of the driveway.',
   dropNotesHelp: '500 characters max.',
   charsLeft: function (n) { return n + ' characters left.'; },
 
@@ -98,7 +127,7 @@ window.TTC_CHIP_COPY = {
   photoRetakeButton: 'Choose a Different Photo',
   photoPreviewAlt: 'Preview of your drop-spot photo',
   photoProcessing: 'Preparing photo…',
-  photoUploadFailed: 'That photo didn’t upload. Try again or choose a different one.',
+  photoUploadFailed: 'That photo didn’t work. Try again, or choose a different photo (a regular JPG or PNG works best).',
 
   sectionTruck: 'Truck Access',
   truckAccessQuestion: 'Can a truck pulling a chipper trailer (~30 ft total) easily reach your drop spot? (No tight gates, low branches, soft lawn to cross, etc.)',
@@ -107,8 +136,8 @@ window.TTC_CHIP_COPY = {
   truckAccessNotSure: 'Not sure',
 
   sectionConsents: 'A Few Things to Agree To',
-  consentMixedOk: 'I’m fine with mixed wood chips. Loads may include different kinds of trees, leaves, and bark all together.',
-  consentStaysOnList: 'I understand I’ll stay on the list until I ask to come off.',
+  consentMixedOk: 'I understand these are dirty, mixed arborist chips. They can include any tree species, leaves, and bark, and may have small amounts of trash and sticks.',
+  consentStaysOnList: 'I understand that to get off the list, I must take myself off the list. Otherwise I will keep getting chips, and Total Tree Care is not responsible for picking chips back up if I forgot to take myself off.',
   consentPropertyAccess: 'I understand the crew and truck may come onto my property to drop the chips.',
   consentPhotoUse: 'I understand my photo helps the crew find the spot. It’s never posted anywhere.',
   paidConsent: function (price) { return 'I agree to be billed $' + price + ' after each drop.'; },
