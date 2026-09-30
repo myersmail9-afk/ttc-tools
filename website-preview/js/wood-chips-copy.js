@@ -148,7 +148,7 @@ window.TTC_CHIP_COPY = {
   // ---------------------------------------------------------------- confirmation
   successTitle: 'You’re On the List',
   successBody1: 'Thanks — we’ve got your spot. Here’s what happens next:',
-  successBody2: 'The office checks your details, usually within a couple of business days.',
+  successBody2: 'The office checks your details. We can’t give a time frame for this or for drops.',
   successBody3: 'Once you’re active, the crew drops chips at your spot when it’s your turn.',
   successBody4: 'Come back to this page anytime and sign in with your email to update your info, change your tier, pause, or leave the list.',
 
@@ -170,7 +170,7 @@ window.TTC_CHIP_COPY = {
   // One plain-language line per status — what it means, using only facts stated elsewhere on this page
   // (successBody2/3, pausedNote, leftNote). No new promises or timeframes.
   statusHelp: {
-    pending: 'We are checking your details. This usually takes a couple of business days.',
+    pending: 'We are checking your details. We can’t promise a time frame, and you’ll see your status change here when it’s done.',
     active: 'The crew drops chips at your spot when it’s your turn.',
     paused: 'Your drops are on hold. Call us if you’d like to start again.',
     inactive: 'You already got the loads you asked for. Sign up again anytime for more.',
