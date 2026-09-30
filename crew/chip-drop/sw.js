@@ -7,7 +7,7 @@
 // Bump this version any time index.html (or any cached shell file) changes.
 // On next visit the new SW activates, the old cache is purged in the
 // activate handler, and the new shell is fetched fresh from GitHub.
-const CACHE_NAME = 'ttc-chipdrop-v5';
+const CACHE_NAME = 'ttc-chipdrop-v6';
 const SHELL = [
   './',
   './index.html',
