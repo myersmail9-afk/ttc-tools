@@ -47,7 +47,3 @@ html.pl-4 .comp-lab-podium__label ul { list-style: none; padding: 0; margin: var
 }
 
 /* 5 · Clarity — track record stat strip */
-html.pl-5 .comp-lab-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-4); margin: 0 0 var(--space-6); }
-html.pl-5 .comp-lab-stat { background: var(--bg-alt); border-radius: var(--r-lg); padding: var(--space-5); text-align: center; }
-html.pl-5 .comp-lab-stat strong { display: block; font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--ttc-green); }
-html.pl-5 .comp-lab-stat span { display: block; font-size: var(--fs-small); color: var(--text-muted); margin-top: 4px; }

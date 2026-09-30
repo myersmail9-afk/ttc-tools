@@ -1,12 +1,8 @@
 /* Page lab ideas for the "about" page group (src/pages/about-us.html). Preview only. */
 window.TTC_PAGE_LAB = { group: "about", title: "About page", options: [
 
-  // 2 · Aesthetic — CSS-only: accent borders + hover lift on the ladder, qualifications and team cards.
-  { id: "2", kind: "Aesthetic", name: "2 · Editorial credential & team cards",
-    note: "Warmer accent borders and a gentle hover lift on the ladder, qualifications and team cards." },
-
-  // 3 · Ergonomics — every bio auto-expands (no click needed) + bigger text/targets across the section.
-  { id: "3", kind: "Ergonomics", name: "3 · Bigger text, no extra taps",
+  // 2 · Ergonomics — every bio auto-expands (no click needed) + bigger text/targets across the section.
+  { id: "2", kind: "Ergonomics", name: "2 · Bigger text, no extra taps",
     note: "Every bio opens automatically, and text, ISA logos and avatars all get bigger for easier reading.",
     setup: function () {
       var toggles = Array.prototype.slice.call(document.querySelectorAll(".team-card__toggle[aria-controls]"));
@@ -21,8 +17,8 @@ window.TTC_PAGE_LAB = { group: "about", title: "About page", options: [
       };
     } },
 
-  // 4 · Feature — filter chips built from each team card's own <ul class="creds"> tags (no invented facts).
-  { id: "4", kind: "Feature", name: "4 · Filter the crew by credential",
+  // 3 · Feature — filter chips built from each team card's own <ul class="creds"> tags (no invented facts).
+  { id: "3", kind: "Feature", name: "3 · Filter the crew by credential",
     note: "Tap a credential chip above Our Team to spotlight just the crew members who hold it.",
     setup: function () {
       var grid = document.querySelector(".team-grid");
@@ -75,8 +71,8 @@ window.TTC_PAGE_LAB = { group: "about", title: "About page", options: [
       };
     } },
 
-  // 5 · Clarity — a small "Jump to" bar right under the intro, linking to the sections already on the page.
-  { id: "5", kind: "Clarity", name: "5 · Jump-to section nav",
+  // 4 · Clarity — a small "Jump to" bar right under the intro, linking to the sections already on the page.
+  { id: "4", kind: "Clarity", name: "4 · Jump-to section nav",
     note: "A “Jump to” bar under the intro links straight to Credentials, Our Team and Qualifications.",
     setup: function () {
       var credSection = document.getElementById("credentials");

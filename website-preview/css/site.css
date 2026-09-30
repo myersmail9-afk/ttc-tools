@@ -966,3 +966,99 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 9500; pointer-events: none;
   background: var(--ttc-gold); transform: scaleX(0); transform-origin: 0 50%; will-change: transform;
 }
+
+/* ===== Contact page standard (Joseph, 2026-09-30: promoted from the preview Style options 2–5)
+   Card panels + striped hours, bigger targets, floating call button, two clear paths. ===== */
+.contact-cols { gap: var(--space-8); align-items: start; }
+.contact-request, .contact-details {
+  background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--space-6);
+}
+.contact-request { border-left: 4px solid var(--ttc-green); }
+.contact-details h2:first-of-type { margin-top: 0; }
+.contact-details h2 { font-size: 24px; }
+.contact-details h3 { font-size: 19px; }
+.contact-details p, .contact-request .lead { font-size: 18px; }
+.contact-details > p { position: relative; padding-left: 26px; }
+.contact-details > p::before {
+  content: ""; position: absolute; left: 0; top: .5em; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--ttc-green);
+}
+.contact-details a[href^="tel:"]:not(.btn) { font-size: 20px; font-weight: var(--fw-bold); }
+.contact-details .hours { border-collapse: collapse; }
+.contact-details .hours tr td, .contact-details .hours tr:first-child td { padding: 14px 12px; font-size: 17px; }
+.contact-details .hours tr:nth-child(even) td { background: var(--bg-alt); }
+.contact-details .hours tr td:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.contact-details .hours tr td:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.contact-details .btn-row .btn { min-height: 60px; padding-left: 28px; padding-right: 28px; font-size: 19px; }
+.contact-altpath {
+  margin-top: var(--space-6); padding: var(--space-5); border: 2px dashed var(--border);
+  border-radius: var(--r-lg); background: var(--bg-alt);
+}
+.contact-details .contact-altpath h3 { margin-top: 0; }
+.contact-altpath p { padding-left: 0; }
+/* Floating call button (contact page only): shown by menu.js once the phone number scrolls out of view. */
+.call-fab {
+  position: fixed; right: 12px; bottom: 12px; z-index: 8000;
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px;
+  border-radius: var(--r-pill); background: var(--ttc-orange); color: #fff; text-decoration: none;
+  font: 700 15px/1 var(--font-body); box-shadow: var(--shadow-md);
+  opacity: 0; transform: translateY(12px) scale(.92); pointer-events: none; visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base);
+}
+.call-fab.is-visible { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition-delay: 0s; }
+.call-fab:hover, .call-fab:focus-visible { background: var(--ttc-orange-dk); color: #fff; }
+.call-fab__short { display: none; }
+@media (max-width: 480px) { .call-fab__full { display: none; } .call-fab__short { display: inline; } }
+@media (prefers-reduced-motion: reduce) { .call-fab { transition: none; } }
+
+/* ===== Gallery standard additions (Joseph, 2026-09-30: promoted from the preview Style options)
+   Warm Frame Hover + Back to the top button. ===== */
+.gallery-grid a.gallery-item { position: relative; box-shadow: var(--shadow-sm); }
+.gallery-grid a.gallery-item:hover, .gallery-grid a.gallery-item:focus-visible { box-shadow: var(--shadow-lg); }
+.gallery-grid a.gallery-item::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(42, 58, 37, .58) 0%, rgba(42, 58, 37, 0) 48%);
+  opacity: 0; transition: opacity var(--dur-base) var(--ease-out);
+}
+.gallery-grid a.gallery-item::before {
+  content: "\1F50D"; position: absolute; left: var(--space-3); bottom: var(--space-3); z-index: 1;
+  color: var(--text-on-dark); font-size: 15px; line-height: 1; pointer-events: none;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+.gallery-grid a.gallery-item:hover::after, .gallery-grid a.gallery-item:focus-visible::after { opacity: 1; }
+.gallery-grid a.gallery-item:hover::before, .gallery-grid a.gallery-item:focus-visible::before { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .gallery-grid a.gallery-item::after, .gallery-grid a.gallery-item::before { transition: none; }
+}
+.back-top {
+  position: fixed; right: 12px; bottom: 16px; z-index: 8500;
+  min-height: 48px; padding: 0 18px; border: 0; border-radius: var(--r-pill);
+  background: var(--ttc-dark); color: var(--text-on-dark); font: 600 15px/1 var(--font-body);
+  box-shadow: var(--shadow-md); cursor: pointer;
+}
+.back-top:hover, .back-top:focus-visible { background: var(--ttc-green); }
+.back-top[hidden] { display: none; }
+
+/* ===== About page standard (Joseph, 2026-09-30: promoted from the preview Style options)
+   Editorial credential & team cards: accent borders + gentle hover lift. ===== */
+.ladder__rung { border-left: 6px solid var(--ttc-green); }
+.ladder__rung--highlight { border-left-color: var(--ttc-gold); }
+.qual { border-top: 4px solid var(--ttc-green); }
+.team-card {
+  border-top: 4px solid var(--ttc-green);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.team-card:hover, .team-card:focus-within { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.isa-cred__logos img { background: var(--bg-alt); border-radius: var(--r-sm); }
+@media (prefers-reduced-motion: reduce) {
+  .team-card { transition: none; }
+  .team-card:hover, .team-card:focus-within { transform: none; }
+}
+
+
+/* ===== Competition page: track record stat strip (Joseph, 2026-09-30, promoted from the preview Style options) ===== */
+.comp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-4); margin: 0 0 var(--space-6); }
+.comp-stat { background: var(--bg-alt); border-radius: var(--r-lg); padding: var(--space-5); text-align: center; }
+.comp-stat strong { display: block; font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--ttc-green); }
+.comp-stat span { display: block; font-size: var(--fs-small); color: var(--text-muted); margin-top: 4px; }

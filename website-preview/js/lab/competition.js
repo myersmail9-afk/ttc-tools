@@ -85,47 +85,6 @@ window.TTC_PAGE_LAB = { group: "competition", title: "Competition Tree Climbing"
 
       return function teardown() { podium.remove(); };
     }
-  },
-
-  { id: "5", kind: "Clarity", name: "5 · Track record stat strip",
-    note: "The Master's Challenge appearances, championship wins, and individual event wins from the first paragraph become three big scannable numbers.",
-    setup: function () {
-      var prose = document.querySelector(".prose");
-      var firstP = prose && prose.querySelector("p");
-      if (!prose || !firstP) return;
-
-      var text = firstP.textContent;
-      var timesMatches = text.match(/(\d+)\s+times/g);
-      var eventsMatch = text.match(/(\d+)\s+individual events/);
-      if (!timesMatches || timesMatches.length < 2 || !eventsMatch) return;
-
-      var finals = timesMatches[0].match(/\d+/)[0];
-      var wins = timesMatches[1].match(/\d+/)[0];
-      var events = eventsMatch[0].match(/\d+/)[0];
-
-      var stats = [
-        [finals, "Master's Challenge appearances"],
-        [wins + "×", "competition champion"],
-        [events, "individual event wins"]
-      ];
-
-      var wrap = document.createElement("div");
-      wrap.className = "comp-lab-stats";
-      stats.forEach(function (s) {
-        var card = document.createElement("div");
-        card.className = "comp-lab-stat";
-        var strong = document.createElement("strong");
-        strong.textContent = s[0];
-        var span = document.createElement("span");
-        span.textContent = s[1];
-        card.appendChild(strong);
-        card.appendChild(span);
-        wrap.appendChild(card);
-      });
-      prose.insertBefore(wrap, firstP);
-
-      return function teardown() { wrap.remove(); };
-    }
   }
 
 ] };

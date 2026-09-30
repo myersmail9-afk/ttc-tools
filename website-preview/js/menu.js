@@ -537,3 +537,11 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   window.addEventListener("load", update);
   update();
 })();
+
+/* Contact page: floating call button appears once the phone number in Contact Details scrolls out of
+   view (Joseph, 2026-09-30, promoted from the preview Style options). */
+(function(){ var fab=document.querySelector("[data-call-fab]"); var phone=document.querySelector(".contact-details > p a[href^='tel:']"); if(!fab||!phone) return; var ticking=false; function update(){ ticking=false; var r=phone.getBoundingClientRect(); var seen=r.top<window.innerHeight&&r.bottom>0; fab.classList.toggle("is-visible",!seen); } function onScroll(){ if(!ticking){ticking=true;requestAnimationFrame(update);} } window.addEventListener("scroll",onScroll,{passive:true}); window.addEventListener("resize",onScroll,{passive:true}); update(); })();
+
+/* Gallery: "Back to the top" button once you're past the first screenful of photos (Joseph, 2026-09-30,
+   promoted from the preview Style options). */
+(function(){ if(!document.querySelector(".gallery-grid")) return; var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches; var btn=document.createElement("button"); btn.type="button"; btn.className="back-top"; btn.textContent="Back to the top ↑"; btn.hidden=true; document.body.appendChild(btn); btn.addEventListener("click",function(){ if(reduce) window.scrollTo(0,0); else window.scrollTo({top:0,behavior:"smooth"}); }); function onScroll(){ btn.hidden=window.scrollY<700; } window.addEventListener("scroll",onScroll,{passive:true}); onScroll(); })();
