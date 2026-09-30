@@ -959,3 +959,10 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
   .stat { padding: var(--space-5) var(--space-2); }
   .stat__num { font-size: clamp(28px, 9vw, 40px); }
 }
+
+/* Scroll progress bar (standard, Joseph 2026-09-30): a thin gold line across the very top that fills as you scroll.
+   Built by menu.js on every page; decorative only (aria-hidden). */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 9500; pointer-events: none;
+  background: var(--ttc-gold); transform: scaleX(0); transform-origin: 0 50%; will-change: transform;
+}

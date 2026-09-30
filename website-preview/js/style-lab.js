@@ -18,7 +18,6 @@
     { id: "5", name: "5 · Crew Scroll-Strip", bold: true, note: "Bold: \"Meet the Crew\" pins in place and slides sideways through its photos as you scroll past it. Wider screens only." },
     { id: "6", name: "6 · Headline Assemble", bold: true, note: "Bold: the hero headline's words fade and rise into place, one after another, right when the page loads." },
     { id: "7", name: "7 · Rotating Eyebrow", note: "The small line above the hero headline cycles through our services (Tree Pruning, Plant Health Care, ...)." },
-    { id: "8", name: "8 · Scroll Progress Bar", note: "A thin gold line at the very top fills in as you scroll down the page." },
     { id: "9", name: "9 · Real Reviews Ribbon", note: "A slow, pausable ribbon of real Google review quotes scrolls under the stats, each one linked to Google." },
     { id: "10", name: "10 · Underline Grow", note: "The small gold label above each heading draws in a thin underline the first time it scrolls into view." },
     { id: "11", name: "11 · Back-to-Top Leaf", note: "A small round leaf button appears once you've scrolled down, and takes you back to the top." }

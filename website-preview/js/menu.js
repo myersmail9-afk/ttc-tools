@@ -516,3 +516,24 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   window.addEventListener("load", setChrome);
 })();
 
+
+// Scroll progress bar (standard, Joseph 2026-09-30): thin gold line at the top that fills as you scroll.
+(function () {
+  var bar = document.createElement("div");
+  bar.className = "scroll-progress";
+  bar.setAttribute("aria-hidden", "true");
+  document.body.appendChild(bar);
+  var ticking = false;
+  function update() {
+    ticking = false;
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    bar.style.transform = "scaleX(" + p + ")";
+  }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  window.addEventListener("load", update);
+  update();
+})();
