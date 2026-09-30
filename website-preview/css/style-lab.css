@@ -50,40 +50,6 @@
 /* Hero photo: "Stays put" is now the standard in site.css; html.hs-scroll (below, via JS) turns it off. */
 
 /* ============================================================
-   Option 2 · Sticky Mini-Header
-   Once you've scrolled past the hero, the header sticks to the top, the logo shrinks, and a small
-   "Call" + "Free Estimate" pair fades in. Desktop/wide only (900px+) — on phones the green top bar
-   is already sticky on its own (site.css), so a second sticky header would stack awkwardly; below
-   900px this whole block is inert and style-lab.js's setup is a harmless no-op there.
-   ============================================================ */
-.lab-mini-header__quick { display: none; } /* base: hidden below 900px, so style-lab.js can append it unconditionally with no mobile side effect */
-@media (min-width: 900px) {
-  .lab-mini-header { position: sticky; top: 0; transition: box-shadow .25s var(--ease-out); }
-  .lab-mini-header.lab-condensed { box-shadow: var(--shadow-md); }
-  .lab-mini-header .site-header__inner { justify-content: flex-start; gap: var(--space-5); transition: padding .25s var(--ease-out); }
-  .lab-mini-header.lab-condensed .site-header__inner { padding-top: 6px; padding-bottom: 6px; }
-  .lab-mini-header .logo img { transition: height .25s var(--ease-out); }
-  .lab-mini-header.lab-condensed .logo img { height: 32px; }
-  .lab-mini-header__quick {
-    display: inline-flex; align-items: center; gap: 8px; margin-left: auto;
-    opacity: 0; transform: translateY(-4px); pointer-events: none;
-    transition: opacity .25s var(--ease-out), transform .25s var(--ease-out);
-  }
-  .lab-mini-header.lab-condensed .lab-mini-header__quick { opacity: 1; transform: none; pointer-events: auto; }
-  .lab-mini-header__call, .lab-mini-header__est {
-    display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border-radius: var(--r-pill);
-    font: 600 13px var(--font-body); text-decoration: none; white-space: nowrap;
-  }
-  .lab-mini-header__call { color: var(--ttc-green); border: 1.5px solid var(--ttc-green); }
-  .lab-mini-header__call:hover { background: var(--ttc-green); color: var(--text-on-dark); }
-  .lab-mini-header__est { background: var(--ttc-orange); color: #fff; }
-  .lab-mini-header__est:hover { background: var(--ttc-orange-dk); }
-  @media (prefers-reduced-motion: reduce) {
-    .lab-mini-header, .lab-mini-header .site-header__inner, .lab-mini-header .logo img, .lab-mini-header__quick { transition: none; }
-  }
-}
-
-/* ============================================================
    Option 3 · Click-to-Call Pill
    On phones, a round call button appears in the corner once you've scrolled down. Phones only —
    tablets and up already show the phone number in the top bar and header, so the pill is unneeded
@@ -180,15 +146,6 @@
 .lab-underline-draw.lab-in::after { width: 60%; }
 @media (max-width: 640px) { .lab-underline-draw.lab-in::after { width: 78%; } }
 @media (prefers-reduced-motion: reduce) { .lab-underline-draw::after { transition: none; } }
-
-/* ============================================================
-   Option 9 · Magnetic Estimate Button — Bold
-   On desktop, the hero's primary "Get a Free Estimate" button gently pulls toward the cursor and
-   glows on hover. Hover-capable pointers only — style-lab.js never attaches the listener on touch.
-   ============================================================ */
-.lab-magnetic { transition: transform .12s var(--ease-out), box-shadow .25s var(--ease-out); will-change: transform; }
-.lab-magnetic:hover, .lab-magnetic:focus-visible { box-shadow: 0 0 0 8px rgba(240, 192, 128, .35), var(--shadow-lg); }
-@media (prefers-reduced-motion: reduce) { .lab-magnetic { transition: none; } .lab-magnetic:hover { box-shadow: none; } }
 
 /* ============================================================
    Option 10 · Diagonal Dividers — Bold

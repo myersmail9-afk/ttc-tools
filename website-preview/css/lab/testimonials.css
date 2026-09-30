@@ -1,36 +1,10 @@
-/* Page lab styles for the "testimonials" page group (html.pl-2 … html.pl-5). Layered on top of the
+/* Page lab styles for the "testimonials" page group (html.pl-2 … html.pl-3). Layered on top of the
    standard .topic-chips / .testimonial-grid rules in site.css — never edited here. */
 
-/* ---- 2 · Aesthetic — Quote Mark Cards ---- */
-html.pl-2 .testimonial-grid .testimonial {
-  position: relative;
-  overflow: hidden;
-  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
-}
-html.pl-2 .testimonial-grid .testimonial::before {
-  content: "\201C";
-  position: absolute; top: -18px; left: 10px;
-  font-family: var(--font-display); font-weight: var(--fw-black); font-size: 96px; line-height: 1;
-  color: var(--ttc-green); opacity: .08;
-  pointer-events: none;
-}
-html.pl-2 .testimonial-grid .testimonial blockquote,
-html.pl-2 .testimonial-grid .testimonial figcaption {
-  position: relative; z-index: 1;
-}
-html.pl-2 .testimonial-grid .testimonial:hover,
-html.pl-2 .testimonial-grid .testimonial:focus-within {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-}
-@media (prefers-reduced-motion: reduce) {
-  html.pl-2 .testimonial-grid .testimonial { transition: none; }
-}
-
-/* ---- 3 · Ergonomics — Sticky Topic Filter (desktop/tablet only; the mobile top-bar already
+/* ---- 2 · Ergonomics — Sticky Topic Filter (desktop/tablet only; the mobile top-bar already
    claims the sticky top slot below 900px, so this stays static there — a quiet phone degrade) ---- */
 @media (min-width: 900px) {
-  html.pl-3 .topic-chips {
+  html.pl-2 .topic-chips {
     position: sticky; top: 16px; z-index: 40;
     background: var(--bg);
     padding: var(--space-3) 0;
@@ -40,35 +14,9 @@ html.pl-2 .testimonial-grid .testimonial:focus-within {
   }
 }
 
-/* ---- 4 · Feature — Featured Quote + Star Rating ---- */
-html.pl-4 .pl-spot {
-  position: relative;
-  background: var(--card);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-6);
-  margin: 0 0 var(--space-6);
-}
-html.pl-4 .pl-spot[hidden] { display: none; }
-html.pl-4 .pl-spot__rating { display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-3); }
-html.pl-4 .pl-spot__star { color: var(--ttc-gold); font-size: 20px; line-height: 1; }
-html.pl-4 .pl-spot__ratingline { font-weight: var(--fw-strong); color: var(--ttc-dark); font-size: var(--fs-small); }
-html.pl-4 .pl-spot__quote { margin: 0 0 var(--space-3); }
-html.pl-4 .pl-spot__quote p { font-size: 19px; line-height: var(--lh-comfy); color: var(--text); font-style: italic; margin: 0; }
-html.pl-4 .pl-spot__by { margin: 0 0 var(--space-4); font-weight: var(--fw-strong); color: var(--text-muted); font-size: var(--fs-small); }
-html.pl-4 .pl-spot__by a { color: var(--ttc-orange); }
-html.pl-4 .pl-spot__dots { display: flex; gap: 6px; }
-html.pl-4 .pl-spot__dot {
-  width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%;
-  background: var(--border); cursor: pointer;
-}
-html.pl-4 .pl-spot__dot.is-active { background: var(--ttc-green); }
-html.pl-4 .pl-spot__dot:focus-visible { outline: 2px solid var(--ttc-green); outline-offset: 2px; }
-
-/* ---- 5 · Clarity — Clear Filter Feedback ---- */
-html.pl-5 .pl-tcount {
+/* ---- 3 · Clarity — Clear Filter Feedback ---- */
+html.pl-3 .pl-tcount {
   margin: calc(-1 * var(--space-2)) 0 var(--space-4);
   color: var(--text-muted); font-size: var(--fs-small);
 }
-html.pl-5 .topic-chip.is-active::before { content: "\2713\0020"; }
+html.pl-3 .topic-chip.is-active::before { content: "\2713\0020"; }

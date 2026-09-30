@@ -1,1 +1,71 @@
-/* Page lab styles for the contact group. Empty: all four ideas promoted to site.css 2026-09-30. */
+/* Page lab styles for the contact group (html.pl-2 … html.pl-5). Preview only — never loaded on
+   the real site. Brand tokens only; orange stays reserved for calls to action. Layered on top of
+   the "Contact page standard" block in site.css — never overrides the form, phone links, .call-fab,
+   or .contact-altpath box, only adds to them. */
+
+/* ---- 2 · Aesthetic — icon-accented details ---- */
+html.pl-2 .contact-request, html.pl-2 .contact-details { position: relative; overflow: hidden; }
+html.pl-2 .contact-request::after, html.pl-2 .contact-details::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg, var(--ttc-green), var(--ttc-gold));
+}
+html.pl-2 .contact-details > p { padding-left: 40px; }
+html.pl-2 .contact-details > p::before {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  top: -2px; font-size: 13px; line-height: 1; background: var(--ttc-green); color: #fff;
+}
+html.pl-2 .contact-details > p:nth-of-type(1)::before { content: "\1F4CD"; }
+html.pl-2 .contact-details > p:nth-of-type(2)::before { content: "\1F4DE"; }
+html.pl-2 .contact-details > p:nth-of-type(3)::before { content: "\2709"; }
+html.pl-2 .contact-details a[href^="tel:"]:not(.btn),
+html.pl-2 .contact-details a[href^="mailto:"] {
+  display: inline-block; background: var(--bg-alt); border-radius: var(--r-pill);
+  padding: 2px 12px; text-decoration: none;
+}
+html.pl-2 .contact-details a[href^="tel:"]:not(.btn):hover, html.pl-2 .contact-details a[href^="tel:"]:not(.btn):focus-visible,
+html.pl-2 .contact-details a[href^="mailto:"]:hover, html.pl-2 .contact-details a[href^="mailto:"]:focus-visible {
+  background: var(--border-soft);
+}
+
+/* ---- 3 · Ergonomics — "Prefer to talk?" call-first banner ---- */
+html.pl-3 .pl3-callfirst {
+  margin: 0 0 var(--space-6); padding: var(--space-5); text-align: center;
+  background: var(--bg-alt); border: 2px solid var(--border); border-radius: var(--r-lg);
+}
+html.pl-3 .pl3-callfirst__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 56px; padding: 0 32px; font-size: 19px;
+}
+html.pl-3 .pl3-callfirst__or { margin: var(--space-3) 0 0; font-size: 16px; color: var(--text-muted); }
+
+/* ---- 4 · Feature — live open / closed status ---- */
+html.pl-4 .pl4-status {
+  display: inline-flex; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) var(--space-4); border-radius: var(--r-pill); font-weight: var(--fw-strong); font-size: 15px;
+}
+html.pl-4 .pl4-status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+html.pl-4 .pl4-status.is-open { background: var(--success-bg); color: var(--success-text); }
+html.pl-4 .pl4-status.is-open::before { background: var(--success-border); }
+html.pl-4 .pl4-status.is-closed { background: var(--bg-alt); color: var(--text-muted); }
+html.pl-4 .pl4-status.is-closed::before { background: var(--text-hint); }
+
+/* ---- 5 · Clarity — "What brings you here?" chooser ---- */
+html.pl-5 .pl5-chooser { padding-top: var(--space-6); padding-bottom: 0; }
+html.pl-5 .pl5-chooser__lead {
+  margin: 0 0 var(--space-4); text-align: center; font-family: var(--font-display);
+  font-weight: var(--fw-bold); font-size: 20px; color: var(--text);
+}
+html.pl-5 .pl5-chooser__row { display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: center; }
+html.pl-5 .pl5-chooser__card {
+  flex: 1 1 240px; max-width: 320px; display: block; padding: var(--space-5);
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text); text-align: center;
+  min-height: 44px;
+}
+html.pl-5 .pl5-chooser__card:hover, html.pl-5 .pl5-chooser__card:focus-visible {
+  box-shadow: var(--shadow-md); border-color: var(--ttc-green);
+}
+html.pl-5 .pl5-chooser__card strong {
+  display: block; font-family: var(--font-display); font-size: 18px; margin-bottom: var(--space-1); color: var(--ttc-dark);
+}
+html.pl-5 .pl5-chooser__card span { display: block; color: var(--text-muted); font-size: 14px; }

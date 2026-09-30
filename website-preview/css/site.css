@@ -1062,3 +1062,143 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 .comp-stat { background: var(--bg-alt); border-radius: var(--r-lg); padding: var(--space-5); text-align: center; }
 .comp-stat strong { display: block; font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--ttc-green); }
 .comp-stat span { display: block; font-size: var(--fs-small); color: var(--text-muted); margin-top: 4px; }
+
+/* ===== Blog standard (Joseph, 2026-09-30: promoted from the preview Style options 2 "Card-style articles")
+   Each article — the blog-list entries and a single post's body — sits in a soft card instead of
+   running edge to edge. Scoped to .post, which only appears on the blog list and the two post pages. ===== */
+.post {
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm); padding: var(--space-6); margin-bottom: var(--space-6);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+.post:hover { box-shadow: var(--shadow-md); }
+.post img { border-radius: var(--r-md); }
+.post:last-child { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .post { transition: none; } }
+
+/* ===== Testimonials standard (Joseph, 2026-09-30: promoted from the preview Style options
+   2 "Quote Mark Cards" and 4 "Featured Quote + Star Rating"). Layered on top of the standard
+   .topic-chips / .testimonial-grid rules above — never edited here. ===== */
+
+/* ---- Quote Mark Cards: a large soft quotation mark behind each review + a gentle hover lift ---- */
+.testimonial-grid .testimonial {
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.testimonial-grid .testimonial::before {
+  content: "\201C";
+  position: absolute; top: -18px; left: 10px;
+  font-family: var(--font-display); font-weight: var(--fw-black); font-size: 96px; line-height: 1;
+  color: var(--ttc-green); opacity: .08;
+  pointer-events: none;
+}
+.testimonial-grid .testimonial blockquote,
+.testimonial-grid .testimonial figcaption,
+.testimonial-grid .testimonial .testimonial__stars {
+  position: relative; z-index: 1;
+}
+.testimonial-grid .testimonial:hover,
+.testimonial-grid .testimonial:focus-within {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-grid .testimonial { transition: none; }
+}
+
+/* ---- Featured Quote + Star Rating: spotlight banner built by menu.js, above the topic chips ---- */
+.testimonial-spotlight {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+  margin: 0 0 var(--space-6);
+}
+.testimonial-spotlight[hidden] { display: none; }
+.testimonial-spotlight__rating { display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-3); }
+.testimonial-spotlight__star { color: var(--ttc-gold); font-size: 20px; line-height: 1; }
+.testimonial-spotlight__ratingline { font-weight: var(--fw-strong); color: var(--ttc-dark); font-size: var(--fs-small); }
+.testimonial-spotlight__quote { margin: 0 0 var(--space-3); }
+.testimonial-spotlight__quote p { font-size: 19px; line-height: var(--lh-comfy); color: var(--text); font-style: italic; margin: 0; }
+.testimonial-spotlight__by { margin: 0 0 var(--space-4); font-weight: var(--fw-strong); color: var(--text-muted); font-size: var(--fs-small); }
+.testimonial-spotlight__by a { color: var(--ttc-orange); }
+.testimonial-spotlight__dots { display: flex; gap: 6px; }
+.testimonial-spotlight__dot {
+  width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+}
+.testimonial-spotlight__dot.is-active { background: var(--ttc-green); }
+.testimonial-spotlight__dot:focus-visible { outline: 2px solid var(--ttc-green); outline-offset: 2px; }
+
+/* ===== Testimonials: Google star row on each review card (rendered by build.py only when the JSON has a
+   verified "rating"). ===== */
+.testimonial__stars { margin: 0 0 var(--space-2); color: var(--ttc-gold); font-size: 20px; letter-spacing: 2px; line-height: 1; }
+
+/* ===== Homepage standard: sticky mini-header + magnetic estimate button (Joseph, 2026-09-30,
+   promoted from the homepage preview Style options 2 and 9). Built by menu.js on .page-home only.
+   Mini-header is desktop/wide only (900px+): on phones the green top bar is already sticky. ===== */
+.mini-quick { display: none; }
+@media (min-width: 900px) {
+  .page-home .site-header { position: sticky; top: 0; transition: box-shadow .25s var(--ease-out); }
+  .page-home .site-header.is-condensed { box-shadow: var(--shadow-md); }
+  .page-home .site-header__inner { transition: padding .25s var(--ease-out); }
+  .page-home .site-header.is-condensed .site-header__inner { padding-top: 6px; padding-bottom: 6px; }
+  .page-home .site-header .logo img { transition: height .25s var(--ease-out); }
+  .page-home .site-header.is-condensed .logo img { height: 32px; }
+  .page-home .site-header.is-condensed .mini-quick {
+    display: inline-flex; align-items: center; gap: 8px; margin-left: var(--space-4);
+    animation: mini-quick-in .25s var(--ease-out);
+  }
+  @keyframes mini-quick-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .mini-quick__call, .mini-quick__est {
+    display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border-radius: var(--r-pill);
+    font: 600 13px var(--font-body); text-decoration: none; white-space: nowrap;
+  }
+  .mini-quick__call { color: var(--ttc-green); border: 1.5px solid var(--ttc-green); }
+  .mini-quick__call:hover { background: var(--ttc-green); color: var(--text-on-dark); }
+  .mini-quick__est { background: var(--ttc-orange); color: #fff; }
+  .mini-quick__est:hover { background: var(--ttc-orange-dk); color: #fff; }
+}
+.btn-magnetic { transition: transform .12s var(--ease-out), box-shadow .25s var(--ease-out); will-change: transform; }
+.btn-magnetic:hover, .btn-magnetic:focus-visible { box-shadow: 0 0 0 8px rgba(240, 192, 128, .35), var(--shadow-lg); }
+@media (prefers-reduced-motion: reduce) {
+  .page-home .site-header, .page-home .site-header__inner, .page-home .site-header .logo img { transition: none; }
+  .page-home .mini-quick { animation: none !important; }
+  .btn-magnetic { transition: none; }
+}
+@media (min-width: 900px) {
+  .page-home .site-header .logo { flex-shrink: 0; }
+}
+@media (min-width: 900px) and (max-width: 1199px) {
+  /* Condensed header on narrower desktops: the Call + Free Estimate pair takes the ISA pill's place so nothing overflows. */
+  .page-home .site-header.is-condensed .pill { display: none; }
+}
+
+/* ===== Service pages: photo steps back, text breathes (Joseph, 2026-09-30: "the photos take up too much
+   of the page … everything else looks a little claustrophobic"). The hero becomes text-first with the
+   photo beside it (desktop) or after the buttons at a modest height (phones); everything below sits in a
+   centered reading column with light dividers between sections. ===== */
+.svc-page .svc-hero { padding: var(--space-6); border-radius: var(--r-lg); display: flex; flex-direction: column; gap: var(--space-4); }
+.svc-page .svc-hero h2 { margin: 0; }
+.svc-page .svc-hero .lead { margin: 0; }
+.svc-page .svc-hero .btn-row { margin: 0; }
+.svc-page .svc-hero img { order: 4; aspect-ratio: 16 / 10; max-height: 240px; box-shadow: var(--shadow-sm); }
+@media (min-width: 900px) {
+  .svc-page .svc-hero {
+    display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    grid-template-areas: "title photo" "lead photo" "btns photo"; grid-template-rows: 1fr auto 1fr;
+    column-gap: var(--space-7); row-gap: var(--space-4); padding: var(--space-7);
+  }
+  .svc-page .svc-hero img { grid-area: photo; order: 0; aspect-ratio: 4 / 3; max-height: 340px; align-self: center; }
+  .svc-page .svc-hero h2 { grid-area: title; align-self: end; }
+  .svc-page .svc-hero .lead { grid-area: lead; }
+  .svc-page .svc-hero .btn-row { grid-area: btns; align-self: start; }
+}
+.svc-page .svc-trust, .svc-page .svc-section, .svc-page > .wrap > .testimonial, .svc-page > .wrap > .btn-row {
+  max-width: 800px; margin-left: auto; margin-right: auto;
+}
+.svc-page .svc-section + .svc-section, .svc-page .testimonial + .svc-section { border-top: 1px solid var(--border-soft); }
+.svc-page .svc-section { padding: var(--space-7) 0; }

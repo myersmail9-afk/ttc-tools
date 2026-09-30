@@ -4,12 +4,7 @@
    .post articles, each with a .post-meta line and an <h2><a> title. */
 window.TTC_PAGE_LAB = { group: "blog", title: "Blog & posts", options: [
 
-  { id: "2", kind: "Aesthetic", name: "2 · Card-style articles",
-    note: "Each article — the list entries and a single post's body — sits in a soft card instead of running edge to edge.",
-    // CSS-only — see css/lab/blog.css.
-  },
-
-  { id: "3", kind: "Ergonomics", name: "3 · Bigger text + easier clicks",
+  { id: "2", kind: "Ergonomics", name: "2 · Bigger text + easier clicks",
     note: "Larger, more readable type; the whole article card is clickable on the list; a post page gets a clear “Back to all articles” link.",
     setup: function () {
       var articles = Array.prototype.slice.call(document.querySelectorAll(".post"));
@@ -49,7 +44,7 @@ window.TTC_PAGE_LAB = { group: "blog", title: "Blog & posts", options: [
     }
   },
 
-  { id: "4", kind: "Feature", name: "4 · Reading time + progress",
+  { id: "3", kind: "Feature", name: "3 · Reading time + progress",
     note: "A “X min read” chip on every article, plus a top progress bar that fills as you read a post.",
     setup: function () {
       var articles = Array.prototype.slice.call(document.querySelectorAll(".post"));
@@ -98,7 +93,7 @@ window.TTC_PAGE_LAB = { group: "blog", title: "Blog & posts", options: [
     }
   },
 
-  { id: "5", kind: "Clarity", name: "5 · Obvious next step",
+  { id: "4", kind: "Clarity", name: "4 · Obvious next step",
     note: "List entries get an explicit “Read full article →” link; a post page ends with a clear call to get an estimate or call.",
     setup: function () {
       var articles = Array.prototype.slice.call(document.querySelectorAll(".post"));

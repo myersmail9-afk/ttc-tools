@@ -542,6 +542,136 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
    view (Joseph, 2026-09-30, promoted from the preview Style options). */
 (function(){ var fab=document.querySelector("[data-call-fab]"); var phone=document.querySelector(".contact-details > p a[href^='tel:']"); if(!fab||!phone) return; var ticking=false; function update(){ ticking=false; var r=phone.getBoundingClientRect(); var seen=r.top<window.innerHeight&&r.bottom>0; fab.classList.toggle("is-visible",!seen); } function onScroll(){ if(!ticking){ticking=true;requestAnimationFrame(update);} } window.addEventListener("scroll",onScroll,{passive:true}); window.addEventListener("resize",onScroll,{passive:true}); update(); })();
 
+/* Testimonials page: "Featured Quote + Star Rating" spotlight banner above the topic chips. Rotates
+   through the (topic-filtered) reviews every 6s, reusing the page's own rating sentence and each
+   card's real quote/author/link — never invents a number. Pauses on hover/focus, no auto-advance
+   under prefers-reduced-motion, and stays in sync with the topic-chip filter above (Joseph,
+   2026-09-30, promoted from the preview Style options). Only runs when the page has a testimonial
+   grid and a lead paragraph, so it never touches any other page. */
+(function () {
+  var grid = document.querySelector(".testimonial-grid");
+  var lead = document.querySelector(".lead");
+  if (!grid || !lead) return;
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var spot = document.createElement("div");
+  spot.className = "testimonial-spotlight";
+  spot.innerHTML =
+    '<div class="testimonial-spotlight__rating"><span class="testimonial-spotlight__star" aria-hidden="true">★</span>' +
+    '<span class="testimonial-spotlight__ratingline"></span></div>' +
+    '<blockquote class="testimonial-spotlight__quote"><p></p></blockquote>' +
+    '<p class="testimonial-spotlight__by"></p>' +
+    '<div class="testimonial-spotlight__dots"></div>';
+  lead.insertAdjacentElement("afterend", spot);
+
+  // Reuse the exact rating sentence already on the page (never invent a number).
+  var m = (lead.textContent || "").match(/(\d+(?:\.\d+)?)\s*stars from\s*(\d+)\s*Google reviews/i);
+  spot.querySelector(".testimonial-spotlight__ratingline").textContent =
+    m ? (m[1] + " out of 5 — " + m[2] + " Google reviews") : (lead.textContent || "").trim();
+
+  var quoteP = spot.querySelector(".testimonial-spotlight__quote p");
+  var byP = spot.querySelector(".testimonial-spotlight__by");
+  var dotsWrap = spot.querySelector(".testimonial-spotlight__dots");
+  var cards = [];
+  var idx = 0;
+  var timer = null;
+
+  function collect() {
+    // Reads whichever cards the topic-chip filter above has left visible; never filters on its own.
+    cards = Array.prototype.slice.call(grid.querySelectorAll(".testimonial")).filter(function (c) { return !c.hidden; });
+    dotsWrap.innerHTML = "";
+    cards.forEach(function (_, i) {
+      var d = document.createElement("button");
+      d.type = "button";
+      d.className = "testimonial-spotlight__dot";
+      d.setAttribute("aria-label", "Show quote " + (i + 1) + " of " + cards.length);
+      dotsWrap.appendChild(d);
+    });
+  }
+
+  function render() {
+    if (!cards.length) { spot.hidden = true; return; }
+    spot.hidden = false;
+    idx = ((idx % cards.length) + cards.length) % cards.length;
+    var card = cards[idx];
+    // Reads the review text from the blockquote only, so a card's star row (if any) is never quoted.
+    var textEl = card.querySelector("blockquote p");
+    quoteP.textContent = textEl ? textEl.textContent : "";
+    byP.innerHTML = "";
+    var cap = card.querySelector("figcaption");
+    var link = cap ? cap.querySelector("a") : null;
+    if (link) {
+      var a = document.createElement("a");
+      a.href = link.href; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = link.textContent.replace(/\s*Google review\s*$/, "").trim();
+      byP.appendChild(a);
+      var srcEl = cap.querySelector(".testimonial__src");
+      if (srcEl) {
+        byP.appendChild(document.createTextNode(" "));
+        var badge = document.createElement("span");
+        badge.className = "testimonial__src";
+        badge.textContent = srcEl.textContent;
+        byP.appendChild(badge);
+      }
+    } else if (cap) {
+      byP.textContent = cap.textContent;
+    }
+    Array.prototype.forEach.call(dotsWrap.children, function (d, i) {
+      d.classList.toggle("is-active", i === idx);
+    });
+  }
+
+  function next() { idx++; render(); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function start() { if (!reduceMotion && cards.length > 1) { stop(); timer = setInterval(next, 6000); } }
+
+  collect();
+  render();
+  start();
+
+  spot.addEventListener("mouseenter", stop);
+  spot.addEventListener("mouseleave", start);
+  spot.addEventListener("focusin", stop);
+  spot.addEventListener("focusout", start);
+
+  dotsWrap.addEventListener("click", function (e) {
+    var i = Array.prototype.indexOf.call(dotsWrap.children, e.target);
+    if (i > -1) { idx = i; render(); stop(); start(); }
+  });
+
+  // Stay in sync with whichever topic chip is active (the topic-chip filter above owns the actual
+  // filtering; this only re-reads the result after that click handler has run).
+  var chips = Array.prototype.slice.call(document.querySelectorAll(".topic-chip"));
+  chips.forEach(function (c) {
+    c.addEventListener("click", function () { idx = 0; collect(); render(); start(); });
+  });
+})();
+
 /* Gallery: "Back to the top" button once you're past the first screenful of photos (Joseph, 2026-09-30,
    promoted from the preview Style options). */
 (function(){ if(!document.querySelector(".gallery-grid")) return; var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches; var btn=document.createElement("button"); btn.type="button"; btn.className="back-top"; btn.textContent="Back to the top ↑"; btn.hidden=true; document.body.appendChild(btn); btn.addEventListener("click",function(){ if(reduce) window.scrollTo(0,0); else window.scrollTo({top:0,behavior:"smooth"}); }); function onScroll(){ btn.hidden=window.scrollY<700; } window.addEventListener("scroll",onScroll,{passive:true}); onScroll(); })();
+
+/* Homepage: sticky mini-header (Call + Free Estimate fade in once you're past the hero; 900px+ via CSS)
+   and the magnetic "Get a Free Estimate" button (hover-capable pointers only). Joseph, 2026-09-30,
+   promoted from the homepage preview Style options. */
+(function(){
+  if(!document.body.classList.contains("page-home")) return;
+  var header=document.querySelector(".site-header"), inner=header&&header.querySelector(".site-header__inner");
+  var hero=document.querySelector(".hero-slides")||document.querySelector(".hero");
+  var est=document.querySelector(".hero .btn-row .btn--primary");
+  var tel=document.querySelector(".hero .btn-row a[href^='tel:']");
+  if(header&&inner&&hero&&est&&tel){
+    var quick=document.createElement("div"); quick.className="mini-quick";
+    var c=document.createElement("a"); c.className="mini-quick__call"; c.href=tel.getAttribute("href"); c.textContent="Call";
+    var e=document.createElement("a"); e.className="mini-quick__est"; e.href=est.getAttribute("href"); e.textContent="Free Estimate";
+    e.addEventListener("click",function(ev){ var j=document.getElementById("work-request-button-5a7fcc26-6b73-4bec-a630-dd63f55352e9"); if(j){ ev.preventDefault(); j.click(); } });
+    quick.appendChild(c); quick.appendChild(e); inner.appendChild(quick);
+    if(window.IntersectionObserver){ new IntersectionObserver(function(en){ header.classList.toggle("is-condensed",!en[0].isIntersecting); },{rootMargin:"-72px 0px 0px 0px"}).observe(hero); }
+  }
+  var hover=false; try{ hover=matchMedia("(hover: hover) and (pointer: fine)").matches; }catch(x){}
+  if(est&&hover&&!matchMedia("(prefers-reduced-motion: reduce)").matches){
+    est.classList.add("btn-magnetic"); var raf=null;
+    est.addEventListener("mousemove",function(ev){ var r=est.getBoundingClientRect(); var x=ev.clientX-(r.left+r.width/2), y=ev.clientY-(r.top+r.height/2); if(raf) return; raf=requestAnimationFrame(function(){ raf=null; var m=10; est.style.transform="translate("+Math.max(-m,Math.min(m,x*.25)).toFixed(1)+"px,"+Math.max(-m,Math.min(m,y*.35)).toFixed(1)+"px)"; }); });
+    est.addEventListener("mouseleave",function(){ if(raf) cancelAnimationFrame(raf); raf=null; est.style.transform=""; });
+  }
+})();

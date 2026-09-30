@@ -1,1 +1,50 @@
-/* Page lab styles for the gallery group (html.pl-2 … html.pl-5). */
+/* Page lab styles for the gallery group (html.pl-2 … html.pl-5). Preview only — never loaded on
+   the real site. Brand tokens only; orange stays reserved for calls to action. Layered on top of
+   the "Gallery standard additions" block in site.css (Warm Frame Hover + Back to the top) — never
+   touches .gallery-item's structure, only adds to it. */
+
+/* ---- 2 · Aesthetic — editorial black & white ---- */
+html.pl-2 .gallery-grid img {
+  filter: grayscale(88%) contrast(1.02);
+  transition: filter var(--dur-base) var(--ease-out);
+}
+html.pl-2 .gallery-grid a.gallery-item:hover img,
+html.pl-2 .gallery-grid a.gallery-item:focus-visible img {
+  filter: grayscale(0%);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.pl-2 .gallery-grid img { transition: none; }
+}
+
+/* ---- 3 · Ergonomics — bigger photos, steadier lightbox controls ---- */
+html.pl-3 .gallery-grid { --g-row: 190px; gap: 16px; }
+@media (min-width: 640px) { html.pl-3 .gallery-grid { --g-row: 230px; gap: 20px; } }
+@media (min-width: 1024px) { html.pl-3 .gallery-grid { --g-row: 260px; gap: 24px; } }
+html.pl-3 .pl3-hint {
+  margin: 0 0 var(--space-5); text-align: center; font-size: 17px; color: var(--text-muted);
+}
+html.pl-3 dialog.lightbox.is-idle .lightbox__prev,
+html.pl-3 dialog.lightbox.is-idle .lightbox__next,
+html.pl-3 dialog.lightbox.is-idle .lightbox__counter { opacity: 1; }
+html.pl-3 .lightbox__prev, html.pl-3 .lightbox__next { width: 64px; height: 64px; font-size: 36px; opacity: .85; }
+html.pl-3 .lightbox__close { width: 56px; height: 56px; font-size: 26px; }
+
+/* ---- 4 · Feature — slideshow mode ---- */
+html.pl-4 .pl4-play {
+  position: absolute; top: var(--space-4); right: calc(var(--space-4) + 60px); z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px;
+  background: transparent; border: 1px solid var(--border-on-dark); border-radius: 50%;
+  color: var(--text-on-dark); font-size: 16px; line-height: 1; cursor: pointer;
+}
+html.pl-4 .pl4-play:hover, html.pl-4 .pl4-play:focus-visible { background: rgba(255, 255, 255, .12); }
+html.pl-4 .pl4-play.is-playing { background: var(--ttc-green); border-color: var(--ttc-green); }
+
+/* ---- 5 · Clarity — visible captions in the lightbox ---- */
+html.pl-5 .pl5-caption {
+  position: absolute; left: 0; right: 0; bottom: var(--space-4); z-index: 2;
+  text-align: center; padding: 0 var(--space-9); color: var(--text-on-dark); font-size: var(--fs-small); opacity: .9;
+}
+html.pl-5 .pl5-caption[hidden] { display: none; }
+@media (max-width: 640px) {
+  html.pl-5 .pl5-caption { padding: 0 var(--space-4); font-size: 13px; bottom: var(--space-3); }
+}

@@ -17,14 +17,12 @@
 (function () {
   var LOOKS = [
     { id: "std", name: "1 · Standard (Gentle Motion + Warm Welcome)", note: "Today's baseline: full-screen hero, gold proof strip, deep green bands, sections that fade+rise into view, count-up numbers, a gold scroll-progress bar, and warm hover touches. No changes — everything below adds ONE new thing on top of this." },
-    { id: "2", name: "2 · Sticky Mini-Header", note: "As you scroll past the hero, the header sticks to the top, the logo shrinks, and small Call + Free Estimate buttons fade in. Desktop/wide screens only — phones keep today's plain header." },
     { id: "3", name: "3 · Click-to-Call Pill", note: "On phones, a round call button appears in the corner once you've scrolled down, so the number is always one tap away. Phones only." },
     { id: "4", name: "4 · Trust Ticker", note: "A slim line inside the credibility strip quietly rotates through facts already on this page — jobs completed, Google stars, ISA arborists on staff." },
     { id: "5", name: "5 · Seasonal Tree-Care Note", note: "A short note below the hero pulls this month's real tip straight from our FAQ or service pages (winter pruning, spray-season timing) and links to that page. No invented facts." },
     { id: "6", name: "6 · Photo Tiles Breathe", note: "Crew photos gently scale and drift inside their frame as they scroll through the middle of the screen, like a slow breath. Off under reduced motion." },
     { id: "7", name: "7 · Growth Rings", bold: true, note: "Bold: faint tree-ring circles draw in behind each stat number the moment it scrolls into view and counts up." },
     { id: "8", name: "8 · Hero Underline Draw", bold: true, note: "Bold: a solid gold bar draws in under the hero headline a beat after the page loads." },
-    { id: "9", name: "9 · Magnetic Estimate Button", bold: true, note: "Bold: on desktop, the hero's orange Free Estimate button gently pulls toward your cursor and glows on hover." },
     { id: "10", name: "10 · Diagonal Dividers", bold: true, note: "Bold: the bands below the credibility strip meet at a soft diagonal cut instead of a straight line, all the way down the page." },
     { id: "11", name: "11 · Day-to-Dusk Hero Tint", bold: true, note: "Bold: the hero photo gets a soft dawn / day / dusk / night color wash based on the clock on your own device right now." }
   ];
@@ -32,7 +30,7 @@
     { id: "fixed", name: "Stays put (standard)", note: "The photo holds still and the words scroll over it." },
     { id: "scroll", name: "Scrolls with the page", note: "The photo moves up with the words." }
   ];
-  var FX_IDS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+  var FX_IDS = ["3", "4", "5", "6", "7", "8", "10", "11"];
   var root = document.documentElement;
   var SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -77,50 +75,6 @@
   }
 
   /* ---------- Effects (options 2-11): setup returns a teardown function ---------- */
-
-  // Option 2 — Sticky Mini-Header: once you've scrolled past the hero, the header sticks to the
-  // top of the screen, the logo shrinks, and a small "Call" + "Free Estimate" pair fades in.
-  // Desktop/wide screens only (900px+) — on phones the green top bar is already sticky on its own,
-  // so a second sticky header would stack awkwardly; style-lab.css gates the visuals to 900px+ and
-  // this setup is a harmless no-op below that width.
-  function setupFx2(scope) {
-    var header = scope.querySelector(".site-header");
-    var hero = scope.querySelector(".hero-slides");
-    if (!header || !hero) return noop;
-    header.classList.add("lab-mini-header");
-
-    var quick = document.createElement("div");
-    quick.className = "lab-mini-header__quick";
-    quick.innerHTML =
-      '<a class="lab-mini-header__call" href="tel:+14357521884">Call</a>' +
-      '<a class="lab-mini-header__est" href="/contact/">Free Estimate</a>';
-    header.querySelector(".site-header__inner").appendChild(quick);
-
-    var estLink = quick.querySelector(".lab-mini-header__est");
-    function onEstimate(e) {
-      var jobberBtn = document.getElementById("work-request-button-5a7fcc26-6b73-4bec-a630-dd63f55352e9");
-      if (jobberBtn) { e.preventDefault(); jobberBtn.click(); }
-    }
-    estLink.addEventListener("click", onEstimate);
-
-    var io = null, condensed = false;
-    function setCondensed(v) {
-      if (v === condensed) return;
-      condensed = v;
-      header.classList.toggle("lab-condensed", v);
-    }
-    if (window.IntersectionObserver) {
-      io = new IntersectionObserver(function (entries) { setCondensed(!entries[0].isIntersecting); }, { rootMargin: "-72px 0px 0px 0px" });
-      io.observe(hero);
-    }
-
-    return function teardown() {
-      if (io) { try { io.disconnect(); } catch (e) {} }
-      estLink.removeEventListener("click", onEstimate);
-      if (quick.parentNode) quick.parentNode.removeChild(quick);
-      header.classList.remove("lab-mini-header", "lab-condensed");
-    };
-  }
 
   // Option 3 — Click-to-Call Pill: on phones, a round call button appears in the corner once
   // you've scrolled a little, so the number is always one tap away. style-lab.css hides it above
@@ -389,46 +343,6 @@
     };
   }
 
-  // Option 9 — Magnetic Estimate Button: on desktop, the hero's primary "Get a Free Estimate"
-  // button gently pulls toward the cursor and glows on hover. Hover-capable pointers only — on
-  // touch, style-lab.js never attaches a listener, so the button behaves exactly like the standard.
-  function setupFx9(scope) {
-    if (!canHover()) return noop;
-    var btn = scope.querySelector(".hero .btn-row .btn--primary");
-    if (!btn) return noop;
-    btn.classList.add("lab-magnetic");
-
-    var raf = null;
-    function move(e) {
-      var r = btn.getBoundingClientRect();
-      var x = e.clientX - (r.left + r.width / 2);
-      var y = e.clientY - (r.top + r.height / 2);
-      if (raf) return;
-      raf = requestAnimationFrame(function () {
-        raf = null;
-        var max = 10;
-        var tx = Math.max(-max, Math.min(max, x * 0.25));
-        var ty = Math.max(-max, Math.min(max, y * 0.35));
-        btn.style.transform = "translate(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px)";
-      });
-    }
-    function reset() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-      btn.style.transform = "";
-    }
-    btn.addEventListener("mousemove", move);
-    btn.addEventListener("mouseleave", reset);
-
-    return function teardown() {
-      btn.removeEventListener("mousemove", move);
-      btn.removeEventListener("mouseleave", reset);
-      if (raf) cancelAnimationFrame(raf);
-      btn.style.transform = "";
-      btn.classList.remove("lab-magnetic");
-    };
-  }
-
   // Option 10 — Diagonal Dividers: the bands from the stats section down meet at a soft diagonal
   // cut instead of a straight line. Pure CSS clip-path on each section's own background, so the
   // colors on either side of every cut are always correct with no color-matching logic needed.
@@ -461,8 +375,8 @@
   }
 
   var FX_SETUP = {
-    "2": setupFx2, "3": setupFx3, "4": setupFx4, "5": setupFx5, "6": setupFx6,
-    "7": setupFx7, "8": setupFx8, "9": setupFx9, "10": setupFx10, "11": setupFx11
+    "3": setupFx3, "4": setupFx4, "5": setupFx5, "6": setupFx6,
+    "7": setupFx7, "8": setupFx8, "10": setupFx10, "11": setupFx11
   };
   var activeTeardown = null;
 
