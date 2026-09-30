@@ -158,7 +158,7 @@ window.TTC_CHIP_COPY = {
   // replaces the old wall-of-text profileSavedNote with a friendlier opener. Shown under the "Hi, [name]" heading.
   profileGreeting: function (firstName) { return firstName ? ('Hi, ' + firstName + '.') : 'Hi there.'; },
   profileGreetingSub: 'Here is what we have on file for your wood chip drops.',
-  profileSavedNote: 'This is your profile page. Everything you entered is below, grouped into cards. Tap Change on any card to update it, then save. Come back anytime: sign in with your email and a new code.',
+  profileSavedNote: 'This is your profile page. Your contact info is at the top. Each drop location has its own card below. Tap Change on a card to update it, then save. Come back anytime: sign in with your email and a new code.',
   // Same five statuses the office sees, worded for the customer reading their own profile.
   statusLabels: {
     pending: 'New: we’re checking your details',
@@ -168,24 +168,39 @@ window.TTC_CHIP_COPY = {
     left: 'Off the list'
   },
   // One plain-language line per status — what it means, using only facts stated elsewhere on this page
-  // (successBody2/3, pausedNote, leftNote). No new promises or timeframes.
+  // (successBody2/3, pausedNote). No new promises or timeframes.
   statusHelp: {
     pending: 'We are checking your details. We can’t promise a time frame, and you’ll see your status change here when it’s done.',
     active: 'The crew drops chips at your spot when it’s your turn.',
     paused: 'Your drops are on hold. Call us if you’d like to start again.',
     inactive: 'You already got the loads you asked for. Sign up again anytime for more.',
-    left: 'You’re off the list. You can sign up again anytime from this page.'
+    left: 'This location is off the list. Select Get Back on the List below if you want chips here again.'
   },
   viewJobberButton: 'See Your Invoices in Jobber',
   mapLinkText: 'View Your Drop Spot on Google Maps',
 
-  // Card titles for the desktop 2-column layout (phone: same cards, stacked).
+  // Section + card titles for the profile page (2026-09-30 redesign: one contact card, then one
+  // card per chip drop location — desktop: a readable grid; phone: the same cards, stacked).
+  requestsSectionTitle: 'Your Chip Drop Requests',
   cardDropSpotTitle: 'Your Drop Spot',
   cardPlanTitle: 'Your Plan',
   cardDropsTitle: 'Your Chip Drops',
   cardNotesTitle: 'Notes for the Crew',
   cardContactTitle: 'Your Contact Info',
   changeButton: 'Change',
+
+  // ---- multiple drop locations per account (Joseph, 2026-09-30) ----
+  addLocationButton: 'Add Another Drop Location',
+  addLocationFormTitle: 'Add Another Drop Location',
+  addLocationSubmitButton: 'Add This Location',
+  locationAddedNote: 'This drop location is saved. The office checks it before it goes active.',
+  maxLocationsNote: 'You already have 5 drop locations on the list. Call the office if you need another.',
+  rejoinButton: 'Get Back on the List',
+  rejoinFormTitle: 'Get Back on the List',
+  rejoinFormNote: 'Check each item below. Change anything that is different. Then confirm.',
+  rejoinSubmitButton: 'Confirm and Rejoin',
+  rejoinSuccessBody: 'This location is back on the list as new. The office checks it before it goes active.',
+  photoKeptHelp: 'This is the photo we have on file for this spot. Choose a new one only if the spot changed.',
 
   // ---- "Your Chip Drops" card (Joseph, 2026-09-30): what the crew has actually delivered so far. Read
   // only — the crew logs a drop, and it shows up here; there is nothing for the customer to change.
@@ -209,18 +224,20 @@ window.TTC_CHIP_COPY = {
   saveSuccessMessage: 'Saved.',
   addressChangedNotice: 'We’ll check the new spot before the next drop.',
 
-  pauseButton: 'Pause My Drops',
+  pauseButton: 'Pause This Location',
   pausing: 'Pausing…',
+  resumeButton: 'Start Again',
+  resuming: 'Starting…',
   pausedNote: 'Call (435) 752-1884 if you’d like to start again.',
 
-  leaveButton: 'Leave the List',
-  leaveReasonLabel: 'Why are you leaving? (Optional)',
-  leaveConfirmTitle: 'Leave the Wood Chip List?',
-  leaveConfirmBody: 'You can always sign up again later from this same page.',
-  leaveConfirmButton: 'Yes, Take Me Off the List',
+  leaveButton: 'Remove This Location',
+  leaveReasonLabel: 'Why are you removing it? (Optional)',
+  leaveConfirmTitle: 'Remove This Location?',
+  leaveConfirmBody: 'This takes the location off the list. You can always select Get Back on the List on this same card later.',
+  leaveConfirmButton: 'Yes, Remove This Location',
   leaveCancelButton: 'Never Mind',
-  leavingButton: 'Leaving…',
-  leftNote: 'You’re off the list. You can sign up again anytime from this page.',
+  leavingButton: 'Removing…',
+  leftNote: 'This location is off the list. Select Get Back on the List on its card anytime.',
 
   photosTitle: 'Your Photos',
   noPhotosText: 'No photos yet.',

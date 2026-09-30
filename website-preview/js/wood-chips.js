@@ -8,6 +8,12 @@
  * textContent or as DOM nodes built by hand (see the `h()` helper below) — never innerHTML with
  * data. The only innerHTML use anywhere in this file is clearing a container, which never touches
  * variable content.
+ *
+ * One account can have several chip drop locations (Joseph, 2026-09-30). There is one profile
+ * page: a single "Your Contact Info" card (name/email/phone, account-wide), then one card per
+ * drop location ("Your Chip Drop Requests"), each with its own Change/Pause/Remove/Get-Back-on-
+ * the-List actions. A brand-new account (0 locations) still sees the full sign-up form first —
+ * that is what creates the account.
  */
 (function () {
   'use strict';
@@ -51,12 +57,23 @@
     tiers: [],
     email: '',
     turnstileToken: null,
-    customer: null,
+    customers: [],           // every location on the account, newest first (includes 'left' ones)
+    jobberHubUrl: null,      // account-level Jobber Client Hub link — only ever on a singular
+                              // `customer` reply (me().customer, or signup/update/leave/rejoin's
+                              // `customer`), never on an entry inside customers[]. Captured as we
+                              // see it; the "See Your Invoices" link is hidden until we have one.
     error: null,
-    form: null,              // the in-progress sign-up/edit form data (see freshForm())
-    requestId: null
+    form: null,               // the in-progress FULL sign-up form (first-ever location only)
+    requestId: null,
+    profileUi: null
   };
+  function captureJobberUrl(customer) {
+    if (customer && customer.jobber_hub_url) STATE.jobberHubUrl = customer.jobber_hub_url;
+  }
 
+  // The full sign-up form (creates the account + its first location together) — the only place
+  // name/phone are collected once the account exists (adding/editing/rejoining a location never
+  // asks for them again; they live on the account, edited from the contact card).
   function freshForm() {
     return {
       first_name: '', last_name: '', phone: '',
@@ -67,7 +84,41 @@
       truck_access: '',
       consent_mixed_ok: false, consent_stays_on_list: false,
       consent_property_access: false, consent_photo_use: false,
-      paid_consent: false
+      paid_consent: false,
+      _errors: {}, _topError: null
+    };
+  }
+
+  // A location-only form: everything freshForm() has except name/phone. Used for Add Another
+  // Drop Location, Change on an existing location, and Get Back on the List.
+  function freshLocationForm() {
+    return {
+      street: '', city: '', zip: '',
+      lat: null, lng: null, pinSet: false,
+      tier: '', loads_wanted: '', drop_notes: '',
+      photoBlob: null, photoPreviewUrl: null, photoPath: null,
+      truck_access: '',
+      consent_mixed_ok: false, consent_stays_on_list: false,
+      consent_property_access: false, consent_photo_use: false,
+      paid_consent: false,
+      _errors: {}, _topError: null
+    };
+  }
+
+  // Pre-fills a location form from an existing location's view (edit or rejoin). Consents always
+  // start unchecked — an edit never shows them (validateLocationForm skips them for mode 'edit'),
+  // and a rejoin requires the customer to check each one again, per Joseph's spec.
+  function initLocationFormFromCustomer(c) {
+    var hasPin = typeof c.lat === 'number' && typeof c.lng === 'number';
+    return {
+      street: c.street || '', city: c.city || '', zip: c.zip || '',
+      lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null, pinSet: hasPin,
+      tier: c.tier || '', loads_wanted: loadsKeyFor(c.loads_wanted), drop_notes: c.drop_notes || '',
+      truck_access: c.truck_access === 'unsure' ? 'not_sure' : (c.truck_access || ''),
+      photoBlob: null, photoPreviewUrl: (c.photos && c.photos[0] && c.photos[0].url) || null, photoPath: null,
+      consent_mixed_ok: false, consent_stays_on_list: false, consent_property_access: false, consent_photo_use: false,
+      paid_consent: false,
+      _errors: {}, _topError: null
     };
   }
 
@@ -122,7 +173,9 @@
 
   // ---------------------------------------------------------------- map widget wrapper (Leaflet + Esri satellite)
   // Same pin-on-satellite approach as domains/stump-grinding/apps/stump-locator/index.html, but a
-  // single small-circle marker instead of numbered pins, matching the spec for this page.
+  // single small-circle marker instead of numbered pins, matching the spec for this page. It is a
+  // singleton — only one location form (sign-up, add, change, or rejoin) is ever open at a time on
+  // this page, so one Leaflet instance is always enough; init() tears down any previous map first.
   var DEFAULT_CENTER = { lat: 41.737, lng: -111.834 }; // Cache Valley, UT — just a starting view
   var MapWidget = {
     map: null, marker: null,
@@ -154,6 +207,11 @@
       if (this.map) { this.map.remove(); this.map = null; this.marker = null; }
     }
   };
+
+  // A map is only ever built once a form's container is actually mounted in the document, so
+  // buildLocationFormFields() stashes the init call here and render() callers fire it right after
+  // mount(). Cleared after firing so a render pass with no map-bearing form does nothing.
+  var pendingMapInit = null;
 
   // ---------------------------------------------------------------- photo: resize to <=1600px JPEG via canvas
   // Re-encoding through canvas both shrinks the file and strips EXIF (including GPS location).
@@ -317,6 +375,26 @@
     render();
   }
 
+  // Decides where to land right after sign-in (fresh code verify, or a returning session in
+  // boot()): 0 locations -> the full sign-up form (creates the account); 1+ -> the one profile
+  // page, which lists every location as its own card.
+  function customersFromMeResponse(meRes) {
+    if (meRes && Array.isArray(meRes.customers)) return meRes.customers;
+    if (meRes && meRes.customer) return [meRes.customer];
+    return [];
+  }
+  function routeAfterAuth(meRes) {
+    var customers = customersFromMeResponse(meRes);
+    STATE.customers = customers;
+    STATE.profileUi = null;
+    captureJobberUrl(meRes && meRes.customer);
+    if (customers.length === 0) {
+      STATE.form = freshForm(); STATE.requestId = API.newRequestId(); STATE.step = 'signup';
+    } else {
+      STATE.step = 'profile';
+    }
+  }
+
   function submitVerifyCode() {
     if (!/^\d{6}$/.test(emailUi.code)) { emailUi.codeError = COPY.invalidCodeError; return render(); }
     emailUi.verifying = true; emailUi.codeError = null; render();
@@ -324,8 +402,8 @@
       return API.me();
     }).then(function (meRes) {
       emailUi.verifying = false;
-      if (meRes.customer) { STATE.customer = meRes.customer; STATE.step = 'profile'; return render(); }
-      STATE.form = freshForm(); STATE.requestId = API.newRequestId(); STATE.step = 'signup'; render();
+      routeAfterAuth(meRes);
+      render();
     }).catch(function (err) {
       emailUi.verifying = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -334,7 +412,7 @@
     });
   }
 
-  // ---------------------------------------------------------------- sign-up form (step d)
+  // ---------------------------------------------------------------- shared field helper
   function labeledField(id, labelText, inputEl, errorMsg, helpText) {
     var kids = [h('label', { for: id }, [labelText]), inputEl];
     if (helpText) kids.push(h('p', { class: 'chip-help' }, [helpText]));
@@ -343,77 +421,38 @@
     return h('div', { class: 'field' }, kids);
   }
 
-  function renderSignupForm() {
-    var f = STATE.form;
-    var errors = f._errors || {};
-    var wrap = h('div', { class: 'chip-card chip-card--signup' });
-    wrap.appendChild(h('h1', {}, [COPY.signupTitle]));
-    if (f._topError) wrap.appendChild(banner('error', f._topError));
-
-    // ---- contact ----
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionContact]));
-    var firstInput = h('input', { type: 'text', id: 'cw-first', required: true, autocomplete: 'given-name', oninput: function (e) { f.first_name = e.target.value; } });
-    firstInput.value = f.first_name;
-    var lastInput = h('input', { type: 'text', id: 'cw-last', required: true, autocomplete: 'family-name', oninput: function (e) { f.last_name = e.target.value; } });
-    lastInput.value = f.last_name;
-    wrap.appendChild(h('div', { class: 'row' }, [
-      labeledField('cw-first', COPY.firstNameLabel, firstInput, errors.first_name),
-      labeledField('cw-last', COPY.lastNameLabel, lastInput, errors.last_name)
-    ]));
-    var phoneInput = h('input', { type: 'tel', id: 'cw-phone', required: true, autocomplete: 'tel', oninput: function (e) { f.phone = e.target.value; } });
-    phoneInput.value = f.phone;
-    wrap.appendChild(labeledField('cw-phone', COPY.phoneLabel, phoneInput, errors.phone));
-
+  // ---------------------------------------------------------------- shared location-form fields
+  // Everything a drop location needs EXCEPT name/phone: address+map, tier, loads, notes, photo,
+  // truck access, and (for signup/add/rejoin only) the four consents. One shared builder behind
+  // the full sign-up form, "Add Another Drop Location", a location's "Change", and "Get Back on
+  // the List" — so the same fields, ids, and behavior appear everywhere they're asked.
+  // mode: 'signup' | 'add' | 'edit' | 'rejoin'. Fixed element ids are safe to reuse because only
+  // one location form is ever mounted at a time (see closeAllEditPanels()).
+  function buildLocationFormFields(container, f, errors, mode) {
     // ---- address ----
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionAddress]));
+    container.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionAddress]));
     var streetInput = h('input', { type: 'text', id: 'cw-street', required: true, autocomplete: 'address-line1', oninput: function (e) { f.street = e.target.value; } });
     streetInput.value = f.street;
-    wrap.appendChild(labeledField('cw-street', COPY.streetLabel, streetInput, errors.street));
+    container.appendChild(labeledField('cw-street', COPY.streetLabel, streetInput, errors.street));
     var cityInput = h('input', { type: 'text', id: 'cw-city', required: true, autocomplete: 'address-level2', oninput: function (e) { f.city = e.target.value; } });
     cityInput.value = f.city;
     var zipInput = h('input', { type: 'text', id: 'cw-zip', required: true, inputmode: 'numeric', maxlength: '5', autocomplete: 'postal-code', oninput: function (e) { f.zip = e.target.value; } });
     zipInput.value = f.zip;
-    wrap.appendChild(h('div', { class: 'row' }, [
+    container.appendChild(h('div', { class: 'row' }, [
       labeledField('cw-city', COPY.cityLabel, cityInput, errors.city),
       labeledField('cw-zip', COPY.zipLabel, zipInput, errors.zip)
     ]));
 
-    var addressErrorNode = fieldError(null);
-    var findBtn = h('button', {
-      class: 'btn btn--outline', type: 'button', onclick: function () { onFindAddress(findBtn, addressErrorNode); }
-    }, [COPY.findAddressButton]);
-    wrap.appendChild(h('div', { class: 'chip-find-address' }, [
-      findBtn,
-      h('p', { class: 'chip-help' }, [COPY.findAddressHelp])
-    ]));
     var addressErrorHolder = h('div', {}, []);
-    wrap.appendChild(addressErrorHolder);
-
-    // ---- map ----
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionMap]));
-    wrap.appendChild(h('p', { class: 'chip-map-hint' }, [COPY.mapHint]));
-    var mapDiv = h('div', { class: 'chip-map', id: 'cw-map' });
-    wrap.appendChild(mapDiv);
-    wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.mapHintTap]));
-    var pinErr = fieldError(errors.pin);
-    if (pinErr) wrap.appendChild(pinErr);
-
-    appendSignupPart2(wrap, f, errors);
-
-    mount(wrap);
-    MapWidget.init(mapDiv, {
-      lat: f.pinSet ? f.lat : null, lng: f.pinSet ? f.lng : null, draggable: true,
-      onMove: function (lat, lng) { f.lat = lat; f.lng = lng; f.pinSet = true; }
-    });
-
-    function onFindAddress(btn) {
+    var findBtn = h('button', { class: 'btn btn--outline', type: 'button' }, [COPY.findAddressButton]);
+    findBtn.addEventListener('click', function () {
       if (!f.street.trim() || !f.city.trim() || !isValidZip(f.zip)) {
         clear(addressErrorHolder); addressErrorHolder.appendChild(fieldError(COPY.errorRequired));
         return;
       }
-      btn.disabled = true; var was = btn.textContent; btn.textContent = COPY.finding;
+      findBtn.disabled = true; var was = findBtn.textContent; findBtn.textContent = COPY.finding;
       API.geocode(f.street.trim(), f.city.trim(), f.zip.trim()).then(function (res) {
-        btn.disabled = false; btn.textContent = was;
+        findBtn.disabled = false; findBtn.textContent = was;
         clear(addressErrorHolder);
         if (res && typeof res.lat === 'number' && typeof res.lng === 'number') {
           f.lat = res.lat; f.lng = res.lng; f.pinSet = true;
@@ -422,18 +461,45 @@
           addressErrorHolder.appendChild(fieldError(COPY.errorAddressNotFound));
         }
       }).catch(function (err) {
-        btn.disabled = false; btn.textContent = was;
+        findBtn.disabled = false; findBtn.textContent = was;
         if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
         clear(addressErrorHolder);
         addressErrorHolder.appendChild(fieldError(err.message || COPY.genericError));
       });
-    }
-  }
+    });
+    container.appendChild(h('div', { class: 'chip-find-address' }, [
+      findBtn,
+      h('p', { class: 'chip-help' }, [COPY.findAddressHelp])
+    ]));
+    container.appendChild(addressErrorHolder);
 
-  function appendSignupPart2(wrap, f, errors) {
+    // ---- map ----
+    container.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionMap]));
+    container.appendChild(h('p', { class: 'chip-map-hint' }, [COPY.mapHint]));
+    var mapDiv = h('div', { class: 'chip-map' });
+    container.appendChild(mapDiv);
+    container.appendChild(h('p', { class: 'chip-help' }, [COPY.mapHintTap]));
+    var pinErr = fieldError(errors.pin);
+    if (pinErr) container.appendChild(pinErr);
+    pendingMapInit = function () {
+      MapWidget.init(mapDiv, {
+        lat: f.pinSet ? f.lat : null, lng: f.pinSet ? f.lng : null, draggable: true,
+        onMove: function (lat, lng) { f.lat = lat; f.lng = lng; f.pinSet = true; }
+      });
+    };
+
     // ---- tier ----
     var tierSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.sectionTier])]);
-    var paidConsentRow, paidConsentText, paidConsentCheckbox;
+    var paidConsentText = h('span', {}, ['']);
+    var paidConsentCheckbox = h('input', { type: 'checkbox', checked: f.paid_consent, onchange: function (e) { f.paid_consent = e.target.checked; } });
+    var paidConsentRow = h('label', { class: 'chip-consent', hidden: true }, [paidConsentCheckbox, paidConsentText]);
+    function onTierChange() {
+      var t = tierByKey(f.tier);
+      var isPaid = !!(t && t.price_per_drop > 0);
+      paidConsentRow.hidden = !isPaid;
+      if (!isPaid) { f.paid_consent = false; paidConsentCheckbox.checked = false; }
+      else { paidConsentText.textContent = COPY.paidConsent(t.price_per_drop); }
+    }
     STATE.tiers.forEach(function (t) {
       var id = 'cw-tier-' + t.key;
       var priceText = (t.price_per_drop > 0) ? ('$' + t.price_per_drop) : COPY.tierFreeLabel;
@@ -447,23 +513,10 @@
       tierSet.appendChild(h('label', { class: 'chip-tier-option' }, kids));
     });
     var tierErr = fieldError(errors.tier); if (tierErr) tierSet.appendChild(tierErr);
-    wrap.appendChild(tierSet);
-
-    // ---- paid consent (only shown for a tier with a price; lives near tier, applied at submit) ----
-    paidConsentText = h('span', {}, ['']);
-    paidConsentCheckbox = h('input', { type: 'checkbox', onchange: function (e) { f.paid_consent = e.target.checked; } });
-    paidConsentRow = h('label', { class: 'chip-consent', hidden: true }, [paidConsentCheckbox, paidConsentText]);
+    container.appendChild(tierSet);
+    container.appendChild(paidConsentRow);
     var paidConsentErr = fieldError(errors.paid_consent);
-    wrap.appendChild(paidConsentRow);
-    if (paidConsentErr) wrap.appendChild(paidConsentErr);
-
-    function onTierChange() {
-      var t = tierByKey(f.tier);
-      var isPaid = !!(t && t.price_per_drop > 0);
-      paidConsentRow.hidden = !isPaid;
-      if (!isPaid) { f.paid_consent = false; paidConsentCheckbox.checked = false; }
-      else { paidConsentText.textContent = COPY.paidConsent(t.price_per_drop); }
-    }
+    if (paidConsentErr) container.appendChild(paidConsentErr);
     if (f.tier) onTierChange();
 
     // ---- loads wanted ----
@@ -473,7 +526,7 @@
       loadsSelect.appendChild(h('option', { value: k }, [COPY.loadsOptions[k]]));
     });
     loadsSelect.value = f.loads_wanted;
-    wrap.appendChild(labeledField('cw-loads', COPY.sectionLoads, loadsSelect, errors.loads_wanted, COPY.loadsHelp));
+    container.appendChild(labeledField('cw-loads', COPY.sectionLoads, loadsSelect, errors.loads_wanted, COPY.loadsHelp));
 
     // ---- drop notes ----
     var charsLeftNode = h('span', { class: 'chip-charcount' }, [COPY.charsLeft(500 - f.drop_notes.length)]);
@@ -482,19 +535,17 @@
       oninput: function (e) { f.drop_notes = e.target.value; charsLeftNode.textContent = COPY.charsLeft(500 - e.target.value.length); }
     });
     notesArea.value = f.drop_notes;
-    wrap.appendChild(h('div', { class: 'field' }, [
+    container.appendChild(h('div', { class: 'field' }, [
       h('label', { for: 'cw-notes' }, [COPY.dropNotesLabel]),
       notesArea, charsLeftNode
     ]));
 
-    appendPhotoAndRest(wrap, f, errors);
-  }
-
-  function appendPhotoAndRest(wrap, f, errors) {
-    // ---- photo ----
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
-    wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.photoRequiredHelp]));
-    var previewImg = h('img', { class: 'chip-photo-preview', alt: COPY.photoPreviewAlt, hidden: !f.photoBlob });
+    // ---- photo (kept unless a new one is chosen, once one exists) ----
+    container.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
+    var hasPhoto = !!(f.photoBlob || f.photoPreviewUrl);
+    var photoHelp = hasPhoto && mode !== 'signup' && mode !== 'add' ? COPY.photoKeptHelp : COPY.photoRequiredHelp;
+    container.appendChild(h('p', { class: 'chip-help' }, [photoHelp]));
+    var previewImg = h('img', { class: 'chip-photo-preview', alt: COPY.photoPreviewAlt, hidden: !hasPhoto });
     previewImg.addEventListener('error', function () { previewImg.hidden = true; });
     if (f.photoPreviewUrl) previewImg.setAttribute('src', f.photoPreviewUrl);
     var photoStatus = h('p', { class: 'chip-help' }, ['']);
@@ -518,8 +569,8 @@
     });
     var chooseBtn = h('button', {
       class: 'btn btn--outline', type: 'button', onclick: function () { fileInput.click(); }
-    }, [f.photoBlob ? COPY.photoRetakeButton : COPY.photoChooseButton]);
-    wrap.appendChild(h('div', { class: 'chip-photo' }, [fileInput, chooseBtn, photoStatus, previewImg, photoErrHolder]));
+    }, [hasPhoto ? COPY.photoRetakeButton : COPY.photoChooseButton]);
+    container.appendChild(h('div', { class: 'chip-photo' }, [fileInput, chooseBtn, photoStatus, previewImg, photoErrHolder]));
 
     // ---- truck access ----
     var truckSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.truckAccessQuestion])]);
@@ -534,42 +585,40 @@
     });
     truckSet.appendChild(truckRow);
     var truckErr = fieldError(errors.truck_access); if (truckErr) truckSet.appendChild(truckErr);
-    wrap.appendChild(truckSet);
+    container.appendChild(truckSet);
 
-    // ---- consents ----
-    var consentSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.sectionConsents])]);
-    [
-      ['consent_mixed_ok', COPY.consentMixedOk],
-      ['consent_stays_on_list', COPY.consentStaysOnList],
-      ['consent_property_access', COPY.consentPropertyAccess],
-      ['consent_photo_use', COPY.consentPhotoUse]
-    ].forEach(function (pair) {
-      var key = pair[0];
-      var cb = h('input', { type: 'checkbox', checked: f[key], onchange: function (e) { f[key] = e.target.checked; } });
-      consentSet.appendChild(h('label', { class: 'chip-consent' }, [cb, h('span', {}, [pair[1]])]));
-    });
-    var consentsErr = fieldError(errors.consents); if (consentsErr) consentSet.appendChild(consentsErr);
-    wrap.appendChild(consentSet);
-
-    // ---- submit ----
-    var submitBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSubmitSignup(submitBtn); } }, [COPY.submitButton]);
-    wrap.appendChild(submitBtn);
+    // ---- consents (asked on sign-up, adding a location, and rejoining — never on a plain edit) ----
+    if (mode !== 'edit') {
+      if (mode === 'rejoin') container.appendChild(h('p', { class: 'chip-banner chip-banner--info' }, [COPY.rejoinFormNote]));
+      var consentSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.sectionConsents])]);
+      [
+        ['consent_mixed_ok', COPY.consentMixedOk],
+        ['consent_stays_on_list', COPY.consentStaysOnList],
+        ['consent_property_access', COPY.consentPropertyAccess],
+        ['consent_photo_use', COPY.consentPhotoUse]
+      ].forEach(function (pair) {
+        var key = pair[0];
+        var cb = h('input', { type: 'checkbox', checked: f[key], onchange: function (e) { f[key] = e.target.checked; } });
+        consentSet.appendChild(h('label', { class: 'chip-consent' }, [cb, h('span', {}, [pair[1]])]));
+      });
+      var consentsErr = fieldError(errors.consents); if (consentsErr) consentSet.appendChild(consentsErr);
+      container.appendChild(consentSet);
+    }
   }
 
-  function validateSignup(f) {
+  function validateLocationForm(f, mode) {
     var e = {};
-    if (!f.first_name.trim()) e.first_name = COPY.errorRequired;
-    if (!f.last_name.trim()) e.last_name = COPY.errorRequired;
-    if (!isValidPhone(f.phone)) e.phone = COPY.errorPhone;
     if (!f.street.trim()) e.street = COPY.errorRequired;
     if (!f.city.trim()) e.city = COPY.errorRequired;
     if (!isValidZip(f.zip)) e.zip = COPY.errorZip;
     if (!f.pinSet || f.lat == null || f.lng == null) e.pin = COPY.errorPin;
     if (!f.tier) e.tier = COPY.errorTier;
     if (!f.loads_wanted) e.loads_wanted = COPY.errorLoads;
-    if (!f.photoBlob) e.photo = COPY.errorPhoto;
     if (!f.truck_access) e.truck_access = COPY.errorTruckAccess;
-    if (!(f.consent_mixed_ok && f.consent_stays_on_list && f.consent_property_access && f.consent_photo_use)) e.consents = COPY.errorConsents;
+    if (mode !== 'edit') {
+      if (!f.photoBlob && !f.photoPreviewUrl) e.photo = COPY.errorPhoto;
+      if (!(f.consent_mixed_ok && f.consent_stays_on_list && f.consent_property_access && f.consent_photo_use)) e.consents = COPY.errorConsents;
+    }
     var t = tierByKey(f.tier);
     if (t && t.price_per_drop > 0 && !f.paid_consent) e.paid_consent = COPY.errorPaidConsent;
     return e;
@@ -587,6 +636,49 @@
     }
   }
 
+  // ---------------------------------------------------------------- full sign-up form (0 locations)
+  // The only screen that asks for name/phone — it creates the account and its first location
+  // together. Everything location-specific is the same shared builder used everywhere else.
+  function validateSignup(f) {
+    var e = {};
+    if (!f.first_name.trim()) e.first_name = COPY.errorRequired;
+    if (!f.last_name.trim()) e.last_name = COPY.errorRequired;
+    if (!isValidPhone(f.phone)) e.phone = COPY.errorPhone;
+    var locErrors = validateLocationForm(f, 'signup');
+    Object.keys(locErrors).forEach(function (k) { e[k] = locErrors[k]; });
+    return e;
+  }
+
+  function renderSignupForm() {
+    var f = STATE.form;
+    var errors = f._errors || {};
+    var wrap = h('div', { class: 'chip-card chip-card--signup' });
+    wrap.appendChild(h('h1', {}, [COPY.signupTitle]));
+    if (f._topError) wrap.appendChild(banner('error', f._topError));
+
+    // ---- contact ----
+    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionContact]));
+    var firstInput = h('input', { type: 'text', id: 'cw-first', required: true, autocomplete: 'given-name', oninput: function (e) { f.first_name = e.target.value; } });
+    firstInput.value = f.first_name;
+    var lastInput = h('input', { type: 'text', id: 'cw-last', required: true, autocomplete: 'family-name', oninput: function (e) { f.last_name = e.target.value; } });
+    lastInput.value = f.last_name;
+    wrap.appendChild(h('div', { class: 'row' }, [
+      labeledField('cw-first', COPY.firstNameLabel, firstInput, errors.first_name),
+      labeledField('cw-last', COPY.lastNameLabel, lastInput, errors.last_name)
+    ]));
+    var phoneInput = h('input', { type: 'tel', id: 'cw-phone', required: true, autocomplete: 'tel', oninput: function (e) { f.phone = e.target.value; } });
+    phoneInput.value = f.phone;
+    wrap.appendChild(labeledField('cw-phone', COPY.phoneLabel, phoneInput, errors.phone));
+
+    buildLocationFormFields(wrap, f, errors, 'signup');
+
+    var submitBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSubmitSignup(submitBtn); } }, [COPY.submitButton]);
+    wrap.appendChild(submitBtn);
+
+    mount(wrap);
+    if (pendingMapInit) { pendingMapInit(); pendingMapInit = null; }
+  }
+
   function onSubmitSignup(submitBtn) {
     var f = STATE.form;
     var errors = validateSignup(f);
@@ -594,7 +686,7 @@
     if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
     f._topError = null;
     submitBtn.disabled = true; submitBtn.textContent = COPY.submitting;
-    var photoStep = f.photoPath ? Promise.resolve(f.photoPath) : API.uploadDropPhoto(f.photoBlob).then(function (path) { f.photoPath = path; return path; });
+    var photoStep = f.photoPath ? Promise.resolve(f.photoPath) : API.uploadDropPhoto(null, f.photoBlob).then(function (path) { f.photoPath = path; return path; });
     photoStep.then(function (photoPath) {
       var payload = {
         first_name: f.first_name.trim(), last_name: f.last_name.trim(), phone: digitsOnly(f.phone),
@@ -613,10 +705,16 @@
       };
       return API.signup(payload, STATE.requestId);
     }).then(function (res) {
-      STATE.customer = (res && res.customer) || null;
-      // Joseph 2026-09-30: land on the customer's own profile page (view + edit), not a dead-end thank-you.
-      if (STATE.customer) { ensureProfileUi().justSignedUp = true; STATE.step = 'profile'; }
-      else STATE.step = 'confirm';
+      var newCustomer = (res && res.customer) || null;
+      captureJobberUrl(newCustomer);
+      if (newCustomer) {
+        STATE.customers = [newCustomer];
+        STATE.profileUi = null;
+        ensureProfileUi().justSignedUp = true;
+        STATE.step = 'profile';
+      } else {
+        STATE.step = 'confirm';
+      }
       render();
     }).catch(function (err) {
       submitBtn.disabled = false; submitBtn.textContent = COPY.submitButton;
@@ -639,23 +737,50 @@
     ]));
   }
 
-  // ---------------------------------------------------------------- profile (step e)
-  // TODO(owner): confirm this is the correct Jobber Client Hub sign-in link before customers see
-  // it. clienthub_id 5a7fcc26-6b73-4bec-a630-dd63f55352e9 comes from the work-request widget
-  // already embedded on the homepage (working/src/pages/index.html); Jobber's client-facing
-  // sign-in path may not be exactly this one — check Client Hub settings in the Jobber dashboard.
-  var JOBBER_CLIENT_HUB_LOGIN_URL = 'https://clienthub.getjobber.com/client_hubs/5a7fcc26-6b73-4bec-a630-dd63f55352e9/login';
-
+  // ---------------------------------------------------------------- profile (one page, contact + every location)
+  // Only one edit panel (contact, a location's Change, Add Another, or Get Back on the List) is
+  // ever open at a time — opening one closes any other, which is also what keeps the singleton
+  // MapWidget and the reused field ids safe (see buildLocationFormFields).
   function ensureProfileUi() {
     if (!STATE.profileUi) {
       STATE.profileUi = {
-        editing: false, saving: false, error: null,
-        leaveOpen: false, leaveReason: '', leaving: false, pausing: false,
-        editForm: null, justSaved: false, addressRecheck: false,
-        focusSection: null  // 'contact' | 'address' | 'plan' | 'notes' — set by a card's Change button
+        justSignedUp: false,
+        editingContact: false, contactForm: null, contactSaving: false, contactSaved: false,
+        editingLocationId: null, editForm: null, editSaving: false,
+        addingLocation: false, addForm: null, addSaving: false, addRequestId: null,
+        rejoinLocationId: null, rejoinForm: null, rejoinSaving: false,
+        locActions: {}
       };
     }
     return STATE.profileUi;
+  }
+  function closeAllEditPanels(ui) {
+    ui.editingContact = false; ui.contactForm = null;
+    ui.editingLocationId = null; ui.editForm = null;
+    ui.addingLocation = false; ui.addForm = null; ui.addRequestId = null;
+    ui.rejoinLocationId = null; ui.rejoinForm = null;
+  }
+  // Per-location UI state (pause/leave/confirm/banners) — keyed by location id, since each card
+  // on the page acts independently.
+  function locAction(ui, id) {
+    if (!ui.locActions[id]) {
+      ui.locActions[id] = {
+        leaveOpen: false, leaveReason: '', leaving: false, pausing: false, error: null,
+        justSaved: false, addressRecheck: false, justAdded: false, justRejoined: false
+      };
+    }
+    return ui.locActions[id];
+  }
+  function activeLocationCount() {
+    return (STATE.customers || []).filter(function (c) { return c.status !== 'left'; }).length;
+  }
+  function upsertCustomerInList(updated) {
+    if (!updated) return;
+    var list = STATE.customers || (STATE.customers = []);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === updated.id) { list[i] = updated; return; }
+    }
+    list.unshift(updated);
   }
 
   // The database stores loads as a number, or null for "as many as you can give me"; the <select> uses
@@ -687,23 +812,13 @@
     ]);
   }
 
-  // One profile card: a title, its own "Change" button (opens the existing edit form, scrolled to the
-  // matching section — see openEditAt), then whatever body nodes the caller built.
+  // One profile card: a title, its own "Change" button, then whatever body nodes the caller built.
   function profileCard(title, bodyNodes, onChange) {
     var card = h('div', { class: 'chip-profile-card' });
     card.appendChild(h('div', { class: 'chip-profile-card__head' }, [
       h('h3', {}, [title]),
       h('button', { class: 'btn btn--outline chip-profile-card__change', type: 'button', onclick: onChange }, [COPY.changeButton])
     ]));
-    (bodyNodes || []).forEach(function (n) { if (n) card.appendChild(n); });
-    return card;
-  }
-
-  // A card with no "Change" button, for read-only info the crew logs (e.g. drop history) rather than
-  // something the customer edits.
-  function profileCardStatic(title, bodyNodes) {
-    var card = h('div', { class: 'chip-profile-card' });
-    card.appendChild(h('div', { class: 'chip-profile-card__head' }, [h('h3', {}, [title])]));
     (bodyNodes || []).forEach(function (n) { if (n) card.appendChild(n); });
     return card;
   }
@@ -724,416 +839,451 @@
     }
   }
 
-  // Opens the full edit form (same form, same save/validation logic) and asks renderProfileEdit() to
-  // scroll to the section a particular card's "Change" button belongs to.
-  function openEditAt(section) {
+  // ---- contact card (account-wide: name, email (read-only — it's the sign-in), phone) ----
+  function openContactEdit() {
     var ui = ensureProfileUi();
-    ui.editing = true;
-    ui.editForm = initEditFormFromCustomer(STATE.customer || {});
-    ui.focusSection = section;
+    closeAllEditPanels(ui);
+    var account = (STATE.customers && STATE.customers[0]) || {};
+    ui.editingContact = true;
+    ui.contactForm = { first_name: account.first_name || '', last_name: account.last_name || '', phone: account.phone || '', _errors: {}, _topError: null };
     render();
   }
-
-  function renderProfile() {
+  function validateContactForm(f) {
+    var e = {};
+    if (!f.first_name.trim()) e.first_name = COPY.errorRequired;
+    if (!f.last_name.trim()) e.last_name = COPY.errorRequired;
+    if (!isValidPhone(f.phone)) e.phone = COPY.errorPhone;
+    return e;
+  }
+  function onSaveContact(saveBtn) {
     var ui = ensureProfileUi();
-    if (ui.editing) return renderProfileEdit();
-    var c = STATE.customer || {};
-    var justSaved = ui.justSaved, recheck = ui.addressRecheck, justSignedUp = ui.justSignedUp;
-    ui.justSaved = false; ui.addressRecheck = false; ui.justSignedUp = false;
+    var f = ui.contactForm;
+    var errors = validateContactForm(f);
+    f._errors = errors;
+    if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
+    f._topError = null;
+    ui.contactSaving = true; render();
+    API.updateContact({ first_name: f.first_name.trim(), last_name: f.last_name.trim(), phone: digitsOnly(f.phone) }).then(function (res) {
+      var ui2 = ensureProfileUi();
+      ui2.contactSaving = false; ui2.editingContact = false; ui2.contactForm = null; ui2.contactSaved = true;
+      var customers = customersFromMeResponse(res);
+      if (customers.length) STATE.customers = customers;
+      render();
+    }).catch(function (err) {
+      ui.contactSaving = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      f._topError = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function renderContactCard(ui, account) {
+    if (ui.editingContact) return renderContactEditCard(ui);
+    var body = [];
+    if (ui.contactSaved) { body.push(banner('success', COPY.saveSuccessMessage)); ui.contactSaved = false; }
+    body.push(profileField(COPY.fieldReadLabels.name, ((account.first_name || '') + ' ' + (account.last_name || '')).trim()));
+    body.push(profileField(COPY.fieldReadLabels.email, account.email));
+    body.push(profileField(COPY.fieldReadLabels.phone, account.phone));
+    return profileCard(COPY.cardContactTitle, body, function () { openContactEdit(); });
+  }
+  function renderContactEditCard(ui) {
+    var f = ui.contactForm;
+    var errors = f._errors || {};
+    var card = h('div', { class: 'chip-profile-card chip-profile-card--editing' });
+    card.appendChild(h('h3', {}, [COPY.cardContactTitle]));
+    if (f._topError) card.appendChild(banner('error', f._topError));
+    var firstInput = h('input', { type: 'text', id: 'cw-first', required: true, autocomplete: 'given-name', oninput: function (e) { f.first_name = e.target.value; } });
+    firstInput.value = f.first_name;
+    var lastInput = h('input', { type: 'text', id: 'cw-last', required: true, autocomplete: 'family-name', oninput: function (e) { f.last_name = e.target.value; } });
+    lastInput.value = f.last_name;
+    card.appendChild(h('div', { class: 'row' }, [
+      labeledField('cw-first', COPY.firstNameLabel, firstInput, errors.first_name),
+      labeledField('cw-last', COPY.lastNameLabel, lastInput, errors.last_name)
+    ]));
+    var phoneInput = h('input', { type: 'tel', id: 'cw-phone', required: true, autocomplete: 'tel', oninput: function (e) { f.phone = e.target.value; } });
+    phoneInput.value = f.phone;
+    card.appendChild(labeledField('cw-phone', COPY.phoneLabel, phoneInput, errors.phone));
+    var saveBtn = h('button', { class: 'btn', type: 'button', onclick: function () { onSaveContact(saveBtn); } }, [ui.contactSaving ? COPY.savingButton : COPY.saveButton]);
+    var cancelBtn = h('button', {
+      class: 'btn btn--outline', type: 'button',
+      onclick: function () { var ui2 = ensureProfileUi(); ui2.editingContact = false; ui2.contactForm = null; render(); }
+    }, [COPY.cancelButton]);
+    card.appendChild(h('div', { class: 'chip-actions' }, [saveBtn, cancelBtn]));
+    return card;
+  }
 
-    var statusKey = c.status || 'pending';
-    var wrap = h('div', { class: 'chip-card chip-card--profile' });
+  // ---- add a location ----
+  function openAddLocation() {
+    var ui = ensureProfileUi();
+    closeAllEditPanels(ui);
+    ui.addingLocation = true;
+    ui.addForm = freshLocationForm();
+    ui.addRequestId = API.newRequestId();
+    render();
+  }
+  function onSubmitAddLocation(submitBtn) {
+    var ui = ensureProfileUi();
+    var f = ui.addForm;
+    var errors = validateLocationForm(f, 'add');
+    f._errors = errors;
+    if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
+    f._topError = null;
+    ui.addSaving = true; render();
+    var account = (STATE.customers && STATE.customers[0]) || {};
+    var photoStep = f.photoPath ? Promise.resolve(f.photoPath) : API.uploadDropPhoto(null, f.photoBlob).then(function (path) { f.photoPath = path; return path; });
+    photoStep.then(function (photoPath) {
+      var payload = {
+        first_name: account.first_name || '', last_name: account.last_name || '', phone: account.phone || '',
+        street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(),
+        lat: f.lat, lng: f.lng,
+        tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(),
+        photo_path: photoPath, truck_access: f.truck_access,
+        mixed_ok: true, stay_on_list_ack: true, property_access_ok: true, photo_ok: true,
+        paid_consent: f.paid_consent
+      };
+      return API.signup(payload, ui.addRequestId);
+    }).then(function (res) {
+      var ui2 = ensureProfileUi();
+      ui2.addSaving = false; ui2.addingLocation = false; ui2.addForm = null; ui2.addRequestId = null;
+      var newCustomer = (res && res.customer) || null;
+      captureJobberUrl(newCustomer);
+      if (newCustomer) {
+        upsertCustomerInList(newCustomer);
+        locAction(ui2, newCustomer.id).justAdded = true;
+      }
+      render();
+    }).catch(function (err) {
+      ui.addSaving = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      f._topError = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function renderAddLocationControl(ui) {
+    if (ui.addingLocation) return renderAddLocationCard(ui);
+    var disabled = activeLocationCount() >= 5;
+    var wrap = h('div', { class: 'chip-add-location' });
+    wrap.appendChild(h('button', {
+      class: 'btn btn--outline', type: 'button', disabled: disabled,
+      onclick: function () { if (!disabled) openAddLocation(); }
+    }, [COPY.addLocationButton]));
+    if (disabled) wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.maxLocationsNote]));
+    return wrap;
+  }
+  function renderAddLocationCard(ui) {
+    var f = ui.addForm;
+    var errors = f._errors || {};
+    var card = h('div', { class: 'chip-profile-card chip-profile-card--editing' });
+    card.appendChild(h('h3', {}, [COPY.addLocationFormTitle]));
+    if (f._topError) card.appendChild(banner('error', f._topError));
+    buildLocationFormFields(card, f, errors, 'add');
+    var submitBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSubmitAddLocation(submitBtn); } }, [ui.addSaving ? COPY.submitting : COPY.addLocationSubmitButton]);
+    var cancelBtn = h('button', {
+      class: 'btn btn--outline', type: 'button',
+      onclick: function () { var ui2 = ensureProfileUi(); ui2.addingLocation = false; ui2.addForm = null; ui2.addRequestId = null; render(); }
+    }, [COPY.cancelButton]);
+    card.appendChild(h('div', { class: 'chip-actions chip-actions--save-bar' }, [submitBtn, cancelBtn]));
+    return card;
+  }
 
-    if (justSignedUp) {
-      wrap.appendChild(h('div', { class: 'chip-banner chip-banner--info chip-welcome' }, [
-        h('strong', {}, [COPY.successTitle]),
-        h('p', {}, [COPY.successBody2 + ' ' + COPY.successBody3]),
-        h('p', {}, [COPY.profileSavedNote])
-      ]));
-    }
-    if (justSaved) wrap.appendChild(banner('success', COPY.saveSuccessMessage));
-    if (recheck) wrap.appendChild(banner('info', COPY.addressChangedNotice));
-    if (ui.error) wrap.appendChild(banner('error', ui.error));
+  // ---- change an existing location ----
+  function openLocationEdit(c) {
+    var ui = ensureProfileUi();
+    closeAllEditPanels(ui);
+    ui.editingLocationId = c.id;
+    ui.editForm = initLocationFormFromCustomer(c);
+    render();
+  }
+  function onSaveLocation(id, saveBtn) {
+    var ui = ensureProfileUi();
+    var f = ui.editForm;
+    var errors = validateLocationForm(f, 'edit');
+    f._errors = errors;
+    if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
+    f._topError = null;
+    ui.editSaving = true; render();
+    var photoStep = f.photoBlob ? API.uploadDropPhoto(id, f.photoBlob).then(function (p) { f.photoPath = p; return p; }) : Promise.resolve(null);
+    photoStep.then(function (photoPath) {
+      var changes = {
+        street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(), lat: f.lat, lng: f.lng,
+        tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(), truck_access: f.truck_access
+      };
+      if (photoPath) changes.photo_path = photoPath;
+      return API.update(id, changes, f.paid_consent);
+    }).then(function (res) {
+      var ui2 = ensureProfileUi();
+      ui2.editSaving = false; ui2.editingLocationId = null; ui2.editForm = null;
+      var updated = (res && res.customer) || null;
+      captureJobberUrl(updated);
+      if (updated) upsertCustomerInList(updated);
+      var la = locAction(ui2, id);
+      la.justSaved = true; la.addressRecheck = !!(res && res.recheck);
+      render();
+    }).catch(function (err) {
+      ui.editSaving = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      f._topError = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function renderLocationEditCard(ui, c) {
+    var f = ui.editForm;
+    var errors = f._errors || {};
+    var card = h('div', { class: 'chip-profile-card chip-profile-card--editing' });
+    card.appendChild(h('h3', {}, [[c.street, c.city, c.zip].filter(Boolean).join(', ') || COPY.editButton]));
+    if (f._topError) card.appendChild(banner('error', f._topError));
+    buildLocationFormFields(card, f, errors, 'edit');
+    var saveBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSaveLocation(c.id, saveBtn); } }, [ui.editSaving ? COPY.savingButton : COPY.saveButton]);
+    var cancelBtn = h('button', {
+      class: 'btn btn--outline', type: 'button',
+      onclick: function () { var ui2 = ensureProfileUi(); ui2.editingLocationId = null; ui2.editForm = null; render(); }
+    }, [COPY.cancelButton]);
+    card.appendChild(h('div', { class: 'chip-actions chip-actions--save-bar' }, [saveBtn, cancelBtn]));
+    return card;
+  }
 
-    // ---- greet them by name, then a big plain-language status card ----
-    wrap.appendChild(h('h1', { class: 'chip-profile-greeting' }, [COPY.profileGreeting(c.first_name)]));
-    wrap.appendChild(h('p', { class: 'chip-profile-greeting-sub' }, [COPY.profileGreetingSub]));
-
-    var statusCard = h('div', { class: 'chip-status-card chip-status-card--' + statusKey }, [
-      h('p', { class: 'chip-status-card__label' }, [COPY.statusLabels[statusKey] || statusKey]),
-      h('p', { class: 'chip-status-card__help' }, [(COPY.statusHelp && COPY.statusHelp[statusKey]) || ''])
+  // ---- pause / start again, remove (leave) ----
+  function onPauseLocation(c, resume) {
+    var ui = ensureProfileUi();
+    var la = locAction(ui, c.id);
+    la.pausing = true; la.error = null; render();
+    API.update(c.id, resume ? { resume: true } : { pause: true }, false).then(function (res) {
+      var ui2 = ensureProfileUi(); var la2 = locAction(ui2, c.id);
+      la2.pausing = false;
+      var updated = (res && res.customer) || null;
+      captureJobberUrl(updated);
+      if (updated) upsertCustomerInList(updated);
+      render();
+    }).catch(function (err) {
+      var la2 = locAction(ensureProfileUi(), c.id);
+      la2.pausing = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      la2.error = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function onLeaveLocation(c) {
+    var ui = ensureProfileUi();
+    var la = locAction(ui, c.id);
+    la.leaving = true; la.error = null; render();
+    API.leave(c.id, la.leaveReason.trim()).then(function (res) {
+      var ui2 = ensureProfileUi(); var la2 = locAction(ui2, c.id);
+      la2.leaving = false; la2.leaveOpen = false; la2.leaveReason = '';
+      var updated = (res && res.customer) || null;
+      captureJobberUrl(updated);
+      if (updated) upsertCustomerInList(updated);
+      render();
+    }).catch(function (err) {
+      var la2 = locAction(ensureProfileUi(), c.id);
+      la2.leaving = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      la2.error = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function renderLeaveConfirmFor(c, la) {
+    var reasonInput = h('textarea', { rows: '2', oninput: function (e) { la.leaveReason = e.target.value; } });
+    reasonInput.value = la.leaveReason;
+    return h('div', { class: 'chip-confirm' }, [
+      h('h3', {}, [COPY.leaveConfirmTitle]),
+      h('p', {}, [COPY.leaveConfirmBody]),
+      h('div', { class: 'field' }, [h('label', {}, [COPY.leaveReasonLabel]), reasonInput]),
+      h('div', { class: 'chip-actions' }, [
+        h('button', { class: 'btn', type: 'button', onclick: function () { onLeaveLocation(c); } }, [la.leaving ? COPY.leavingButton : COPY.leaveConfirmButton]),
+        h('button', { class: 'btn btn--outline', type: 'button', onclick: function () { la.leaveOpen = false; render(); } }, [COPY.leaveCancelButton])
+      ])
     ]);
-    if (statusKey === 'paused') {
-      statusCard.appendChild(h('p', { class: 'chip-status-card__action' }, [officePhoneLink()]));
+  }
+
+  // ---- rejoin (a 'left' location only) ----
+  function openRejoin(c) {
+    var ui = ensureProfileUi();
+    closeAllEditPanels(ui);
+    ui.rejoinLocationId = c.id;
+    ui.rejoinForm = initLocationFormFromCustomer(c);
+    render();
+  }
+  function onSubmitRejoin(id, submitBtn) {
+    var ui = ensureProfileUi();
+    var f = ui.rejoinForm;
+    var errors = validateLocationForm(f, 'rejoin');
+    f._errors = errors;
+    if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
+    f._topError = null;
+    ui.rejoinSaving = true; render();
+    var account = (STATE.customers && STATE.customers[0]) || {};
+    var photoStep = f.photoBlob ? API.uploadDropPhoto(id, f.photoBlob).then(function (p) { f.photoPath = p; return p; }) : Promise.resolve(null);
+    photoStep.then(function (photoPath) {
+      var payload = {
+        first_name: account.first_name || '', last_name: account.last_name || '', phone: account.phone || '',
+        street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(), lat: f.lat, lng: f.lng,
+        tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(), truck_access: f.truck_access,
+        mixed_ok: true, stay_on_list_ack: true, property_access_ok: true, photo_ok: true,
+        paid_consent: f.paid_consent
+      };
+      if (photoPath) payload.photo_path = photoPath;
+      return API.rejoin(id, payload, f.paid_consent);
+    }).then(function (res) {
+      var ui2 = ensureProfileUi();
+      ui2.rejoinSaving = false; ui2.rejoinLocationId = null; ui2.rejoinForm = null;
+      var updated = (res && res.customer) || null;
+      captureJobberUrl(updated);
+      if (updated) upsertCustomerInList(updated);
+      locAction(ui2, id).justRejoined = true;
+      render();
+    }).catch(function (err) {
+      ui.rejoinSaving = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      f._topError = err.message || COPY.genericError;
+      render();
+    });
+  }
+  function renderRejoinCard(ui, c) {
+    var f = ui.rejoinForm;
+    var errors = f._errors || {};
+    var card = h('div', { class: 'chip-profile-card chip-profile-card--editing' });
+    card.appendChild(h('h3', {}, [COPY.rejoinFormTitle]));
+    if (f._topError) card.appendChild(banner('error', f._topError));
+    buildLocationFormFields(card, f, errors, 'rejoin');
+    var submitBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSubmitRejoin(c.id, submitBtn); } }, [ui.rejoinSaving ? COPY.submitting : COPY.rejoinSubmitButton]);
+    var cancelBtn = h('button', {
+      class: 'btn btn--outline', type: 'button',
+      onclick: function () { var ui2 = ensureProfileUi(); ui2.rejoinLocationId = null; ui2.rejoinForm = null; render(); }
+    }, [COPY.cancelButton]);
+    card.appendChild(h('div', { class: 'chip-actions chip-actions--save-bar' }, [submitBtn, cancelBtn]));
+    return card;
+  }
+
+  // ---- one location's read-only card (address, status, plan, notes, photos, drop history, actions) ----
+  function renderLocationSection(ui, c) {
+    if (ui.editingLocationId === c.id) return renderLocationEditCard(ui, c);
+    if (ui.rejoinLocationId === c.id) return renderRejoinCard(ui, c);
+
+    var la = locAction(ui, c.id);
+    var statusKey = c.status || 'pending';
+    var card = h('div', { class: 'chip-profile-card chip-location-section' });
+
+    var head = h('div', { class: 'chip-profile-card__head' }, [
+      h('h3', {}, [[c.street, c.city, c.zip].filter(Boolean).join(', ') || COPY.cardDropSpotTitle])
+    ]);
+    if (statusKey !== 'left') {
+      head.appendChild(h('button', { class: 'btn btn--outline chip-profile-card__change', type: 'button', onclick: function () { openLocationEdit(c); } }, [COPY.changeButton]));
     }
-    wrap.appendChild(statusCard);
+    card.appendChild(head);
 
-    // ---- the four info cards, 2-column grid on desktop, stacked on phone ----
-    var grid = h('div', { class: 'chip-profile-grid' });
+    if (la.justSaved) { card.appendChild(banner('success', COPY.saveSuccessMessage)); la.justSaved = false; }
+    if (la.addressRecheck) { card.appendChild(banner('info', COPY.addressChangedNotice)); la.addressRecheck = false; }
+    if (la.justAdded) { card.appendChild(banner('info', COPY.locationAddedNote)); la.justAdded = false; }
+    if (la.justRejoined) { card.appendChild(banner('info', COPY.rejoinSuccessBody)); la.justRejoined = false; }
+    if (la.error) card.appendChild(banner('error', la.error));
 
-    var dropSpotBody = [
-      profileField(COPY.fieldReadLabels.address, [c.street, c.city, c.zip].filter(Boolean).join(', '))
-    ];
+    card.appendChild(h('p', { class: 'chip-location-status chip-location-status--' + statusKey }, [COPY.statusLabels[statusKey] || statusKey]));
+    var helpTxt = (COPY.statusHelp && COPY.statusHelp[statusKey]) || '';
+    if (helpTxt) card.appendChild(h('p', { class: 'chip-help' }, [helpTxt]));
+
     if (typeof c.lat === 'number' && typeof c.lng === 'number') {
-      dropSpotBody.push(h('p', {}, [
+      card.appendChild(h('p', {}, [
         h('a', { href: 'https://www.google.com/maps/search/?api=1&query=' + c.lat + ',' + c.lng, target: '_blank', rel: 'noopener' }, [COPY.mapLinkText])
       ]));
     }
-    dropSpotBody.push(h('h4', {}, [COPY.photosTitle]));
+
+    card.appendChild(h('h4', {}, [COPY.cardPlanTitle]));
+    card.appendChild(profileField(COPY.fieldReadLabels.tier, tierDisplayText(c.tier)));
+    card.appendChild(profileField(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[loadsKeyFor(c.loads_wanted)] || c.loads_wanted));
+    card.appendChild(profileField(COPY.fieldReadLabels.truck_access, truckDisplayText(c.truck_access)));
+
+    card.appendChild(h('h4', {}, [COPY.cardNotesTitle]));
+    card.appendChild(h('p', {}, [c.drop_notes || '—']));
+
+    card.appendChild(h('h4', {}, [COPY.photosTitle]));
     if (c.photos && c.photos.length) {
       var photoGrid = h('div', { class: 'chip-photo-grid' });
       c.photos.forEach(function (p) { photoGrid.appendChild(h('img', { src: p.url, alt: COPY.photoPreviewAlt, loading: 'lazy' })); });
-      dropSpotBody.push(photoGrid);
+      card.appendChild(photoGrid);
     } else {
-      dropSpotBody.push(h('p', { class: 'chip-help' }, [COPY.noPhotosText]));
+      card.appendChild(h('p', { class: 'chip-help' }, [COPY.noPhotosText]));
     }
-    grid.appendChild(profileCard(COPY.cardDropSpotTitle, dropSpotBody, function () { openEditAt('address'); }));
 
-    var planBody = [
-      profileField(COPY.fieldReadLabels.tier, tierDisplayText(c.tier)),
-      profileField(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[loadsKeyFor(c.loads_wanted)] || c.loads_wanted),
-      profileField(COPY.fieldReadLabels.truck_access, truckDisplayText(c.truck_access))
-    ];
-    grid.appendChild(profileCard(COPY.cardPlanTitle, planBody, function () { openEditAt('plan'); }));
-
-    // ---- Your Chip Drops (Joseph, 2026-09-30): what the crew has actually delivered, read only ----
+    // ---- Your Chip Drops: what the crew has actually delivered, read only ----
+    card.appendChild(h('h4', {}, [COPY.cardDropsTitle]));
     var loadsDelivered = typeof c.loads_delivered === 'number' ? c.loads_delivered : 0;
     var loadsWantedIsNumber = typeof c.loads_wanted === 'number';
-    var dropsBody = [
-      h('p', { class: 'chip-drops-count' }, [COPY.loadsDeliveredCount(loadsDelivered, loadsWantedIsNumber ? c.loads_wanted : null)])
-    ];
-    if (!loadsWantedIsNumber) dropsBody.push(h('p', { class: 'chip-help' }, [COPY.loadsDeliveredAsManyNote]));
+    card.appendChild(h('p', { class: 'chip-drops-count' }, [COPY.loadsDeliveredCount(loadsDelivered, loadsWantedIsNumber ? c.loads_wanted : null)]));
+    if (!loadsWantedIsNumber) card.appendChild(h('p', { class: 'chip-help' }, [COPY.loadsDeliveredAsManyNote]));
     var lastDropLabel = denverDateLabel(c.last_drop);
-    if (lastDropLabel) dropsBody.push(profileField(COPY.fieldReadLabels.lastDrop, lastDropLabel));
+    if (lastDropLabel) card.appendChild(profileField(COPY.fieldReadLabels.lastDrop, lastDropLabel));
     if (c.drops && c.drops.length) {
       var dropsList = h('ul', { class: 'chip-drops-list' });
       c.drops.forEach(function (d) {
         var dateLabel = denverDateLabel(d.dropped_on) || d.dropped_on;
         dropsList.appendChild(h('li', {}, [COPY.dropLineText(dateLabel, d.loads)]));
       });
-      dropsBody.push(dropsList);
+      card.appendChild(dropsList);
     } else {
-      dropsBody.push(h('p', { class: 'chip-help' }, [COPY.noDropsYetText]));
+      card.appendChild(h('p', { class: 'chip-help' }, [COPY.noDropsYetText]));
     }
-    grid.appendChild(profileCardStatic(COPY.cardDropsTitle, dropsBody));
 
-    var notesBody = [h('p', {}, [c.drop_notes || '—'])];
-    grid.appendChild(profileCard(COPY.cardNotesTitle, notesBody, function () { openEditAt('notes'); }));
-
-    var contactBody = [
-      profileField(COPY.fieldReadLabels.name, ((c.first_name || '') + ' ' + (c.last_name || '')).trim()),
-      profileField(COPY.fieldReadLabels.phone, c.phone)
-    ];
-    if (c.email) contactBody.push(profileField(COPY.fieldReadLabels.email, c.email));
-    grid.appendChild(profileCard(COPY.cardContactTitle, contactBody, function () { openEditAt('contact'); }));
-
-    wrap.appendChild(grid);
-
-    wrap.appendChild(h('p', { class: 'chip-profile-jobber' }, [
-      h('a', { class: 'btn btn--outline', href: JOBBER_CLIENT_HUB_LOGIN_URL, target: '_blank', rel: 'noopener' }, [COPY.viewJobberButton])
-    ]));
-
-    var actions = h('div', { class: 'chip-actions chip-profile-actions' });
-    if (statusKey !== 'left') {
-      if (statusKey !== 'paused') {
+    // ---- actions ----
+    var actions = h('div', { class: 'chip-actions chip-location-actions' });
+    if (statusKey === 'left') {
+      actions.appendChild(h('button', { class: 'btn', type: 'button', onclick: function () { openRejoin(c); } }, [COPY.rejoinButton]));
+    } else {
+      if (statusKey === 'active') {
         actions.appendChild(h('button', {
-          class: 'btn btn--outline', type: 'button', onclick: onPause
-        }, [ui.pausing ? COPY.pausing : COPY.pauseButton]));
+          class: 'btn btn--outline', type: 'button', onclick: function () { onPauseLocation(c, false); }
+        }, [la.pausing ? COPY.pausing : COPY.pauseButton]));
+      } else if (statusKey === 'paused') {
+        actions.appendChild(h('button', {
+          class: 'btn', type: 'button', onclick: function () { onPauseLocation(c, true); }
+        }, [la.pausing ? COPY.resuming : COPY.resumeButton]));
       }
       actions.appendChild(h('button', {
-        class: 'btn btn--outline chip-btn-danger', type: 'button', onclick: function () { ui.leaveOpen = true; render(); }
+        class: 'btn btn--outline chip-btn-danger', type: 'button', onclick: function () { la.leaveOpen = true; render(); }
       }, [COPY.leaveButton]));
     }
-    if (actions.childNodes.length) wrap.appendChild(actions);
-    if (ui.leaveOpen) wrap.appendChild(renderLeaveConfirm(ui));
+    card.appendChild(actions);
+    if (la.leaveOpen) card.appendChild(renderLeaveConfirmFor(c, la));
+
+    return card;
+  }
+
+  function renderProfile() {
+    var ui = ensureProfileUi();
+    var customers = STATE.customers || [];
+    var account = customers[0] || {};
+    var wrap = h('div', { class: 'chip-card chip-card--profile' });
+
+    if (ui.justSignedUp) {
+      wrap.appendChild(h('div', { class: 'chip-banner chip-banner--info chip-welcome' }, [
+        h('strong', {}, [COPY.successTitle]),
+        h('p', {}, [COPY.successBody2 + ' ' + COPY.successBody3]),
+        h('p', {}, [COPY.profileSavedNote])
+      ]));
+      ui.justSignedUp = false;
+    }
+
+    wrap.appendChild(h('h1', { class: 'chip-profile-greeting' }, [COPY.profileGreeting(account.first_name)]));
+    wrap.appendChild(h('p', { class: 'chip-profile-greeting-sub' }, [COPY.profileGreetingSub]));
+
+    wrap.appendChild(renderContactCard(ui, account));
+
+    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.requestsSectionTitle]));
+    var grid = h('div', { class: 'chip-locations-grid' });
+    customers.forEach(function (c) { grid.appendChild(renderLocationSection(ui, c)); });
+    wrap.appendChild(grid);
+
+    wrap.appendChild(renderAddLocationControl(ui));
+
+    // jobber_hub_url only ever arrives on a singular `customer` reply, never inside customers[] —
+    // captureJobberUrl() picks it up as we see it. Hide the link until we actually have one rather
+    // than guess at a URL.
+    if (STATE.jobberHubUrl) {
+      wrap.appendChild(h('p', { class: 'chip-profile-jobber' }, [
+        h('a', { class: 'btn btn--outline', href: STATE.jobberHubUrl, target: '_blank', rel: 'noopener' }, [COPY.viewJobberButton])
+      ]));
+    }
 
     mount(wrap);
-  }
-
-  function renderLeaveConfirm(ui) {
-    var reasonInput = h('textarea', { id: 'cw-leave-reason', rows: '2', oninput: function (e) { ui.leaveReason = e.target.value; } });
-    reasonInput.value = ui.leaveReason;
-    return h('div', { class: 'chip-confirm' }, [
-      h('h3', {}, [COPY.leaveConfirmTitle]),
-      h('p', {}, [COPY.leaveConfirmBody]),
-      h('div', { class: 'field' }, [h('label', { for: 'cw-leave-reason' }, [COPY.leaveReasonLabel]), reasonInput]),
-      h('div', { class: 'chip-actions' }, [
-        h('button', { class: 'btn', type: 'button', onclick: onLeave }, [ui.leaving ? COPY.leavingButton : COPY.leaveConfirmButton]),
-        h('button', { class: 'btn btn--outline', type: 'button', onclick: function () { ui.leaveOpen = false; render(); } }, [COPY.leaveCancelButton])
-      ])
-    ]);
-  }
-
-  function onPause() {
-    var ui = ensureProfileUi();
-    ui.pausing = true; ui.error = null; render();
-    API.update({ status: 'paused' }, false).then(function (res) {
-      ui.pausing = false;
-      STATE.customer = (res && res.customer) || STATE.customer;
-      render();
-    }).catch(function (err) {
-      ui.pausing = false;
-      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
-      ui.error = err.message || COPY.genericError;
-      render();
-    });
-  }
-
-  function onLeave() {
-    var ui = ensureProfileUi();
-    ui.leaving = true; ui.error = null; render();
-    API.leave(ui.leaveReason.trim()).then(function () {
-      return API.me();
-    }).then(function (meRes) {
-      ui.leaving = false; ui.leaveOpen = false; ui.leaveReason = '';
-      STATE.customer = meRes.customer || null;
-      render();
-    }).catch(function (err) {
-      ui.leaving = false;
-      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
-      ui.error = err.message || COPY.genericError;
-      render();
-    });
-  }
-
-  function initEditFormFromCustomer(c) {
-    var hasPin = typeof c.lat === 'number' && typeof c.lng === 'number';
-    return {
-      first_name: c.first_name || '', last_name: c.last_name || '', phone: c.phone || '',
-      street: c.street || '', city: c.city || '', zip: c.zip || '',
-      lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null, pinSet: hasPin,
-      tier: c.tier || '', loads_wanted: loadsKeyFor(c.loads_wanted), drop_notes: c.drop_notes || '',
-      truck_access: c.truck_access === 'unsure' ? 'not_sure' : (c.truck_access || ''),
-      photoBlob: null, photoPreviewUrl: (c.photos && c.photos[0] && c.photos[0].url) || null, photoPath: null,
-      paid_consent: false,
-      _errors: {}, _topError: null
-    };
-  }
-
-  function validateEdit(f) {
-    var e = {};
-    if (!f.first_name.trim()) e.first_name = COPY.errorRequired;
-    if (!f.last_name.trim()) e.last_name = COPY.errorRequired;
-    if (!isValidPhone(f.phone)) e.phone = COPY.errorPhone;
-    if (!f.street.trim()) e.street = COPY.errorRequired;
-    if (!f.city.trim()) e.city = COPY.errorRequired;
-    if (!isValidZip(f.zip)) e.zip = COPY.errorZip;
-    if (!f.pinSet || f.lat == null || f.lng == null) e.pin = COPY.errorPin;
-    if (!f.tier) e.tier = COPY.errorTier;
-    if (!f.loads_wanted) e.loads_wanted = COPY.errorLoads;
-    var t = tierByKey(f.tier);
-    if (t && t.price_per_drop > 0 && !f.paid_consent) e.paid_consent = COPY.errorPaidConsent;
-    return e;
-  }
-
-  function renderProfileEdit() {
-    var ui = ensureProfileUi();
-    var f = ui.editForm;
-    var errors = f._errors || {};
-    var wrap = h('div', { class: 'chip-card chip-card--profile-edit' });
-    wrap.appendChild(h('h1', {}, [COPY.editButton]));
-    if (f._topError) wrap.appendChild(banner('error', f._topError));
-
-    wrap.appendChild(h('h2', { class: 'chip-section-title', id: 'cw-section-contact' }, [COPY.sectionContact]));
-    var firstInput = h('input', { type: 'text', id: 'cw-first', required: true, oninput: function (e) { f.first_name = e.target.value; } });
-    firstInput.value = f.first_name;
-    var lastInput = h('input', { type: 'text', id: 'cw-last', required: true, oninput: function (e) { f.last_name = e.target.value; } });
-    lastInput.value = f.last_name;
-    wrap.appendChild(h('div', { class: 'row' }, [
-      labeledField('cw-first', COPY.firstNameLabel, firstInput, errors.first_name),
-      labeledField('cw-last', COPY.lastNameLabel, lastInput, errors.last_name)
-    ]));
-    var phoneInput = h('input', { type: 'tel', id: 'cw-phone', required: true, oninput: function (e) { f.phone = e.target.value; } });
-    phoneInput.value = f.phone;
-    wrap.appendChild(labeledField('cw-phone', COPY.phoneLabel, phoneInput, errors.phone));
-
-    wrap.appendChild(h('h2', { class: 'chip-section-title', id: 'cw-section-address' }, [COPY.sectionAddress]));
-    var streetInput = h('input', { type: 'text', id: 'cw-street', required: true, oninput: function (e) { f.street = e.target.value; } });
-    streetInput.value = f.street;
-    wrap.appendChild(labeledField('cw-street', COPY.streetLabel, streetInput, errors.street));
-    var cityInput = h('input', { type: 'text', id: 'cw-city', required: true, oninput: function (e) { f.city = e.target.value; } });
-    cityInput.value = f.city;
-    var zipInput = h('input', { type: 'text', id: 'cw-zip', required: true, inputmode: 'numeric', maxlength: '5', oninput: function (e) { f.zip = e.target.value; } });
-    zipInput.value = f.zip;
-    wrap.appendChild(h('div', { class: 'row' }, [
-      labeledField('cw-city', COPY.cityLabel, cityInput, errors.city),
-      labeledField('cw-zip', COPY.zipLabel, zipInput, errors.zip)
-    ]));
-    var addressErrorHolder = h('div', {}, []);
-    var findBtn = h('button', { class: 'btn btn--outline', type: 'button' }, [COPY.findAddressButton]);
-    findBtn.addEventListener('click', function () {
-      if (!f.street.trim() || !f.city.trim() || !isValidZip(f.zip)) {
-        clear(addressErrorHolder); addressErrorHolder.appendChild(fieldError(COPY.errorRequired)); return;
-      }
-      findBtn.disabled = true; var was = findBtn.textContent; findBtn.textContent = COPY.finding;
-      API.geocode(f.street.trim(), f.city.trim(), f.zip.trim()).then(function (res) {
-        findBtn.disabled = false; findBtn.textContent = was; clear(addressErrorHolder);
-        if (res && typeof res.lat === 'number' && typeof res.lng === 'number') {
-          f.lat = res.lat; f.lng = res.lng; f.pinSet = true;
-          MapWidget.setView(res.lat, res.lng, 18);
-        } else {
-          addressErrorHolder.appendChild(fieldError(COPY.errorAddressNotFound));
-        }
-      }).catch(function (err) {
-        findBtn.disabled = false; findBtn.textContent = was;
-        if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
-        clear(addressErrorHolder); addressErrorHolder.appendChild(fieldError(err.message || COPY.genericError));
-      });
-    });
-    wrap.appendChild(h('div', { class: 'chip-find-address' }, [findBtn, h('p', { class: 'chip-help' }, [COPY.findAddressHelp])]));
-    wrap.appendChild(addressErrorHolder);
-
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionMap]));
-    wrap.appendChild(h('p', { class: 'chip-map-hint' }, [COPY.mapHint]));
-    var mapDiv = h('div', { class: 'chip-map', id: 'cw-map' });
-    wrap.appendChild(mapDiv);
-    wrap.appendChild(h('p', { class: 'chip-help' }, [COPY.mapHintTap]));
-    var pinErr = fieldError(errors.pin); if (pinErr) wrap.appendChild(pinErr);
-
-    appendEditPart2(wrap, f, errors);
-
-    mount(wrap);
-    MapWidget.init(mapDiv, {
-      lat: f.pinSet ? f.lat : null, lng: f.pinSet ? f.lng : null, draggable: true,
-      onMove: function (lat, lng) { f.lat = lat; f.lng = lng; f.pinSet = true; }
-    });
-
-    // Arrived here from a profile card's "Change" button — scroll (and move focus) to that section of
-    // the full edit form, per Joseph 2026-09-30: "opens the edit form... scrolled to/focused on that
-    // section." html{scroll-behavior} already respects prefers-reduced-motion site-wide (site.css).
-    if (ui.focusSection) {
-      var sectionIds = { contact: 'cw-section-contact', address: 'cw-section-address', plan: 'cw-section-plan', notes: 'cw-section-notes' };
-      var targetId = sectionIds[ui.focusSection];
-      ui.focusSection = null;
-      var target = targetId && document.getElementById(targetId);
-      if (target) {
-        setTimeout(function () {
-          target.scrollIntoView({ block: 'start' });
-          if (target.tabIndex < 0) target.setAttribute('tabindex', '-1');
-          try { target.focus({ preventScroll: true }); } catch (e) { /* older browsers ignore the option */ }
-        }, 30);
-      }
-    }
-  }
-
-  function appendEditPart2(wrap, f, errors) {
-    var tierSet = h('fieldset', { class: 'chip-fieldset', id: 'cw-section-plan' }, [h('legend', {}, [COPY.sectionTier])]);
-    var paidConsentText = h('span', {}, ['']);
-    var paidConsentCheckbox = h('input', { type: 'checkbox', onchange: function (e) { f.paid_consent = e.target.checked; } });
-    var paidConsentRow = h('label', { class: 'chip-consent', hidden: true }, [paidConsentCheckbox, paidConsentText]);
-    function onTierChange() {
-      var t = tierByKey(f.tier);
-      var isPaid = !!(t && t.price_per_drop > 0);
-      paidConsentRow.hidden = !isPaid;
-      if (!isPaid) { f.paid_consent = false; paidConsentCheckbox.checked = false; }
-      else { paidConsentText.textContent = COPY.paidConsent(t.price_per_drop); }
-    }
-    STATE.tiers.forEach(function (t) {
-      var id = 'cw-tier-' + t.key;
-      var priceText = (t.price_per_drop > 0) ? ('$' + t.price_per_drop) : COPY.tierFreeLabel;
-      var radio = h('input', {
-        type: 'radio', name: 'cw-tier', id: id, checked: f.tier === t.key,
-        onchange: function () { f.tier = t.key; onTierChange(); }
-      });
-      var kids = [radio, h('span', { class: 'chip-tier-name' }, [t.name + ' — ' + priceText])];
-      if (t.call_first) kids.push(h('span', { class: 'chip-tier-callfirst' }, [COPY.tierCallFirstNote]));
-      if (t.description) kids.push(h('p', { class: 'chip-tier-desc' }, [t.description]));
-      tierSet.appendChild(h('label', { class: 'chip-tier-option' }, kids));
-    });
-    var tierErr = fieldError(errors.tier); if (tierErr) tierSet.appendChild(tierErr);
-    wrap.appendChild(tierSet);
-    wrap.appendChild(paidConsentRow);
-    var paidErr = fieldError(errors.paid_consent); if (paidErr) wrap.appendChild(paidErr);
-    if (f.tier) onTierChange();
-
-    var loadsSelect = h('select', { id: 'cw-loads', onchange: function (e) { f.loads_wanted = e.target.value; } });
-    loadsSelect.appendChild(h('option', { value: '' }, [COPY.loadsChoosePlaceholder]));
-    Object.keys(COPY.loadsOptions).forEach(function (k) { loadsSelect.appendChild(h('option', { value: k }, [COPY.loadsOptions[k]])); });
-    loadsSelect.value = f.loads_wanted;
-    wrap.appendChild(labeledField('cw-loads', COPY.sectionLoads, loadsSelect, errors.loads_wanted, COPY.loadsHelp));
-
-    var charsLeftNode = h('span', { class: 'chip-charcount' }, [COPY.charsLeft(500 - f.drop_notes.length)]);
-    var notesArea = h('textarea', {
-      id: 'cw-notes', maxlength: '500', rows: '3',
-      oninput: function (e) { f.drop_notes = e.target.value; charsLeftNode.textContent = COPY.charsLeft(500 - e.target.value.length); }
-    });
-    notesArea.value = f.drop_notes;
-    wrap.appendChild(h('div', { class: 'field', id: 'cw-section-notes' }, [h('label', { for: 'cw-notes' }, [COPY.dropNotesLabel]), notesArea, charsLeftNode]));
-
-    // Truck access (2026-09-30: was shown on the profile but could not be changed).
-    var eTruckSet = h('fieldset', { class: 'chip-fieldset' }, [h('legend', {}, [COPY.truckAccessQuestion])]);
-    var eTruckRow = h('div', { class: 'chip-radio-row' });
-    [['yes', COPY.truckAccessYes], ['no', COPY.truckAccessNo], ['not_sure', COPY.truckAccessNotSure]].forEach(function (pair) {
-      var radio = h('input', { type: 'radio', name: 'cw-edit-truck', checked: f.truck_access === pair[0],
-        onchange: function () { f.truck_access = pair[0]; } });
-      eTruckRow.appendChild(h('label', { class: 'chip-radio-row__opt' }, [radio, pair[1]]));
-    });
-    eTruckSet.appendChild(eTruckRow);
-    wrap.appendChild(eTruckSet);
-
-    // photo — optional in edit mode; keep the existing one unless a new one is chosen
-    wrap.appendChild(h('h2', { class: 'chip-section-title' }, [COPY.sectionPhoto]));
-    var previewImg = h('img', { class: 'chip-photo-preview', alt: COPY.photoPreviewAlt, hidden: !f.photoPreviewUrl });
-    previewImg.addEventListener('error', function () { previewImg.hidden = true; });
-    if (f.photoPreviewUrl) previewImg.setAttribute('src', f.photoPreviewUrl);
-    var photoStatus = h('p', { class: 'chip-help' }, ['']);
-    var fileInput = h('input', {
-      type: 'file', accept: 'image/*', capture: 'environment', id: 'cw-photo', style: 'display:none',
-      onchange: function (e) {
-        var file = e.target.files && e.target.files[0];
-        if (!file) return;
-        photoStatus.textContent = COPY.photoProcessing;
-        processPhotoFile(file, function (err, blob, url) {
-          photoStatus.textContent = '';
-          if (err) { photoStatus.textContent = COPY.photoUploadFailed; return; }
-          if (f.photoPreviewUrl && f.photoPreviewUrl.lastIndexOf('blob:', 0) === 0) URL.revokeObjectURL(f.photoPreviewUrl);
-          f.photoBlob = blob; f.photoPreviewUrl = url; f.photoPath = null;
-          previewImg.setAttribute('src', url); previewImg.hidden = false;
-          chooseBtn.textContent = COPY.photoRetakeButton;
-        });
-      }
-    });
-    var chooseBtn = h('button', { class: 'btn btn--outline', type: 'button', onclick: function () { fileInput.click(); } }, [COPY.photoRetakeButton]);
-    wrap.appendChild(h('div', { class: 'chip-photo' }, [fileInput, chooseBtn, photoStatus, previewImg]));
-
-    var saveBtn = h('button', { class: 'btn chip-submit', type: 'button', onclick: function () { onSaveEdit(saveBtn); } }, [COPY.saveButton]);
-    var cancelBtn = h('button', {
-      class: 'btn btn--outline', type: 'button',
-      onclick: function () { var ui = ensureProfileUi(); ui.editing = false; ui.editForm = null; render(); }
-    }, [COPY.cancelButton]);
-    wrap.appendChild(h('div', { class: 'chip-actions chip-actions--save-bar' }, [saveBtn, cancelBtn]));
-  }
-
-  function onSaveEdit(saveBtn) {
-    var ui = ensureProfileUi();
-    var f = ui.editForm;
-    var errors = validateEdit(f);
-    f._errors = errors;
-    if (Object.keys(errors).length) { render(); focusFirstError(errors); return; }
-    f._topError = null;
-    saveBtn.disabled = true; saveBtn.textContent = COPY.savingButton;
-    var photoStep = f.photoBlob ? API.uploadDropPhoto(f.photoBlob).then(function (p) { f.photoPath = p; return p; }) : Promise.resolve(null);
-    photoStep.then(function (photoPath) {
-      var changes = {
-        first_name: f.first_name.trim(), last_name: f.last_name.trim(), phone: digitsOnly(f.phone),
-        street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(), lat: f.lat, lng: f.lng,
-        tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim()
-      };
-      if (f.truck_access) changes.truck_access = f.truck_access;
-      if (photoPath) changes.photo_path = photoPath;
-      return API.update(changes, f.paid_consent);
-    }).then(function (res) {
-      var ui2 = ensureProfileUi();
-      ui2.saving = false; ui2.editing = false; ui2.editForm = null;
-      ui2.justSaved = true; ui2.addressRecheck = !!(res && res.recheck);
-      STATE.customer = (res && res.customer) || STATE.customer;
-      render();
-    }).catch(function (err) {
-      saveBtn.disabled = false; saveBtn.textContent = COPY.saveButton;
-      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
-      f._topError = err.message || COPY.genericError;
-      render();
-    });
+    if (pendingMapInit) { pendingMapInit(); pendingMapInit = null; }
   }
 
   // ---------------------------------------------------------------- boot
@@ -1158,8 +1308,8 @@
     if (API.hasSession()) {
       try {
         var meRes = await API.me();
-        if (meRes.customer) { STATE.customer = meRes.customer; STATE.step = 'profile'; return render(); }
-        STATE.form = freshForm(); STATE.requestId = API.newRequestId(); STATE.step = 'signup'; return render();
+        routeAfterAuth(meRes);
+        return render();
       } catch (e) {
         if (e.kind === 'closed') { STATE.step = 'closed'; return render(); }
         // A dead/expired session with no working refresh — fall back to signing in again.

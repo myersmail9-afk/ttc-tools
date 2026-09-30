@@ -219,6 +219,31 @@
 
 .chip-profile-actions{ margin-top: 0; }
 
+/* Multiple drop locations per account (2026-09-30) — one profile page: the contact card at the
+   top, then one card per location under "Your Chip Drop Requests." Desktop: a readable 2-up grid
+   when there's room; phone: the same cards, stacked, full-width buttons (see the .btn rules above). */
+.chip-locations-grid{
+  display: grid; grid-template-columns: 1fr; gap: var(--space-5); margin: 0 0 var(--space-6);
+}
+@media (min-width: 860px){ .chip-locations-grid{ grid-template-columns: 1fr 1fr; } }
+.chip-location-section{ display: flex; flex-direction: column; }
+.chip-location-section h4{ margin: var(--space-4) 0 var(--space-2); font-size: 17px; }
+.chip-location-status{ font-family: var(--font-display); font-weight: var(--fw-bold); font-size: 18px; margin: 0 0 var(--space-2); }
+.chip-location-status--pending{ color: var(--text); }
+.chip-location-status--active{ color: var(--success-text); }
+.chip-location-status--paused{ color: var(--warn-text); }
+.chip-location-status--inactive{ color: var(--info-text); }
+.chip-location-status--left{ color: var(--danger-text); }
+.chip-location-actions{ margin-top: var(--space-4); }
+
+/* A card mid-edit (Change / Add Another Drop Location / Get Back on the List) gets a visible
+   highlight so it's clear which one is open, since only one can be open at a time. */
+.chip-profile-card--editing{ border-color: var(--ttc-orange); }
+.chip-profile-card--editing h3{ margin: 0 0 var(--space-4); font-size: 20px; }
+
+.chip-add-location{ margin: 0 0 var(--space-6); }
+.chip-add-location > .btn{ width: 100%; }
+
 /* Leave the List — a deliberate secondary button, not a small link, per the ergonomics goal above. */
 .chip-btn-danger{ color: var(--danger-text); border-color: var(--danger-border); }
 .chip-btn-danger:hover{ background: var(--danger-bg); color: var(--danger-text); }

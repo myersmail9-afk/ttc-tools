@@ -53,11 +53,13 @@ window.TTCChipApi = (function () {
   }
 
   // Turns a parsed body into the right ApiError per the contract: {closed:true} -> closed state;
-  // {error:'too_many'} -> the rate-limit message; any other {error:...} -> a plain generic
-  // message (never the raw server string, so a backend detail can never leak into the UI).
+  // {error:'too_many'} -> the rate-limit message; {error:'too_many_locations'} -> the 5-active-
+  // locations cap message; any other {error:...} -> a plain generic message (never the raw server
+  // string, so a backend detail can never leak into the UI).
   function throwForBody(body) {
     if (body && body.closed === true) throw new ApiError('closed', COPY.closedMessage);
     if (body && body.error === 'too_many') throw new ApiError('too_many', COPY.tooManyError);
+    if (body && body.error === 'too_many_locations') throw new ApiError('too_many_locations', COPY.maxLocationsNote);
     if (body && body.error) throw new ApiError('error', COPY.genericError);
   }
 
@@ -150,24 +152,39 @@ window.TTCChipApi = (function () {
   }
 
   // ------------------------------------------------------------ signed-in actions
+  // me() -> {customers:[view...] newest first (includes 'left' ones), customer: view|null}.
   function me() { return callFunction('me', {}, { auth: true }); }
+  // Each signup creates a NEW location for the signed-in account (the first signup also creates
+  // the account). Server throws {error:'too_many_locations'} once the account already has 5
+  // non-left locations — surfaced above as ApiError('too_many_locations', ...).
   function signup(data, requestId) {
     return callFunction('signup', { data: data, request_id: requestId }, { auth: true });
   }
-  function update(changes, paidConsent) {
-    return callFunction('update', { changes: changes, paid_consent: !!paidConsent }, { auth: true });
+  // customer_id says which location the change applies to (pause:true/resume:true go in `changes`).
+  function update(customerId, changes, paidConsent) {
+    return callFunction('update', { customer_id: customerId, changes: changes, paid_consent: !!paidConsent }, { auth: true });
   }
-  function leave(reason) {
-    return callFunction('leave', { reason: reason || '' }, { auth: true });
+  // Account-wide: updates name/phone on every one of the signed-in customer's locations.
+  function updateContact(data) {
+    return callFunction('update_contact', { first_name: data.first_name, last_name: data.last_name, phone: data.phone }, { auth: true });
   }
-  function photoUrl(ext) { return callFunction('photo_url', { ext: ext }, { auth: true }); }
-  function photoConfirm(path) { return callFunction('photo_confirm', { path: path }, { auth: true }); }
+  function leave(customerId, reason) {
+    return callFunction('leave', { customer_id: customerId, reason: reason || '' }, { auth: true });
+  }
+  // Only valid for a 'left' location; all four consents are required again. Returns the location
+  // with status back to 'pending'.
+  function rejoin(customerId, data, paidConsent) {
+    return callFunction('rejoin', { customer_id: customerId, data: data, paid_consent: !!paidConsent }, { auth: true });
+  }
+  function photoUrl(customerId, ext) { return callFunction('photo_url', { customer_id: customerId, ext: ext }, { auth: true }); }
+  function photoConfirm(customerId, path) { return callFunction('photo_confirm', { customer_id: customerId, path: path }, { auth: true }); }
 
   // Orchestrates the full photo hand-off: get a signed URL, PUT the (already browser-resized)
   // JPEG blob straight to storage, then tell the backend to confirm it. Returns the stored path,
-  // which the caller includes in the signup/update payload.
-  async function uploadDropPhoto(blob) {
-    var got = await photoUrl('jpg');
+  // which the caller includes in the signup/update/rejoin payload. customerId is optional (there's
+  // no location yet on a brand-new signup or an added location) — the contract accepts it blank.
+  async function uploadDropPhoto(customerId, blob) {
+    var got = await photoUrl(customerId, 'jpg');
     try {
       var put = await fetch(got.upload_url, {
         method: 'PUT',
@@ -178,7 +195,7 @@ window.TTCChipApi = (function () {
     } catch (e) {
       throw new ApiError('error', COPY.photoUploadFailed || COPY.genericError);
     }
-    await photoConfirm(got.path);
+    await photoConfirm(customerId, got.path);
     return got.path;
   }
 
@@ -203,7 +220,9 @@ window.TTCChipApi = (function () {
     me: me,
     signup: signup,
     update: update,
+    updateContact: updateContact,
     leave: leave,
+    rejoin: rejoin,
     uploadDropPhoto: uploadDropPhoto
   };
 })();
