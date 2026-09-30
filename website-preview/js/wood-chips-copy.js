@@ -66,11 +66,11 @@ window.TTC_CHIP_COPY = {
   cityLabel: 'City',
   zipLabel: 'ZIP Code',
   findAddressButton: 'Find My Address on the Map',
-  findAddressHelp: 'This moves the map below. You’ll still drag the circle to your exact drop spot.',
+  findAddressHelp: 'This moves the map below. Then drag the circle to the exact spot where we should dump the chips.',
   finding: 'Finding…',
 
   sectionMap: 'Your Drop Spot',
-  mapHint: 'Drag the circle to exactly where you want the chips.',
+  mapHint: 'Drag the orange circle to the exact spot where you want the chips dumped, not onto your house. We drop the chips right on this spot.',
   mapHintTap: 'You can also tap anywhere on the map to move the circle there.',
 
   sectionTier: 'Choose Your Tier',
