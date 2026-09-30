@@ -134,3 +134,7 @@
 }
 .chip-intro-sec--callout p:last-child { margin-bottom: 0; }
 .chip-intro-calc { margin-top: var(--space-4); }
+
+/* Welcome banner at the top of the profile page right after sign-up (2026-09-30). */
+.chip-welcome strong { display: block; font-size: 18px; margin-bottom: var(--space-1); }
+.chip-welcome p { margin: var(--space-2) 0 0; }

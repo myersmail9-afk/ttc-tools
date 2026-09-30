@@ -614,7 +614,9 @@
       return API.signup(payload, STATE.requestId);
     }).then(function (res) {
       STATE.customer = (res && res.customer) || null;
-      STATE.step = 'confirm';
+      // Joseph 2026-09-30: land on the customer's own profile page (view + edit), not a dead-end thank-you.
+      if (STATE.customer) { ensureProfileUi().justSignedUp = true; STATE.step = 'profile'; }
+      else STATE.step = 'confirm';
       render();
     }).catch(function (err) {
       submitBtn.disabled = false; submitBtn.textContent = COPY.submitButton;
@@ -655,6 +657,15 @@
     return STATE.profileUi;
   }
 
+  // The database stores loads as a number, or null for "as many as you can give me"; the <select> uses
+  // the COPY.loadsOptions keys. 10+ shows as "10 or more" (the server maps ten_plus -> 10).
+  function loadsKeyFor(v) {
+    if (v == null || v === '') return 'as_many_as_possible';
+    var n = Number(v);
+    if (n >= 10) return 'ten_plus';
+    return COPY.loadsOptions[String(n)] ? String(n) : String(v);
+  }
+
   function tierDisplayText(key) {
     var t = tierByKey(key);
     if (!t) return key || '';
@@ -670,13 +681,20 @@
     var ui = ensureProfileUi();
     if (ui.editing) return renderProfileEdit();
     var c = STATE.customer || {};
-    var justSaved = ui.justSaved, recheck = ui.addressRecheck;
-    ui.justSaved = false; ui.addressRecheck = false;
+    var justSaved = ui.justSaved, recheck = ui.addressRecheck, justSignedUp = ui.justSignedUp;
+    ui.justSaved = false; ui.addressRecheck = false; ui.justSignedUp = false;
 
     var statusKey = c.status || 'pending';
     var wrap = h('div', { class: 'chip-card' });
     wrap.appendChild(h('h1', {}, [COPY.profileTitle]));
     wrap.appendChild(h('p', { class: 'chip-status-pill chip-status-pill--' + statusKey }, [COPY.statusLabels[statusKey] || statusKey]));
+    if (justSignedUp) {
+      wrap.appendChild(h('div', { class: 'chip-banner chip-banner--info chip-welcome' }, [
+        h('strong', {}, [COPY.successTitle]),
+        h('p', {}, [COPY.successBody2 + ' ' + COPY.successBody3]),
+        h('p', {}, [COPY.profileSavedNote])
+      ]));
+    }
     if (justSaved) wrap.appendChild(banner('info', COPY.saveSuccessMessage));
     if (recheck) wrap.appendChild(banner('info', COPY.addressChangedNotice));
     if (ui.error) wrap.appendChild(banner('error', ui.error));
@@ -690,7 +708,7 @@
     row(COPY.fieldReadLabels.phone, c.phone);
     row(COPY.fieldReadLabels.address, [c.street, c.city, c.zip].filter(Boolean).join(', '));
     row(COPY.fieldReadLabels.tier, tierDisplayText(c.tier));
-    row(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[c.loads_wanted] || c.loads_wanted);
+    row(COPY.fieldReadLabels.loads_wanted, COPY.loadsOptions[loadsKeyFor(c.loads_wanted)] || c.loads_wanted);
     row(COPY.fieldReadLabels.drop_notes, c.drop_notes);
     row(COPY.fieldReadLabels.truck_access, truckDisplayText(c.truck_access));
     wrap.appendChild(dl);
@@ -789,7 +807,7 @@
       first_name: c.first_name || '', last_name: c.last_name || '', phone: c.phone || '',
       street: c.street || '', city: c.city || '', zip: c.zip || '',
       lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null, pinSet: hasPin,
-      tier: c.tier || '', loads_wanted: c.loads_wanted || '', drop_notes: c.drop_notes || '',
+      tier: c.tier || '', loads_wanted: loadsKeyFor(c.loads_wanted), drop_notes: c.drop_notes || '',
       photoBlob: null, photoPreviewUrl: (c.photos && c.photos[0] && c.photos[0].url) || null, photoPath: null,
       paid_consent: false,
       _errors: {}, _topError: null

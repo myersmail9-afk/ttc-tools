@@ -154,6 +154,7 @@ window.TTC_CHIP_COPY = {
 
   // ---------------------------------------------------------------- profile (step e)
   profileTitle: 'Your Wood Chip Profile',
+  profileSavedNote: 'This is your profile page. Everything you entered is below. Tap Edit My Information to change anything, like your number of loads or your notes for the crew, then save. Come back anytime: sign in with your email and a new code.',
   // Same five statuses the office sees, worded for the customer reading their own profile.
   statusLabels: {
     pending: 'New: we’re checking your details',
