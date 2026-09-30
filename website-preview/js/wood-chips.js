@@ -71,6 +71,26 @@
     if (customer && customer.jobber_hub_url) STATE.jobberHubUrl = customer.jobber_hub_url;
   }
 
+  // ---------------------------------------------------------------- sign-in code from an email link
+  // The sign-in code email's "Use this code" button links back here as #code=NNNNNN (six digits) so a
+  // customer who opens it on this same tab/device doesn't have to retype the code. Read once, up
+  // front, then drop the hash from the address bar immediately — the code itself only ever lives in
+  // memory (emailUi.code below), never back in the URL and never in storage.
+  var LAST_EMAIL_KEY = 'ttc_chip_last_email';
+  function rememberEmail(email) {
+    try { sessionStorage.setItem(LAST_EMAIL_KEY, email || ''); } catch (e) { /* private mode etc. */ }
+  }
+  function recalledEmail() {
+    try { return sessionStorage.getItem(LAST_EMAIL_KEY) || ''; } catch (e) { return ''; }
+  }
+  function consumePendingCodeFromHash() {
+    var m = /^#code=(\d{6})$/.exec(window.location.hash || '');
+    if (!m) return null;
+    try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ }
+    return m[1];
+  }
+  var pendingCode = consumePendingCodeFromHash();
+
   // The full sign-up form (creates the account + its first location together) — the only place
   // name/phone are collected once the account exists (adding/editing/rejoining a location never
   // asks for them again; they live on the account, edited from the contact card).
@@ -129,6 +149,13 @@
   function tierByKey(key) {
     for (var i = 0; i < STATE.tiers.length; i++) if (STATE.tiers[i].key === key) return STATE.tiers[i];
     return null;
+  }
+  // "Name — $Price" for a paid tier; a free tier (price 0) shows its name alone — "Free — Free"
+  // otherwise, when the tier's own name IS "Free" (2026-09-30 fix; the one function both the tier
+  // picker and the profile's read-only display call, so the fix only has to live in one place).
+  function tierLabelText(t) {
+    if (!t) return '';
+    return (t.price_per_drop > 0) ? (t.name + ' — $' + t.price_per_drop) : t.name;
   }
 
   // ---------------------------------------------------------------- shared bits
@@ -260,7 +287,7 @@
     ]));
   }
 
-  var emailUi = { sending: false, error: null, verifying: false, codeError: null, code: '' };
+  var emailUi = { sending: false, error: null, verifying: false, codeError: null, code: pendingCode || '', showCodeNote: false };
 
   function renderEmailStep() {
     var wrap = h('div', { class: 'chip-card' });
@@ -307,6 +334,7 @@
           submitSendCode(sendBtn);
         }
       }, [
+        (emailUi.showCodeNote ? h('p', { class: 'chip-banner chip-banner--info' }, [COPY.emailStepCodeNote]) : null),
         h('div', { class: 'field' }, [h('label', { for: 'cw-email' }, [COPY.emailLabel]), emailInput]),
         h('p', { class: 'chip-help' }, [COPY.emailHelp]),
         tsDiv,
@@ -344,7 +372,7 @@
       h('button', { class: 'chip-linkbtn', type: 'button', onclick: function () { resendCode(); } }, [COPY.resendButton]),
       h('button', {
         class: 'chip-linkbtn', type: 'button', onclick: function () {
-          STATE.step = 'email'; emailUi.error = null; emailUi.code = ''; render();
+          STATE.step = 'email'; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; render();
         }
       }, [COPY.changeEmailButton])
     ]);
@@ -357,7 +385,9 @@
     emailUi.error = null; emailUi.sending = true;
     sendBtn.disabled = true; sendBtn.textContent = COPY.sendingCode;
     API.code(STATE.email, Turnstile.token).then(function () {
-      emailUi.sending = false; STATE.step = 'code'; emailUi.codeError = null; render();
+      emailUi.sending = false; STATE.step = 'code'; emailUi.codeError = null;
+      rememberEmail(STATE.email);
+      render();
     }).catch(function (err) {
       emailUi.sending = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -370,7 +400,7 @@
   function resendCode() {
     // Turnstile tokens are single-use, and the widget only exists on the email screen — send the
     // customer back there (email still filled in) to get a fresh token and press Send again.
-    emailUi.error = null; emailUi.codeError = null; emailUi.code = '';
+    emailUi.error = null; emailUi.codeError = null; emailUi.code = ''; emailUi.showCodeNote = false;
     STATE.step = 'email';
     render();
   }
@@ -502,12 +532,11 @@
     }
     STATE.tiers.forEach(function (t) {
       var id = 'cw-tier-' + t.key;
-      var priceText = (t.price_per_drop > 0) ? ('$' + t.price_per_drop) : COPY.tierFreeLabel;
       var radio = h('input', {
         type: 'radio', name: 'cw-tier', id: id, checked: f.tier === t.key,
         onchange: function () { f.tier = t.key; onTierChange(); }
       });
-      var kids = [radio, h('span', { class: 'chip-tier-name' }, [t.name + ' — ' + priceText])];
+      var kids = [radio, h('span', { class: 'chip-tier-name' }, [tierLabelText(t)])];
       if (t.call_first) kids.push(h('span', { class: 'chip-tier-callfirst' }, [COPY.tierCallFirstNote]));
       if (t.description) kids.push(h('p', { class: 'chip-tier-desc' }, [t.description]));
       tierSet.appendChild(h('label', { class: 'chip-tier-option' }, kids));
@@ -795,7 +824,7 @@
   function tierDisplayText(key) {
     var t = tierByKey(key);
     if (!t) return key || '';
-    return t.name + ' — ' + (t.price_per_drop > 0 ? ('$' + t.price_per_drop) : COPY.tierFreeLabel);
+    return tierLabelText(t);
   }
   function truckDisplayText(v) {
     if (v === 'yes') return COPY.truckAccessYes;
@@ -1315,6 +1344,15 @@
         // A dead/expired session with no working refresh — fall back to signing in again.
         API.clearSession();
       }
+    }
+    if (pendingCode) {
+      var knownEmail = recalledEmail();
+      if (knownEmail) {
+        STATE.email = knownEmail;
+        STATE.step = 'code';
+        return render();
+      }
+      emailUi.showCodeNote = true;
     }
     STATE.step = 'email';
     render();

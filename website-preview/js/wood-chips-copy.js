@@ -29,6 +29,9 @@ window.TTC_CHIP_COPY = {
       'Signing up puts you in line. It does not reserve a load, book a delivery, or hold a date. We can’t tell you when your turn will come, and we can’t guarantee it will. There are far more people on this list than we have loads to give.',
       'If you need chips by a specific date, we recommend buying from a supplier instead. We’d rather be upfront than leave you waiting on something we can’t promise.'
     ] },
+    { title: 'We Call Before Every Drop', paras: [
+      'Every tier works the same way here: we call you before we drop, and we only drop after you say yes. If we can’t reach you, we don’t drop.'
+    ] },
     { title: 'Why We’re Changing Things', paras: [
       'The landfill recently stopped selling chips, so we’re changing how we deliver them. Our goal is to get chips to more people, fairly.'
     ] },
@@ -37,16 +40,15 @@ window.TTC_CHIP_COPY = {
       'A good amount per drop, usually up to 1 full load (about 10 to 12 cubic yards). We can’t always promise a full load, because it depends on what comes off the job, but it will always be a good amount.',
       'We can only drop where our truck can reach, usually front yards and driveways. We can’t go under low branches or power lines, or into back yards, unless there is easy, direct access.'
     ] },
-    { title: 'Pricing', paras: ['You pay after the chips are delivered. There is no upfront charge.'], items: [
-      '$30 per load: VIP, drop anytime, no call ahead. This is the best deal, because it saves us coordination time.',
-      '$50 per load: VIP, we call ahead first and set a time before we show up.',
-      '$0: free chips, lower priority on the list.'
+    { title: 'Pricing', paras: ['You pay after the chips are delivered. There is no upfront charge. The more you pay, the higher your spot on the list.'], items: [
+      '$50 per load: VIP Priority. Top of the list.',
+      '$30 per load: VIP.',
+      'Free: lowest priority on the list.'
     ] },
     { title: 'Priority Order', ordered: true, items: [
-      'VIP, drop anytime ($30 per load): top of the list',
-      'VIP, call ahead first ($50 per load)',
-      'Free, drop anytime',
-      'Free, call ahead first'
+      'VIP Priority ($50 per load): top of the list',
+      'VIP ($30 per load)',
+      'Free: lowest priority'
     ] }
   ],
   calcText: 'Need help estimating how many loads you want? Try the free chip calculator at ',
@@ -59,6 +61,9 @@ window.TTC_CHIP_COPY = {
   emailStepTitle: 'Sign In',
   emailLabel: 'Email',
   emailHelp: 'Sign in with just your email. We’ll email you a 6-digit code, and there’s no password to remember. Your sign-up is saved to your email, so next time you only need your email and a new code to see or change it.',
+  // Shown only when the page already has a code waiting (opened via the "Use this code" email
+  // button on a tab that doesn't yet know the email) — see wood-chips.js's #code= handling.
+  emailStepCodeNote: 'Enter your email to use your code.',
   sendCodeButton: 'Send Me a Code',
   sendingCode: 'Sending…',
   codeSentAlways: 'If that email can sign in, we sent a 6-digit code.',
@@ -138,7 +143,9 @@ window.TTC_CHIP_COPY = {
   sectionConsents: 'A Few Things to Agree To',
   consentMixedOk: 'I understand these are dirty, mixed arborist chips. They can include any tree species, leaves, and bark, and may have small amounts of trash and sticks.',
   consentStaysOnList: 'I understand that to get off the list, I must take myself off the list. Otherwise I will keep getting chips, and Total Tree Care is not responsible for picking chips back up if I forgot to take myself off.',
-  consentPropertyAccess: 'I understand the crew and truck may come onto my property to drop the chips.',
+  // Joseph, 2026-09-30: every tier calls first now, so this consent also covers the call-first policy
+  // (kept on this existing consent rather than adding a fifth checkbox — see the contract's Deviations).
+  consentPropertyAccess: 'I understand the crew and truck may come onto my property to drop the chips. I understand the crew calls before every drop and only drops after I say yes. No answer, no drop.',
   consentPhotoUse: 'I understand my photo helps the crew find the spot. It’s never posted anywhere.',
   paidConsent: function (price) { return 'I agree to be billed $' + price + ' after each drop.'; },
 
