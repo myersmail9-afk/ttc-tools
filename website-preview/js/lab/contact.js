@@ -133,45 +133,6 @@
             pill.remove();
           };
         }
-      },
-      {
-        id: "5", kind: "Clarity", name: "5 · “What brings you here?” chooser",
-        note: "Two cards up top send tree-service visitors straight to the form and everyone else straight to the “Not a tree service request?” box — no scrolling to find the right path.",
-        setup: function () {
-          var cols = document.querySelector(".contact-cols");
-          var section = cols ? cols.closest(".section") : null;
-          var formWrap = document.querySelector(".contact-request");
-          var altBox = document.querySelector(".contact-altpath");
-          if (!section || !cols || !formWrap || !altBox) return null;
-
-          var addedIds = [];
-          if (!formWrap.id) { formWrap.id = "pl5-form"; addedIds.push(formWrap); }
-          if (!altBox.id) { altBox.id = "pl5-altpath"; addedIds.push(altBox); }
-
-          var chooser = document.createElement("div");
-          chooser.className = "wrap pl5-chooser";
-          chooser.innerHTML =
-            '<p class="pl5-chooser__lead">What brings you here today?</p>' +
-            '<div class="pl5-chooser__row">' +
-              '<a class="pl5-chooser__card" href="#' + formWrap.id + '"><strong>Tree service request</strong><span>Fill out the estimate form</span></a>' +
-              '<a class="pl5-chooser__card" href="#' + altBox.id + '"><strong>Something else</strong><span>Billing, applications, questions</span></a>' +
-            "</div>";
-          section.insertBefore(chooser, cols);
-
-          var links = Array.prototype.slice.call(chooser.querySelectorAll("a"));
-          function onClick(e) {
-            e.preventDefault();
-            var target = document.getElementById(this.getAttribute("href").slice(1));
-            if (target) target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-          }
-          links.forEach(function (a) { a.addEventListener("click", onClick); });
-
-          return function teardown() {
-            links.forEach(function (a) { a.removeEventListener("click", onClick); });
-            chooser.remove();
-            addedIds.forEach(function (el) { el.removeAttribute("id"); });
-          };
-        }
       }
     ]
   };

@@ -1,4 +1,4 @@
-/* Page lab styles for the contact group (html.pl-2 … html.pl-5). Preview only — never loaded on
+/* Page lab styles for the contact group (html.pl-2 … html.pl-4). Preview only — never loaded on
    the real site. Brand tokens only; orange stays reserved for calls to action. Layered on top of
    the "Contact page standard" block in site.css — never overrides the form, phone links, .call-fab,
    or .contact-altpath box, only adds to them. */
@@ -48,24 +48,3 @@ html.pl-4 .pl4-status.is-open { background: var(--success-bg); color: var(--succ
 html.pl-4 .pl4-status.is-open::before { background: var(--success-border); }
 html.pl-4 .pl4-status.is-closed { background: var(--bg-alt); color: var(--text-muted); }
 html.pl-4 .pl4-status.is-closed::before { background: var(--text-hint); }
-
-/* ---- 5 · Clarity — "What brings you here?" chooser ---- */
-html.pl-5 .pl5-chooser { padding-top: var(--space-6); padding-bottom: 0; }
-html.pl-5 .pl5-chooser__lead {
-  margin: 0 0 var(--space-4); text-align: center; font-family: var(--font-display);
-  font-weight: var(--fw-bold); font-size: 20px; color: var(--text);
-}
-html.pl-5 .pl5-chooser__row { display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: center; }
-html.pl-5 .pl5-chooser__card {
-  flex: 1 1 240px; max-width: 320px; display: block; padding: var(--space-5);
-  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r-lg);
-  box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text); text-align: center;
-  min-height: 44px;
-}
-html.pl-5 .pl5-chooser__card:hover, html.pl-5 .pl5-chooser__card:focus-visible {
-  box-shadow: var(--shadow-md); border-color: var(--ttc-green);
-}
-html.pl-5 .pl5-chooser__card strong {
-  display: block; font-family: var(--font-display); font-size: 18px; margin-bottom: var(--space-1); color: var(--ttc-dark);
-}
-html.pl-5 .pl5-chooser__card span { display: block; color: var(--text-muted); font-size: 14px; }
