@@ -32,6 +32,21 @@
   padding: 16px; font-family: var(--font-body);
 }
 .lab-panel[hidden] { display: none; }
+
+/* Phones (QA fix, 2026-09-30): bottom-left sat directly under the hero slideshow's Previous-photo
+   button at 390/375px (the hero's CTA buttons + slideshow controls fill that whole corner on a
+   phone, so there's no bottom gap to dodge into). Move below the header instead, using the same
+   --chrome-h var menu.js already measures (top bar + header height) for the hero's own sizing, so
+   this always clears the header/top-bar above and the hero controls (which stay near the bottom)
+   below, regardless of photo-label text length. The panel now drops down from the toggle instead
+   of up, to match. */
+@media (max-width: 640px) {
+  .lab-toggle { top: calc(var(--chrome-h, 100px) + 12px); bottom: auto; }
+  .lab-panel {
+    top: calc(var(--chrome-h, 100px) + 12px + 56px); bottom: auto;
+    max-height: calc(100vh - var(--chrome-h, 100px) - 80px);
+  }
+}
 .lab-panel h2 { font-size: 18px; margin: 0 0 4px; }
 .lab-panel .lab-note { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; }
 .lab-panel fieldset { border: 0; margin: 0 0 14px; padding: 0; }

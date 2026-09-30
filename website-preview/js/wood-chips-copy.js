@@ -64,6 +64,8 @@ window.TTC_CHIP_COPY = {
   // Shown only when the page already has a code waiting (opened via the "Use this code" email
   // button on a tab that doesn't yet know the email) — see wood-chips.js's #code= handling.
   emailStepCodeNote: 'Enter your email to use your code.',
+  continueWithCodeButton: 'Continue With My Code',
+  sendNewCodeInsteadButton: 'Send Me a New Code Instead',
   sendCodeButton: 'Send Me a Code',
   sendingCode: 'Sending…',
   codeSentAlways: 'If that email can sign in, we sent a 6-digit code.',
@@ -75,6 +77,8 @@ window.TTC_CHIP_COPY = {
   resendButton: 'Send a New Code',
   changeEmailButton: 'Use a Different Email',
   turnstileFailed: 'Verification didn’t load. Refresh the page and try again.',
+  // Browser Back/close/reload guard (2026-09-30) — shown only when a form has input that was never saved.
+  unsavedChangesConfirm: 'You have unsaved changes. Go back without saving?',
 
   // ---------------------------------------------------------------- shared field errors
   errorRequired: 'This is required.',

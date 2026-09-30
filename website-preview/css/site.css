@@ -1214,3 +1214,21 @@ html.js-reveal .page-home .creds-tiles .tile:nth-child(6) { transition-delay: .4
 }
 .lightbox__caption[hidden] { display: none; }
 @media (max-width: 640px) { .lightbox__caption { font-size: 15px; bottom: var(--space-3); } }
+
+/* ===== Jobber "Request an Estimate" dialog — QA fix 2026-09-30 =====
+   Third-party embed opened by [data-estimate] buttons via menu.js (script loaded from
+   d3ey4dbjkt2f6s.cloudfront.net/assets/static_link/work_request_embed_dialog_snippet.js — not ours
+   to edit). That script grows iframe.jobber-work-request to its full form height via an inline
+   `height` (2000px+) and relies on the OUTER .jobber-dialog-overlay scrolling that one tall flat
+   block — confirmed on the published preview's live DOM (both 1280x1600 and 390x844): the dialog's
+   own close control never appeared on screen at any scroll position reached by scrolling the overlay,
+   and the only reliable way to close it was clicking the dark backdrop outside the box. Capping the
+   iframe — and the two wrapper divs the same script also sets an inline height on — to the viewport
+   instead gives the iframe its own native internal scrollbar, so the dialog now stays framed within
+   the screen at any size instead of ballooning past it. Verified at 390x844 and 1280x800: the form
+   still scrolls and the fields are all reachable, and closing by clicking outside the box still works.
+   Scoped tightly to Jobber's own three classes; nothing else on the page is touched. */
+.jobber-dialog-box, .jobber-dialog-content, iframe.jobber-work-request {
+  max-height: calc(100vh - 32px) !important;
+  max-height: calc(100svh - 32px) !important;
+}

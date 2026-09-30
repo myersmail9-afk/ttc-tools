@@ -130,14 +130,26 @@
   // and a rejoin requires the customer to check each one again, per Joseph's spec.
   function initLocationFormFromCustomer(c) {
     var hasPin = typeof c.lat === 'number' && typeof c.lng === 'number';
+    var loadsKey = loadsKeyFor(c.loads_wanted);
+    var truck = c.truck_access === 'unsure' ? 'not_sure' : (c.truck_access || '');
     return {
       street: c.street || '', city: c.city || '', zip: c.zip || '',
       lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null, pinSet: hasPin,
-      tier: c.tier || '', loads_wanted: loadsKeyFor(c.loads_wanted), drop_notes: c.drop_notes || '',
-      truck_access: c.truck_access === 'unsure' ? 'not_sure' : (c.truck_access || ''),
+      tier: c.tier || '', loads_wanted: loadsKey, drop_notes: c.drop_notes || '',
+      truck_access: truck,
       photoBlob: null, photoPreviewUrl: (c.photos && c.photos[0] && c.photos[0].url) || null, photoPath: null,
       consent_mixed_ok: false, consent_stays_on_list: false, consent_property_access: false, consent_photo_use: false,
       paid_consent: false,
+      // What this form started from. Two uses: (a) edit mode only re-asks the paid-tier checkbox when
+      // f.tier actually differs from _original.tier — see buildLocationFormFields' onTierChange and
+      // validateLocationForm below (2026-09-30 fix: chip_customer_update only requires paid_consent
+      // when `tier` is part of the change, so editing notes/loads/etc. on a location already on a paid
+      // tier must not re-trigger it) — and (b) the unsaved-input guard (isLocationFormDirty) compares
+      // against it so Back/reload/close only warns when something actually changed.
+      _original: {
+        street: c.street || '', city: c.city || '', zip: c.zip || '', lat: hasPin ? c.lat : null, lng: hasPin ? c.lng : null,
+        tier: c.tier || '', loads_wanted: loadsKey, drop_notes: c.drop_notes || '', truck_access: truck
+      },
       _errors: {}, _topError: null
     };
   }
@@ -325,28 +337,62 @@
       emailInput.value = STATE.email;
       var tsDiv = h('div', { class: 'chip-turnstile' });
       var tsNote = h('p', { class: 'chip-error', hidden: true }, [COPY.turnstileFailed]);
-      var sendBtn = h('button', { class: 'btn', type: 'submit', disabled: true }, [COPY.sendCodeButton]);
 
-      var form = h('form', {
-        class: 'chip-form', onsubmit: function (e) {
-          e.preventDefault();
-          if (!STATE.email) { emailUi.error = COPY.errorRequired; return renderEmailStep(); }
-          submitSendCode(sendBtn);
-        }
-      }, [
+      var formKids = [
         (emailUi.showCodeNote ? h('p', { class: 'chip-banner chip-banner--info' }, [COPY.emailStepCodeNote]) : null),
         h('div', { class: 'field' }, [h('label', { for: 'cw-email' }, [COPY.emailLabel]), emailInput]),
-        h('p', { class: 'chip-help' }, [COPY.emailHelp]),
-        tsDiv,
-        tsNote,
-        sendBtn
-      ]);
-      wrap.appendChild(form);
-      mount(wrap);
-      Turnstile.render(tsDiv, function (token, gaveUp) {
-        sendBtn.disabled = !token;
-        if (gaveUp) tsNote.hidden = false;
-      });
+        h('p', { class: 'chip-help' }, [COPY.emailHelp])
+      ];
+      var form;
+
+      // A one-tap code link (#code=NNNNNN) landed here without knowing this tab's email (boot()'s
+      // pendingCode branch, showCodeNote/emailUi.code both set together there). The code is still
+      // good, so the main action must NOT send a new one (that would replace the emailed code) — it
+      // goes straight to the code step with it pre-filled. Sending stays available as a deliberate
+      // secondary action, which clears the pre-filled code (submitSendCode does that for every send
+      // path, so it can never be offered again once superseded).
+      if (pendingCode && emailUi.code) {
+        var continueBtn = h('button', { class: 'btn', type: 'submit' }, [COPY.continueWithCodeButton]);
+        var sendInsteadBtn = h('button', {
+          class: 'btn btn--outline', type: 'button', disabled: true,
+          onclick: function () {
+            if (!STATE.email) { emailUi.error = COPY.errorRequired; return renderEmailStep(); }
+            submitSendCode(sendInsteadBtn);
+          }
+        }, [COPY.sendNewCodeInsteadButton]);
+        formKids.push(continueBtn, tsDiv, tsNote, sendInsteadBtn);
+        form = h('form', {
+          class: 'chip-form', onsubmit: function (e) {
+            e.preventDefault();
+            if (!STATE.email) { emailUi.error = COPY.errorRequired; return renderEmailStep(); }
+            STATE.step = 'code';
+            pushHistoryMarker();
+            render();
+          }
+        }, formKids);
+        wrap.appendChild(form);
+        mount(wrap);
+        Turnstile.render(tsDiv, function (token, gaveUp) {
+          sendInsteadBtn.disabled = !token;
+          if (gaveUp) tsNote.hidden = false;
+        });
+      } else {
+        var sendBtn = h('button', { class: 'btn', type: 'submit', disabled: true }, [COPY.sendCodeButton]);
+        formKids.push(tsDiv, tsNote, sendBtn);
+        form = h('form', {
+          class: 'chip-form', onsubmit: function (e) {
+            e.preventDefault();
+            if (!STATE.email) { emailUi.error = COPY.errorRequired; return renderEmailStep(); }
+            submitSendCode(sendBtn);
+          }
+        }, formKids);
+        wrap.appendChild(form);
+        mount(wrap);
+        Turnstile.render(tsDiv, function (token, gaveUp) {
+          sendBtn.disabled = !token;
+          if (gaveUp) tsNote.hidden = false;
+        });
+      }
       emailInput.focus();
       return;
     }
@@ -372,7 +418,7 @@
       h('button', { class: 'chip-linkbtn', type: 'button', onclick: function () { resendCode(); } }, [COPY.resendButton]),
       h('button', {
         class: 'chip-linkbtn', type: 'button', onclick: function () {
-          STATE.step = 'email'; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; render();
+          STATE.step = 'email'; STATE.email = ''; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; render();
         }
       }, [COPY.changeEmailButton])
     ]);
@@ -383,11 +429,15 @@
 
   function submitSendCode(sendBtn) {
     emailUi.error = null; emailUi.sending = true;
+    // A new code invalidates any pending one from a #code= link — never offer it again once a fresh
+    // send is underway, on this path or any other (resendCode() already clears it the same way).
+    emailUi.code = '';
     sendBtn.disabled = true; sendBtn.textContent = COPY.sendingCode;
     API.code(STATE.email, Turnstile.token).then(function () {
       emailUi.sending = false; STATE.step = 'code'; emailUi.codeError = null;
       rememberEmail(STATE.email);
       render();
+      pushHistoryMarker();
     }).catch(function (err) {
       emailUi.sending = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -434,6 +484,7 @@
       emailUi.verifying = false;
       routeAfterAuth(meRes);
       render();
+      replaceHistoryMarker();
     }).catch(function (err) {
       emailUi.verifying = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -525,7 +576,12 @@
     var paidConsentRow = h('label', { class: 'chip-consent', hidden: true }, [paidConsentCheckbox, paidConsentText]);
     function onTierChange() {
       var t = tierByKey(f.tier);
-      var isPaid = !!(t && t.price_per_drop > 0);
+      var priced = !!(t && t.price_per_drop > 0);
+      // Edit mode only: re-agreeing to be billed is asked only when the tier is actually switching to
+      // a paid price (new, or a different paid price) — not when the chosen tier is simply the same
+      // paid tier the location is already on (notes/loads/etc. being edited alongside it).
+      var isSwitch = mode !== 'edit' || f.tier !== f._original.tier;
+      var isPaid = priced && isSwitch;
       paidConsentRow.hidden = !isPaid;
       if (!isPaid) { f.paid_consent = false; paidConsentCheckbox.checked = false; }
       else { paidConsentText.textContent = COPY.paidConsent(t.price_per_drop); }
@@ -649,7 +705,10 @@
       if (!(f.consent_mixed_ok && f.consent_stays_on_list && f.consent_property_access && f.consent_photo_use)) e.consents = COPY.errorConsents;
     }
     var t = tierByKey(f.tier);
-    if (t && t.price_per_drop > 0 && !f.paid_consent) e.paid_consent = COPY.errorPaidConsent;
+    // Same "is this actually a switch" rule as onTierChange above — an edit that leaves the location on
+    // its existing paid tier never requires (or shows) this checkbox.
+    var tierIsSwitch = mode !== 'edit' || f.tier !== f._original.tier;
+    if (t && t.price_per_drop > 0 && tierIsSwitch && !f.paid_consent) e.paid_consent = COPY.errorPaidConsent;
     return e;
   }
 
@@ -745,6 +804,7 @@
         STATE.step = 'confirm';
       }
       render();
+      replaceHistoryMarker();
     }).catch(function (err) {
       submitBtn.disabled = false; submitBtn.textContent = COPY.submitButton;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -876,6 +936,7 @@
     ui.editingContact = true;
     ui.contactForm = { first_name: account.first_name || '', last_name: account.last_name || '', phone: account.phone || '', _errors: {}, _topError: null };
     render();
+    pushHistoryMarker();
   }
   function validateContactForm(f) {
     var e = {};
@@ -948,6 +1009,7 @@
     ui.addForm = freshLocationForm();
     ui.addRequestId = API.newRequestId();
     render();
+    pushHistoryMarker();
   }
   function onSubmitAddLocation(submitBtn) {
     var ui = ensureProfileUi();
@@ -1021,6 +1083,7 @@
     ui.editingLocationId = c.id;
     ui.editForm = initLocationFormFromCustomer(c);
     render();
+    pushHistoryMarker();
   }
   function onSaveLocation(id, saveBtn) {
     var ui = ensureProfileUi();
@@ -1034,8 +1097,12 @@
     photoStep.then(function (photoPath) {
       var changes = {
         street: f.street.trim(), city: f.city.trim(), zip: f.zip.trim(), lat: f.lat, lng: f.lng,
-        tier: f.tier, loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(), truck_access: f.truck_access
+        loads_wanted: f.loads_wanted, drop_notes: f.drop_notes.trim(), truck_access: f.truck_access
       };
+      // Only send `tier` when it actually changed — chip_customer_update requires paid_consent
+      // whenever `tier` is part of the change AND that tier is paid, with no "already on it" concept
+      // of its own, so sending the unchanged value every save forced the checkbox on every edit.
+      if (f.tier !== f._original.tier) changes.tier = f.tier;
       if (photoPath) changes.photo_path = photoPath;
       return API.update(id, changes, f.paid_consent);
     }).then(function (res) {
@@ -1130,6 +1197,7 @@
     ui.rejoinLocationId = c.id;
     ui.rejoinForm = initLocationFormFromCustomer(c);
     render();
+    pushHistoryMarker();
   }
   function onSubmitRejoin(id, submitBtn) {
     var ui = ensureProfileUi();
@@ -1315,15 +1383,105 @@
     if (pendingMapInit) { pendingMapInit(); pendingMapInit = null; }
   }
 
+  // ---------------------------------------------------------------- Back/Forward (2026-09-30)
+  // Back steps back ONE screen instead of leaving the page: code -> email; the sign-up form -> email/
+  // intro; an open edit/add/rejoin/contact panel on the profile -> the bare profile. The profile
+  // itself has nowhere shallower to go once signed in, so it "stays" (this handler re-plants a fresh
+  // marker) UNLESS it is the very first screen this tab loaded (a returning session, no email/code
+  // screens before it) — Back never even reaches this handler then, so the page leaves normally, same
+  // as every other screen below once there is nothing left to intercept. No personal data or the code
+  // ever goes into the URL or history state (just a placeholder marker); the session itself stays
+  // sessionStorage-only, unchanged.
+  function pushHistoryMarker() {
+    try { history.pushState({ ttcChip: true }, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+  }
+  function replaceHistoryMarker() {
+    try { history.replaceState({ ttcChip: true }, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+  }
+
+  // "Unsaved input" across every form this page can show — gates both the in-app confirm below and
+  // the beforeunload prompt (reload / close tab / Back past the first screen).
+  function formHasInput(f) {
+    return !!(f.first_name || f.last_name || f.phone || f.street || f.city || f.zip || f.pinSet ||
+      f.tier || f.loads_wanted || f.drop_notes || f.photoBlob || f.truck_access ||
+      f.consent_mixed_ok || f.consent_stays_on_list || f.consent_property_access || f.consent_photo_use);
+  }
+  function formHasChanges(f) {
+    var o = f._original;
+    if (!o) return formHasInput(f);
+    return f.street !== o.street || f.city !== o.city || f.zip !== o.zip || f.tier !== o.tier ||
+      f.loads_wanted !== o.loads_wanted || f.drop_notes !== o.drop_notes || f.truck_access !== o.truck_access ||
+      f.lat !== o.lat || f.lng !== o.lng || !!f.photoBlob ||
+      f.consent_mixed_ok || f.consent_stays_on_list || f.consent_property_access || f.consent_photo_use;
+  }
+  function hasUnsavedInput() {
+    if (STATE.step === 'signup' && STATE.form) return formHasInput(STATE.form);
+    var ui = STATE.profileUi;
+    if (!ui) return false;
+    if (ui.editingContact && ui.contactForm) {
+      var f = ui.contactForm, a = (STATE.customers && STATE.customers[0]) || {};
+      return f.first_name !== (a.first_name || '') || f.last_name !== (a.last_name || '') || f.phone !== (a.phone || '');
+    }
+    if (ui.editingLocationId != null && ui.editForm) return formHasChanges(ui.editForm);
+    if (ui.addingLocation && ui.addForm) return formHasInput(ui.addForm);
+    if (ui.rejoinLocationId != null && ui.rejoinForm) return formHasChanges(ui.rejoinForm);
+    return false;
+  }
+
+  window.addEventListener('beforeunload', function (e) {
+    if (!hasUnsavedInput()) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
+  window.addEventListener('popstate', function () {
+    var ui = STATE.profileUi;
+    var panelOpen = !!(ui && (ui.editingContact || ui.editingLocationId != null || ui.addingLocation || ui.rejoinLocationId != null));
+
+    if (STATE.step === 'profile' && panelOpen) {
+      if (hasUnsavedInput() && !confirm(COPY.unsavedChangesConfirm)) { pushHistoryMarker(); return; }
+      closeAllEditPanels(ui);
+      replaceHistoryMarker();
+      render();
+      return;
+    }
+    if (STATE.step === 'profile') {
+      // Nothing shallower to show in-app once signed in — stay put. If this truly was the first
+      // screen, the browser already left the page before this handler could ever run.
+      pushHistoryMarker();
+      return;
+    }
+    if (STATE.step === 'code') {
+      STATE.step = 'email';
+      replaceHistoryMarker();
+      render();
+      return;
+    }
+    if (STATE.step === 'signup') {
+      if (hasUnsavedInput() && !confirm(COPY.unsavedChangesConfirm)) { pushHistoryMarker(); return; }
+      STATE.form = null;
+      STATE.step = 'email';
+      replaceHistoryMarker();
+      render();
+      return;
+    }
+    // 'email' (the floor), 'closed', 'fatal', 'confirm', 'loading': nothing to intercept — let the
+    // browser actually leave the page.
+  });
+
   // ---------------------------------------------------------------- boot
+  var historyBooted = false;
   function render() {
-    if (STATE.step === 'loading') return renderLoading();
-    if (STATE.step === 'closed') return renderClosed();
-    if (STATE.step === 'email' || STATE.step === 'code') return renderEmailStep();
-    if (STATE.step === 'signup') return renderSignupForm();
-    if (STATE.step === 'confirm') return renderConfirmation();
-    if (STATE.step === 'profile') return renderProfile();
-    return renderFatal(STATE.error);
+    if (STATE.step === 'loading') { renderLoading(); }
+    else if (STATE.step === 'closed') { renderClosed(); }
+    else if (STATE.step === 'email' || STATE.step === 'code') { renderEmailStep(); }
+    else if (STATE.step === 'signup') { renderSignupForm(); }
+    else if (STATE.step === 'confirm') { renderConfirmation(); }
+    else if (STATE.step === 'profile') { renderProfile(); }
+    else { renderFatal(STATE.error); }
+    // The very first render establishes the floor entry — whatever screen boot() landed on. Every
+    // later transition manages its own marker explicitly (see the transition points above/below).
+    if (!historyBooted && STATE.step !== 'loading') { historyBooted = true; replaceHistoryMarker(); }
   }
 
   async function boot() {
