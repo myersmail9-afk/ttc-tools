@@ -96,21 +96,33 @@ window.TTCChipApi = (function () {
 
   // The one Edge Function every action (except the two Supabase Auth calls below) goes through.
   // auth:true = a signed-in action (Authorization: Bearer <access token>, per the contract).
+  //
+  // Timeout (2026-09-30): a real TEST outage once left this fetch hanging well past a minute (the
+  // door/function stalled, not erroring) while the UI kept saying "Checking…" — long enough that a
+  // customer pressed the button again. 20s is generous for a normal request but short enough that a
+  // stalled server still ends in the existing network error message instead of spinning forever.
   async function callFunction(action, payload, opts) {
     opts = opts || {};
     var session = opts.auth ? await ensureFreshSession() : loadSession();
     if (opts.auth && !session) throw new ApiError('signed_out', COPY.genericError);
     var headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY };
     if (session && session.access_token) headers.Authorization = 'Bearer ' + session.access_token;
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 20000) : null;
     var res;
     try {
       res = await fetch(CFG.EDGE_FUNCTION_URL, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify(Object.assign({ action: action }, payload || {}))
+        body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+        signal: controller ? controller.signal : undefined
       });
     } catch (e) {
+      // Covers both a real network failure and our own 20s abort (e.name === 'AbortError') —
+      // either way the customer sees the same plain "couldn't reach the server" message.
       throw new ApiError('network', COPY.networkError);
+    } finally {
+      if (timer) clearTimeout(timer);
     }
     var body = await parseJsonSafe(res);
     throwForBody(body);
@@ -136,6 +148,35 @@ window.TTCChipApi = (function () {
     }
     var body = await parseJsonSafe(res);
     if (!res.ok || !body.access_token) throw new ApiError('invalid_code', COPY.invalidCodeError);
+    var session = {
+      access_token: body.access_token,
+      refresh_token: body.refresh_token,
+      expires_at: Date.now() + (Number(body.expires_in || 3600) * 1000)
+    };
+    saveSession(session);
+    return session;
+  }
+
+  // One-click sign-in from the email's "Sign Me In" button (2026-09-30): verifies the token_hash
+  // Supabase put in the link (#token_hash=...&type=email) instead of a typed 6-digit code. Same
+  // endpoint, same session shape/storage as verifyCode — the only difference is what identifies the
+  // sign-in. A failure here almost always means the link already expired or was already used (for
+  // example, an email security scanner opening it before the customer clicks it), so it reuses the
+  // 'invalid_code' kind but with link-specific wording; wood-chips.js sends the customer back to the
+  // email step on either kind of failure.
+  async function verifyTokenHash(tokenHash, type) {
+    var res;
+    try {
+      res = await fetch(CFG.SUPABASE_URL + '/auth/v1/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY },
+        body: JSON.stringify({ type: type, token_hash: tokenHash })
+      });
+    } catch (e) {
+      throw new ApiError('network', COPY.networkError);
+    }
+    var body = await parseJsonSafe(res);
+    if (!res.ok || !body.access_token) throw new ApiError('invalid_code', COPY.linkExpiredMessage);
     var session = {
       access_token: body.access_token,
       refresh_token: body.refresh_token,
@@ -215,6 +256,7 @@ window.TTCChipApi = (function () {
     newRequestId: newRequestId,
     code: sendCode,
     verifyCode: verifyCode,
+    verifyTokenHash: verifyTokenHash,
     tiers: tiers,
     geocode: geocode,
     me: me,

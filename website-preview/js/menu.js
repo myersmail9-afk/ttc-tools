@@ -1,8 +1,5 @@
 // Mobile hamburger + dropdown toggles + Jobber estimate trigger. No dependencies.
 
-// Round-2 flag: set false to stop rendering the "Photo N of M · Label" text on the hero slideshow.
-var SHOW_PHOTO_LABEL = true;
-
 (function () {
   var hamburger = document.getElementById("hamburger");
   var nav = document.getElementById("site-nav");
@@ -138,7 +135,10 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 })();
 
 // ============================================================
-// Hero slideshow — crossfade, arrows/dots/pause, swipe, keyboard, reduced-motion aware.
+// Hero slideshow — crossfade, dots, swipe, keyboard, reduced-motion aware.
+// Round 2 (Joseph 2026-09-30): the dark control bar, prev/next arrows, pause button, and the
+// "Photo N of 8 · label" text are gone. Dots are the only visible control — bottom center, where
+// the bar used to be (see .hero-slides__dots in site.css).
 // ============================================================
 (function () {
   var hero = document.querySelector("[data-hero]");
@@ -148,14 +148,10 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   if (!slides.length) return;
 
   var dotsWrap = hero.querySelector(".hero-slides__dots");
-  var prevBtn = hero.querySelector(".hero-slides__prev");
-  var nextBtn = hero.querySelector(".hero-slides__next");
-  var pauseBtn = hero.querySelector(".hero-slides__pause");
-  var labelEl = hero.querySelector(".hero-slides__label");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var INTERVAL = 10000; // 10 seconds per photo (Joseph 2026-09-27)
-  var index = 0, timer = null, isPaused = false;
+  var index = 0, timer = null;
 
   // Perf pass (2026-09-27): the build only inlines slide 0's background-image (and preloads it);
   // every other slide carries its photo in data-bg so it isn't fetched until needed. applyBg() turns
@@ -183,27 +179,21 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
     window.addEventListener("load", function () { slides.forEach(applyBg); });
   }
 
+  // Dots are the only visible control now (no bar, no arrows, no pause button). Each dot's
+  // aria-label reads "Photo N of 8" — same wording the old bar's text used, still keyboard-usable.
   var dots = slides.map(function (slide, i) {
     var dot = document.createElement("button");
     dot.type = "button";
     dot.className = "hero-slides__dot";
-    dot.setAttribute("aria-label", "Go to photo " + (i + 1));
-    dot.addEventListener("click", function () { goTo(i); restart(); });
+    dot.setAttribute("aria-label", "Photo " + (i + 1) + " of " + slides.length);
+    dot.addEventListener("click", function () { goTo(i); start(); });
     if (dotsWrap) dotsWrap.appendChild(dot);
     return dot;
   });
 
-  function updateLabel() {
-    if (!labelEl) return;
-    if (!SHOW_PHOTO_LABEL) { labelEl.textContent = ""; return; }
-    var label = slides[index].getAttribute("data-label") || "";
-    labelEl.textContent = "Photo " + (index + 1) + " of " + slides.length + (label ? " · " + label : "");
-  }
-
   function render() {
     slides.forEach(function (s, i) { s.classList.toggle("is-active", i === index); });
     dots.forEach(function (d, i) { d.classList.toggle("is-active", i === index); });
-    updateLabel();
   }
 
   function goTo(i) {
@@ -216,27 +206,15 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
   function start() {
-    if (reduceMotion || isPaused) return;
+    if (reduceMotion) return;
     stop();
     timer = setInterval(next, INTERVAL);
   }
-  function restart() { if (!isPaused) start(); }
 
-  if (prevBtn) prevBtn.addEventListener("click", function () { prev(); restart(); });
-  if (nextBtn) nextBtn.addEventListener("click", function () { next(); restart(); });
-  if (pauseBtn) {
-    pauseBtn.addEventListener("click", function () {
-      isPaused = !isPaused;
-      if (isPaused) { stop(); } else { start(); }
-      pauseBtn.textContent = isPaused ? "▶" : "❘❘";
-      pauseBtn.setAttribute("aria-label", isPaused ? "Play slideshow" : "Pause slideshow");
-    });
-  }
-
-  // Keyboard: left/right arrows when a control inside the hero has focus (bubbles up).
+  // Keyboard: left/right arrows when a dot (or anything else inside the hero) has focus (bubbles up).
   hero.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowLeft") { prev(); restart(); }
-    else if (e.key === "ArrowRight") { next(); restart(); }
+    if (e.key === "ArrowLeft") { prev(); start(); }
+    else if (e.key === "ArrowRight") { next(); start(); }
   });
 
   // Swipe on touch.
@@ -247,7 +225,7 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   hero.addEventListener("touchend", function (e) {
     if (touchStartX === null) return;
     var dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) { if (dx < 0) next(); else prev(); restart(); }
+    if (Math.abs(dx) > 40) { if (dx < 0) next(); else prev(); start(); }
     touchStartX = null;
   }, { passive: true });
 

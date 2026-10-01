@@ -53,7 +53,8 @@
 
   // ---------------------------------------------------------------- state
   var STATE = {
-    step: 'loading',        // loading | closed | email | code | signup | confirm | profile | fatal
+    step: 'loading',        // loading | signingin | closed | email | code | signup | confirm |
+                             // profile | loadError | fatal
     tiers: [],
     email: '',
     turnstileToken: null,
@@ -90,6 +91,25 @@
     return m[1];
   }
   var pendingCode = consumePendingCodeFromHash();
+
+  // One-click sign-in (2026-09-30): the email's "Sign Me In" button links back here as
+  // #token_hash=...&type=email (Supabase's {{ .TokenHash }}), so the customer is signed in the
+  // instant they click it — no retyping a code, no extra taps. Read once, up front, same as
+  // #code= above, and drop the hash from the address bar immediately; it's never kept in history
+  // and the token itself only ever lives in memory (pendingTokenHash below), never in storage.
+  // URLSearchParams (not a position-locked regex) so param order never matters.
+  function consumePendingTokenHashFromHash() {
+    var raw = window.location.hash || '';
+    if (raw.indexOf('token_hash=') === -1) return null;
+    var params;
+    try { params = new URLSearchParams(raw.replace(/^#/, '')); } catch (e) { return null; }
+    var tokenHash = params.get('token_hash');
+    var type = params.get('type');
+    if (!tokenHash || (type !== 'email' && type !== 'magiclink')) return null;
+    try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ }
+    return { tokenHash: tokenHash, type: type };
+  }
+  var pendingTokenHash = consumePendingTokenHashFromHash();
 
   // The full sign-up form (creates the account + its first location together) — the only place
   // name/phone are collected once the account exists (adding/editing/rejoining a location never
@@ -286,9 +306,30 @@
     mount(h('div', { class: 'chip-loading' }, [COPY.loadingText]));
   }
 
+  // Shown the instant a one-click sign-in link is being verified (boot()'s pendingTokenHash
+  // branch) — a distinct message from the generic loading screen, since this one specifically
+  // means "the link worked, hang on."
+  function renderSigningIn() {
+    mount(h('div', { class: 'chip-loading' }, [COPY.signingInText]));
+  }
+
   function renderClosed() {
     mount(h('div', { class: 'chip-card chip-closed' }, [
       h('p', {}, [COPY.closedMessage])
+    ]));
+  }
+
+  // The customer IS signed in (a code or the one-click link already verified, and the session is
+  // saved) but loading their page failed — a slow/down server, never a bad code. Try Again only
+  // ever retries the load (loadAfterVerify), never asks for a code again. See loadAfterVerify().
+  var loadErrorUi = { retrying: false };
+  function renderLoadError() {
+    mount(h('div', { class: 'chip-card chip-closed' }, [
+      h('p', {}, [COPY.signedInLoadFailed]),
+      h('button', {
+        class: 'btn', type: 'button', disabled: loadErrorUi.retrying,
+        onclick: function () { retryLoadAfterVerify(); }
+      }, [loadErrorUi.retrying ? COPY.verifying : COPY.tryAgainButton])
     ]));
   }
 
@@ -299,7 +340,7 @@
     ]));
   }
 
-  var emailUi = { sending: false, error: null, verifying: false, codeError: null, code: pendingCode || '', showCodeNote: false };
+  var emailUi = { sending: false, error: null, verifying: false, codeError: null, code: pendingCode || '', showCodeNote: false, verifiedOk: false };
 
   function renderEmailStep() {
     var wrap = h('div', { class: 'chip-card' });
@@ -405,7 +446,7 @@
     });
     codeInput.value = emailUi.code;
     if (emailUi.codeError) wrap.appendChild(fieldError(emailUi.codeError));
-    var verifyBtn = h('button', { class: 'btn', type: 'submit' }, [emailUi.verifying ? COPY.verifying : COPY.verifyButton]);
+    var verifyBtn = h('button', { class: 'btn', type: 'submit', disabled: emailUi.verifying }, [emailUi.verifying ? COPY.verifying : COPY.verifyButton]);
     var codeForm = h('form', {
       class: 'chip-form', onsubmit: function (e) { e.preventDefault(); submitVerifyCode(); }
     }, [
@@ -418,7 +459,7 @@
       h('button', { class: 'chip-linkbtn', type: 'button', onclick: function () { resendCode(); } }, [COPY.resendButton]),
       h('button', {
         class: 'chip-linkbtn', type: 'button', onclick: function () {
-          STATE.step = 'email'; STATE.email = ''; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; render();
+          STATE.step = 'email'; STATE.email = ''; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; emailUi.verifiedOk = false; render();
         }
       }, [COPY.changeEmailButton])
     ]);
@@ -428,7 +469,7 @@
   }
 
   function submitSendCode(sendBtn) {
-    emailUi.error = null; emailUi.sending = true;
+    emailUi.error = null; emailUi.sending = true; emailUi.verifiedOk = false;
     // A new code invalidates any pending one from a #code= link — never offer it again once a fresh
     // send is underway, on this path or any other (resendCode() already clears it the same way).
     emailUi.code = '';
@@ -450,7 +491,7 @@
   function resendCode() {
     // Turnstile tokens are single-use, and the widget only exists on the email screen — send the
     // customer back there (email still filled in) to get a fresh token and press Send again.
-    emailUi.error = null; emailUi.codeError = null; emailUi.code = ''; emailUi.showCodeNote = false;
+    emailUi.error = null; emailUi.codeError = null; emailUi.code = ''; emailUi.showCodeNote = false; emailUi.verifiedOk = false;
     STATE.step = 'email';
     render();
   }
@@ -475,17 +516,60 @@
     }
   }
 
-  function submitVerifyCode() {
-    if (!/^\d{6}$/.test(emailUi.code)) { emailUi.codeError = COPY.invalidCodeError; return render(); }
-    emailUi.verifying = true; emailUi.codeError = null; render();
-    API.verifyCode(STATE.email, emailUi.code).then(function () {
-      return API.me();
-    }).then(function (meRes) {
+  // Loads the signed-in customer's page after ANY successful verify (a typed code, or the
+  // one-click email link). Split out on its own (2026-09-30, after a real TEST outage) because a
+  // failure here is NEVER "the code/link was wrong" — by the time this runs, verify already
+  // succeeded and the session is already saved (API.hasSession() is true). A failure here means
+  // the follow-up me() call itself failed (a slow or down server), so it must never show
+  // invalidCodeError/linkExpiredMessage and must never send the customer back to enter a code —
+  // it shows a dedicated "you're signed in, but..." screen with its own Try Again instead.
+  function loadAfterVerify() {
+    return API.me().then(function (meRes) {
       emailUi.verifying = false;
+      loadErrorUi.retrying = false;
       routeAfterAuth(meRes);
       render();
       replaceHistoryMarker();
     }).catch(function (err) {
+      emailUi.verifying = false;
+      loadErrorUi.retrying = false;
+      if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
+      STATE.step = 'loadError';
+      render();
+    });
+  }
+
+  function retryLoadAfterVerify() {
+    if (loadErrorUi.retrying) return;
+    loadErrorUi.retrying = true;
+    render();
+    loadAfterVerify();
+  }
+
+  function submitVerifyCode() {
+    // Ignore a second press while one is already in flight (2026-09-30: a real outage once left
+    // the first verify succeeding but the follow-up load stalling for 20s+ with the button still
+    // showing "Checking…" — a second press re-sent the already-spent code and the customer saw
+    // "That code didn't work" despite being signed in). Covers a fast double-click too, before the
+    // disabled attribute below even has a chance to paint.
+    if (emailUi.verifying) return;
+    // Already signed in from an earlier press of THIS code (that one's me() call was what
+    // stalled/failed) — never verify the same code twice, just retry the load. Keyed on
+    // emailUi.verifiedOk, not merely "the tab holds a session": a leftover session from another
+    // email must never be loaded in place of the account whose code is being entered.
+    if (emailUi.verifiedOk && API.hasSession()) {
+      emailUi.verifying = true; emailUi.codeError = null; render();
+      loadAfterVerify();
+      return;
+    }
+    if (!/^\d{6}$/.test(emailUi.code)) { emailUi.codeError = COPY.invalidCodeError; return render(); }
+    emailUi.verifying = true; emailUi.codeError = null; render();
+    API.verifyCode(STATE.email, emailUi.code).then(function () {
+      emailUi.verifiedOk = true;
+      return loadAfterVerify();
+    }).catch(function (err) {
+      // loadAfterVerify() handles its own errors and never rejects, so only a verifyCode failure
+      // (the session was never saved — this really is a bad/used code) ever reaches this catch.
       emailUi.verifying = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
       emailUi.codeError = err.message || COPY.invalidCodeError;
@@ -1465,19 +1549,21 @@
       render();
       return;
     }
-    // 'email' (the floor), 'closed', 'fatal', 'confirm', 'loading': nothing to intercept — let the
-    // browser actually leave the page.
+    // 'email' (the floor), 'closed', 'fatal', 'confirm', 'loading', 'signingin', 'loadError':
+    // nothing to intercept — let the browser actually leave the page.
   });
 
   // ---------------------------------------------------------------- boot
   var historyBooted = false;
   function render() {
     if (STATE.step === 'loading') { renderLoading(); }
+    else if (STATE.step === 'signingin') { renderSigningIn(); }
     else if (STATE.step === 'closed') { renderClosed(); }
     else if (STATE.step === 'email' || STATE.step === 'code') { renderEmailStep(); }
     else if (STATE.step === 'signup') { renderSignupForm(); }
     else if (STATE.step === 'confirm') { renderConfirmation(); }
     else if (STATE.step === 'profile') { renderProfile(); }
+    else if (STATE.step === 'loadError') { renderLoadError(); }
     else { renderFatal(STATE.error); }
     // The very first render establishes the floor entry — whatever screen boot() landed on. Every
     // later transition manages its own marker explicitly (see the transition points above/below).
@@ -1491,6 +1577,24 @@
     } catch (e) {
       if (e.kind === 'closed') { STATE.step = 'closed'; return render(); }
       STATE.step = 'fatal'; STATE.error = e.message; return render();
+    }
+    // One-click sign-in link, checked before any existing session — clicking a "Sign Me In" link
+    // always signs in as THAT link's owner, even in a tab some other account was already signed
+    // into. Verify failure (expired/used) and load failure (signed in, page didn't load) are kept
+    // separate here too — see loadAfterVerify().
+    if (pendingTokenHash) {
+      STATE.step = 'signingin';
+      render();
+      try {
+        await API.verifyTokenHash(pendingTokenHash.tokenHash, pendingTokenHash.type);
+      } catch (e) {
+        if (e.kind === 'closed') { STATE.step = 'closed'; return render(); }
+        pendingTokenHash = null;
+        emailUi.error = e.message || COPY.linkExpiredMessage;
+        STATE.step = 'email';
+        return render();
+      }
+      return loadAfterVerify();
     }
     if (API.hasSession()) {
       try {

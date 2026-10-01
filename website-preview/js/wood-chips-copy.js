@@ -18,6 +18,12 @@ window.TTC_CHIP_COPY = {
   tooManyError: 'Too many tries. Please wait a few minutes.',
   closedMessage: 'Sign-ups open soon. Call (435) 752-1884 to get on the list.',
   officePhoneLine: 'Questions? Call the office at (435) 752-1884.',
+  // Shown while the one-click "Sign Me In" email link is verifying (2026-09-30).
+  signingInText: 'Signing you in…',
+  // The person is already signed in (the code or link already worked) but loading their page
+  // failed — a slow or down server, not a bad code. Never send them back to re-enter a code.
+  signedInLoadFailed: 'You’re signed in, but your page didn’t load. Check your connection and tap Try Again.',
+  tryAgainButton: 'Try Again',
 
   // ---------------------------------------------------------------- intro (step a)
   introTitle: 'Sign Up for Wood Chips',
@@ -74,6 +80,9 @@ window.TTC_CHIP_COPY = {
   verifyButton: 'Verify Code',
   verifying: 'Checking…',
   invalidCodeError: 'That code didn’t work. Check it and try again.',
+  // Shown on the email step after a one-click sign-in link turned out to be expired or already
+  // used (for example, an email security scanner opened it before the person clicked it).
+  linkExpiredMessage: 'That sign-in link has expired or was already used. Enter your email and we’ll send a new one.',
   resendButton: 'Send a New Code',
   changeEmailButton: 'Use a Different Email',
   turnstileFailed: 'Verification didn’t load. Refresh the page and try again.',
