@@ -25,6 +25,6 @@ Migrated in 2026-09-11 (plan step 6). The old one-repo-per-app addresses stay li
 GitHub Pages addresses are public-by-URL (not login-protected). These pages are not advertised anywhere and the data is already link-shared via the underlying sheets. Do not post these links publicly.
 
 ## Roadmap
-Migrate other internal links into this repo over time (one page per tool), e.g. debtor map, rate analysis. Source-of-truth copies live in the private `Total Tree Care Claude` repo under each tool's domain folder.
+Migrate other internal links into this repo over time (one page per tool), e.g. rate analysis. (The Debtor Map was dropped for good on 2026-10-02.) Source-of-truth copies live in the private `Total Tree Care Claude` repo under each tool's domain folder.
 
 Source/reference copy of the chip-drop QA dashboard: `Total Tree Care Claude/domains/chip-drop/automations/url-automation/final/qa-dashboard/chip-drop-qa-LIVE.html`
