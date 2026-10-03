@@ -231,7 +231,7 @@
   };
 
   // ---------------------------------------------------------------- map widget wrapper (Leaflet + Esri satellite)
-  // Same pin-on-satellite approach as domains/stump-grinding/apps/stump-locator/index.html, but a
+  // Same pin-on-satellite approach as apps/stump-locator/index.html, but a
   // single small-circle marker instead of numbered pins, matching the spec for this page. It is a
   // singleton — only one location form (sign-up, add, change, or rejoin) is ever open at a time on
   // this page, so one Leaflet instance is always enough; init() tears down any previous map first.
@@ -342,6 +342,18 @@
 
   var emailUi = { sending: false, error: null, verifying: false, codeError: null, code: pendingCode || '', showCodeNote: false, verifiedOk: false };
 
+  // True while the code screen sits on its OWN history entry (pushed by Send / Continue With My Code).
+  // The in-page ways back to the email screen (Send a New Code, Use a Different Email) then step history
+  // back too, so the browser's Back button isn't left one entry "ahead" of the screen (the next Back press
+  // used to do nothing visible). Never set when the code screen IS the first screen (a #code= link), so
+  // this can't walk the visitor off the page. QA 2026-10-03.
+  var codeMarkerPushed = false;
+  function unwindCodeMarker() {
+    if (!codeMarkerPushed) return;
+    codeMarkerPushed = false;
+    try { history.back(); } catch (e) { /* ignore */ }
+  }
+
   function renderEmailStep() {
     var wrap = h('div', { class: 'chip-card' });
     if (STATE.step === 'email') {
@@ -407,7 +419,7 @@
             e.preventDefault();
             if (!STATE.email) { emailUi.error = COPY.errorRequired; return renderEmailStep(); }
             STATE.step = 'code';
-            pushHistoryMarker();
+            pushHistoryMarker(); codeMarkerPushed = true;
             render();
           }
         }, formKids);
@@ -459,7 +471,7 @@
       h('button', { class: 'chip-linkbtn', type: 'button', onclick: function () { resendCode(); } }, [COPY.resendButton]),
       h('button', {
         class: 'chip-linkbtn', type: 'button', onclick: function () {
-          STATE.step = 'email'; STATE.email = ''; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; emailUi.verifiedOk = false; render();
+          STATE.step = 'email'; STATE.email = ''; emailUi.error = null; emailUi.code = ''; emailUi.showCodeNote = false; emailUi.verifiedOk = false; render(); unwindCodeMarker();
         }
       }, [COPY.changeEmailButton])
     ]);
@@ -478,7 +490,7 @@
       emailUi.sending = false; STATE.step = 'code'; emailUi.codeError = null;
       rememberEmail(STATE.email);
       render();
-      pushHistoryMarker();
+      pushHistoryMarker(); codeMarkerPushed = true;
     }).catch(function (err) {
       emailUi.sending = false;
       if (err.kind === 'closed') { STATE.step = 'closed'; return render(); }
@@ -494,6 +506,7 @@
     emailUi.error = null; emailUi.codeError = null; emailUi.code = ''; emailUi.showCodeNote = false; emailUi.verifiedOk = false;
     STATE.step = 'email';
     render();
+    unwindCodeMarker();
   }
 
   // Decides where to land right after sign-in (fresh code verify, or a returning session in
@@ -1536,6 +1549,7 @@
       return;
     }
     if (STATE.step === 'code') {
+      codeMarkerPushed = false;
       STATE.step = 'email';
       replaceHistoryMarker();
       render();

@@ -171,13 +171,12 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   } catch (e) { index = Math.floor(Math.random() * slides.length); }
   applyBg(slides[index]); // the slide that's about to show needs its real photo right away
 
-  // The rest can wait until the page has otherwise finished loading — plenty of time before the
-  // 10-second slideshow interval ever reaches them.
-  if (document.readyState === "complete") {
-    slides.forEach(applyBg);
-  } else {
-    window.addEventListener("load", function () { slides.forEach(applyBg); });
-  }
+  // Only ever fetch the photo on screen plus the NEXT one (QA pass 2026-10-03). This used to pull all 8
+  // photos (~1.8 MB) as soon as the page finished loading, which phones on data paid for even though a
+  // visitor sees 2-3 slides. Each advance now warms the following photo ~10 s before it's needed.
+  function warmNext() { applyBg(slides[(index + 1) % slides.length]); }
+  if (document.readyState === "complete") warmNext();
+  else window.addEventListener("load", warmNext);
 
   // Dots are the only visible control now (no bar, no arrows, no pause button). Each dot's
   // aria-label reads "Photo N of 8" — same wording the old bar's text used, still keyboard-usable.
@@ -199,6 +198,7 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
   function goTo(i) {
     index = (i + slides.length) % slides.length;
     applyBg(slides[index]); // make sure the incoming slide has its photo even if window "load" hasn't fired yet
+    warmNext();             // and start fetching the one after it
     render();
   }
   function next() { goTo(index + 1); }
@@ -632,7 +632,7 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
 
 /* Gallery: "Back to the top" button once you're past the first screenful of photos (Joseph, 2026-09-30,
    promoted from the preview Style options). */
-(function(){ if(!document.querySelector(".gallery-grid")) return; var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches; var btn=document.createElement("button"); btn.type="button"; btn.className="back-top"; btn.textContent="Back to the top ↑"; btn.hidden=true; document.body.appendChild(btn); btn.addEventListener("click",function(){ if(reduce) window.scrollTo(0,0); else window.scrollTo({top:0,behavior:"smooth"}); }); function onScroll(){ btn.hidden=window.scrollY<700; } window.addEventListener("scroll",onScroll,{passive:true}); onScroll(); })();
+(function(){ if(!document.querySelector(".gallery-grid")) return; var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches; var btn=document.createElement("button"); btn.type="button"; btn.className="back-top"; btn.textContent="Back to the top ↑"; btn.hidden=true; document.body.appendChild(btn); btn.addEventListener("click",function(){ if(reduce) window.scrollTo(0,0); else window.scrollTo({top:0,behavior:"smooth"}); }); var ticking=false; function update(){ ticking=false; btn.hidden=window.scrollY<700; } function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } } window.addEventListener("scroll",onScroll,{passive:true}); update(); })();
 
 /* Homepage: sticky mini-header (Call + Free Estimate fade in once you're past the hero; 900px+ via CSS)
    and the magnetic "Get a Free Estimate" button (hover-capable pointers only). Joseph, 2026-09-30,
@@ -657,4 +657,16 @@ document.querySelectorAll(".team-card__toggle[aria-controls]").forEach(function 
     est.addEventListener("mousemove",function(ev){ var r=est.getBoundingClientRect(); var x=ev.clientX-(r.left+r.width/2), y=ev.clientY-(r.top+r.height/2); if(raf) return; raf=requestAnimationFrame(function(){ raf=null; var m=10; est.style.transform="translate("+Math.max(-m,Math.min(m,x*.25)).toFixed(1)+"px,"+Math.max(-m,Math.min(m,y*.35)).toFixed(1)+"px)"; }); });
     est.addEventListener("mouseleave",function(){ if(raf) cancelAnimationFrame(raf); raf=null; est.style.transform=""; });
   }
+})();
+
+/* Header nav: mark the page you're on. The style (.nav a.is-current) was designed but never switched on;
+   aria-current also tells screen readers. Works under the preview's /ttc-tools/... prefix too, since both
+   sides of the comparison are full paths. QA 2026-10-03. */
+(function () {
+  var here = location.pathname.replace(/index\.html$/, "");
+  document.querySelectorAll(".nav a[href]").forEach(function (a) {
+    var p;
+    try { p = new URL(a.getAttribute("href"), location.href).pathname.replace(/index\.html$/, ""); } catch (e) { return; }
+    if (p === here) { a.classList.add("is-current"); a.setAttribute("aria-current", "page"); }
+  });
 })();
